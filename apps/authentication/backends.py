@@ -48,6 +48,9 @@ class SupabaseBackend(BaseBackend):
     
     def get_user(self, user_id):
         try:
-            return User.objects.get(pk=user_id)
+            user = User.objects.get(pk=user_id)
+            print(f"DEBUG BACKEND: get_user chamado para ID {user_id}, encontrou: {user.username}")
+            return user
         except User.DoesNotExist:
+            print(f"DEBUG BACKEND: get_user chamado para ID {user_id}, usuário não encontrado")
             return None

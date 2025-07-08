@@ -120,11 +120,18 @@ def login_view(request):
                 request.session['supabase_access_token'] = response.session.access_token
                 request.session['supabase_refresh_token'] = response.session.refresh_token
                 
+                # Força a sessão a ser salva antes do login
+                request.session.save()
+                
                 # Login no Django
                 django_login(request, user, backend='authentication.backends.SupabaseBackend')
                 
+                # Força a sessão a ser salva novamente após o login
+                request.session.save()
+                
                 print(f"DEBUG LOGIN: Usuário {user.username} logado com sucesso")
                 print(f"DEBUG LOGIN: request.user = {request.user}, authenticated = {request.user.is_authenticated}")
+                print(f"DEBUG LOGIN: Session key = {request.session.session_key}")
                 
                 messages.success(request, "Login realizado com sucesso!")
                 return redirect('home')
@@ -139,6 +146,31 @@ def login_view(request):
             messages.error(request, "Erro ao fazer login.")
     
     return render(request, 'authentication/login.html')
+
+@csrf_protect
+@require_http_methods(["GET", "POST"])
+def django_login_view(request):
+    """Login usando apenas Django ModelBackend (para teste)"""
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        print(f"DEBUG DJANGO LOGIN: {username}, {password}")
+        
+        from django.contrib.auth import authenticate
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            django_login(request, user)
+            print(f"DEBUG DJANGO LOGIN: Sucesso! {user.username}")
+            print(f"DEBUG DJANGO LOGIN: Session = {request.session.session_key}")
+            messages.success(request, "Login Django realizado com sucesso!")
+            return redirect('home')
+        else:
+            print(f"DEBUG DJANGO LOGIN: Falhou para {username}")
+            messages.error(request, "Credenciais inválidas")
+    
+    return render(request, 'authentication/django_login.html')
 
 @require_http_methods(["POST"])
 def logout_view(request):

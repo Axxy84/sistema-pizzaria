@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('login/', views.login_view, name='login'),
+    path('login-django/', views.django_login_view, name='django_login'),  # LOGIN APENAS DJANGO
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
 ]

@@ -63,7 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'apps.authentication.middleware.SupabaseSessionMiddleware',
+    # 'apps.authentication.middleware.SupabaseSessionMiddleware',  # TEMPORARIAMENTE REMOVIDO
 ]
 
 ROOT_URLCONF = 'DjangoProject.urls'
@@ -171,6 +171,16 @@ AUTHENTICATION_BACKENDS = [
     'apps.authentication.backends.SupabaseBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+# Session configuration
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME = 'pizzaria_sessionid'
+SESSION_COOKIE_AGE = 1209600  # 2 semanas
+SESSION_COOKIE_SECURE = False  # True apenas em HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # REST Framework configuration
 REST_FRAMEWORK = {

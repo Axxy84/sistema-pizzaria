@@ -34,7 +34,7 @@ def home_view(request):
             'total_clientes': Cliente.objects.count(),
             'total_pedidos': Pedido.objects.count(),
             'pedidos_hoje': Pedido.objects.filter(
-                data_pedido__date=timezone.now().date()
+                criado_em__date=timezone.now().date()
             ).count(),
         })
         
@@ -55,7 +55,7 @@ def get_vendas_chart_data():
     
     data = []
     for date in dates:
-        count = Pedido.objects.filter(data_pedido__date=date).count()
+        count = Pedido.objects.filter(criado_em__date=date).count()
         data.append({
             'date': date.strftime('%d/%m'),
             'vendas': count
@@ -120,7 +120,7 @@ def dashboard_data_api(request):
             'total_clientes': Cliente.objects.count(),
             'total_pedidos': Pedido.objects.count(),
             'pedidos_hoje': Pedido.objects.filter(
-                data_pedido__date=timezone.now().date()
+                criado_em__date=timezone.now().date()
             ).count(),
         }
     }
@@ -132,11 +132,21 @@ def force_login_view(request):
     from django.contrib.auth.models import User
     from django.contrib.auth import login as django_login
     
-    # Pega o usuário existente
-    user = User.objects.filter(id=2).first()
+    # Tenta pegar usuário de teste primeiro, depois outros
+    user = User.objects.filter(username='test@test.com').first()
+    if not user:
+        user = User.objects.filter(id=2).first()
+    
     if user:
-        django_login(request, user, backend='authentication.backends.SupabaseBackend')
+        # Usar backend padrão para usuário com senha
+        if user.has_usable_password():
+            django_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        else:
+            django_login(request, user, backend='authentication.backends.SupabaseBackend')
+            
         print(f"FORCE LOGIN: Usuário {user.username} logado manualmente")
+        print(f"FORCE LOGIN: Session key = {request.session.session_key}")
+        print(f"FORCE LOGIN: User ID na sessão = {request.session.get('_auth_user_id')}")
         return redirect('home')
     else:
         return HttpResponse("Usuário não encontrado")
