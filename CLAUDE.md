@@ -384,6 +384,144 @@ python manage.py shell -c "from apps.produtos.models import Produto; print(f'Pro
 **Responsividade**: 4 breakpoints (sm, md, lg, xl)  
 **Acessibilidade**: WCAG 2.1 AA compliance
 
+## Troubleshooting e Erros Resolvidos
+
+### 🐛 Problemas Identificados e Soluções
+
+#### **Erro 1: Arquivos Estáticos 404**
+**Data**: 2025-01-08  
+**Erro**: `GET /static/css/base.css 404 (Not Found)`
+**Causa**: Configurações de arquivos estáticos não configuradas no settings.py
+**Solução**:
+```python
+# Adicionado ao settings.py
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+```
+
+#### **Erro 2: Logo PNG não encontrado**
+**Data**: 2025-01-08  
+**Erro**: `GET /static/images/logo.png 404 (Not Found)`
+**Causa**: Template referenciava logo.png mas arquivo era logo.svg
+**Solução**:
+```html
+<!-- Corrigido em templates/base/navbar.html e layouts/simple.html -->
+<img src="{% static 'images/logo.svg' %}" alt="Pizzaria Logo">
+```
+
+#### **Erro 3: Dashboard com Acesso Restrito**
+**Data**: 2025-01-08  
+**Erro**: Dashboard sempre mostrava "Faça login para acessar" mesmo logado
+**Causa**: View home_view() não passava contexto de usuário corretamente
+**Solução**:
+```python
+def home_view(request):
+    context = {
+        'user': request.user,  # Garante que o usuário está no contexto
+    }
+    # Resto da lógica...
+```
+
+#### **Erro 4: Login com AttributeError**
+**Data**: 2025-01-08  
+**Erro**: `AttributeError: 'User' object has no attribute 'backend'`
+**Causa**: Tentativa de acessar `user.backend` que não existe no modelo User do Django
+**Solução**:
+```python
+# ANTES (erro)
+print(f"DEBUG LOGIN: Usuário {user.username} logado com backend {user.backend}")
+
+# DEPOIS (correto)
+print(f"DEBUG LOGIN: Usuário {user.username} logado com sucesso")
+```
+
+#### **Erro 5: Login Não Persistindo Sessão**
+**Data**: 2025-01-08  
+**Erro**: Login bem-sucedido no Supabase mas usuário não permanecia logado no Django
+**Debug Realizado**:
+```python
+# Logs observados
+DEBUG LOGIN ATTEMPT: Email=Axxycorporation@gmail.com, Password=********
+DEBUG: Tentando login no Supabase com Axxycorporation@gmail.com
+DEBUG: Response do Supabase = AuthResponse
+DEBUG HOME VIEW: User = AnonymousUser, Authenticated = False
+```
+**Status**: Em investigação - Force login funcionando como workaround
+
+### 🔧 Comandos de Debug Úteis
+
+```bash
+# Verificar usuários no banco
+python manage.py shell -c "from django.contrib.auth.models import User; print(User.objects.all())"
+
+# Verificar sessões ativas
+python manage.py shell -c "from django.contrib.sessions.models import Session; from django.utils import timezone; print(Session.objects.filter(expire_date__gt=timezone.now()))"
+
+# Testar conectividade Supabase
+python test_db_connection.py
+
+# Forçar login para teste
+curl http://127.0.0.1:8080/force-login/
+
+# Verificar logs em tempo real
+tail -f server.log
+```
+
+### 📊 URLs de Debug Criadas
+
+- `/force-login/` - Força login do usuário ID 2 para testes
+- `/api/dashboard-data/` - API JSON com dados do dashboard
+- Template `debug_home.html` - Debug visual de autenticação
+
+### 🔍 Configurações de Debug Ativas
+
+**settings.py:**
+```python
+DEBUG = True
+ALLOWED_HOSTS = ['*']
+```
+
+**views.py debug prints:**
+```python
+print(f"DEBUG HOME VIEW: User = {request.user}, Authenticated = {request.user.is_authenticated}")
+print(f"DEBUG LOGIN ATTEMPT: Email={email}, Password={'*' * len(password)}")
+```
+
+### ✅ Features Implementadas com Sucesso
+
+1. **Sistema de Templates Moderno** - ✅ Funcionando
+2. **Gráficos Interativos Chart.js** - ✅ Funcionando  
+3. **Conectividade Supabase** - ✅ Funcionando
+4. **Autenticação Django + Supabase** - ⚠️ Parcialmente (force-login funciona)
+5. **Dashboard Responsivo** - ✅ Funcionando
+6. **Arquivos Estáticos** - ✅ Funcionando
+
+### 🎯 Próximos Passos de Debug
+
+1. Investigar por que `django_login()` não persiste a sessão
+2. Verificar configurações de CSRF e cookies
+3. Testar autenticação em modo incógnito
+4. Implementar middleware de debug para rastreamento de sessão
+5. Criar testes automatizados para autenticação
+
+### 📝 Logs de Erro para Referência
+
+```
+[08/Jul/2025 06:04:56] "POST /auth/login/ HTTP/1.1" 200 33952
+DEBUG LOGIN ATTEMPT: Email=Axxycorporation@gmail.com, Password=********
+DEBUG: Tentando login no Supabase com Axxycorporation@gmail.com
+DEBUG: Response do Supabase = AuthResponse
+DEBUG: Erro inesperado: 'User' object has no attribute 'backend'
+AttributeError: 'User' object has no attribute 'backend'
+```
+
+## Workflow de Desenvolvimento
+
 
 . **Planejamento antes de agir**  
    Primeiro, pense no problema. Leia a base de código para encontrar os arquivos relevantes e escreva um plano no arquivo `tasks/todo.md`.
