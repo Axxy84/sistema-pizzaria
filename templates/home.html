@@ -2,8 +2,12 @@
 
 {% block title %}Dashboard{% endblock %}
 
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+{% endblock %}
+
 {% block content %}
-    <!-- Override the default dashboard content -->
     {% if user.is_authenticated %}
         <!-- Welcome message -->
         <div class="bg-gradient-pizza rounded-lg p-6 text-white mb-8">
@@ -37,7 +41,7 @@
                             <dl>
                                 <dt class="text-sm font-medium text-gray-500 truncate">Pedidos Hoje</dt>
                                 <dd class="flex items-baseline">
-                                    <div class="text-2xl font-semibold text-gray-900">24</div>
+                                    <div class="text-2xl font-semibold text-gray-900" id="pedidos-hoje">{{ pedidos_hoje|default:0 }}</div>
                                     <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
                                         <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
@@ -65,7 +69,7 @@
                         <div class="ml-5 w-0 flex-1">
                             <dl>
                                 <dt class="text-sm font-medium text-gray-500 truncate">Faturamento Hoje</dt>
-                                <dd class="text-2xl font-semibold text-gray-900">R$ 1.240,00</dd>
+                                <dd class="text-2xl font-semibold text-gray-900" id="faturamento-hoje">R$ 1.240,00</dd>
                             </dl>
                         </div>
                     </div>
@@ -86,7 +90,7 @@
                         <div class="ml-5 w-0 flex-1">
                             <dl>
                                 <dt class="text-sm font-medium text-gray-500 truncate">Total de Clientes</dt>
-                                <dd class="text-2xl font-semibold text-gray-900">89</dd>
+                                <dd class="text-2xl font-semibold text-gray-900" id="total-clientes">{{ total_clientes|default:0 }}</dd>
                             </dl>
                         </div>
                     </div>
@@ -107,10 +111,69 @@
                         <div class="ml-5 w-0 flex-1">
                             <dl>
                                 <dt class="text-sm font-medium text-gray-500 truncate">Produtos Ativos</dt>
-                                <dd class="text-2xl font-semibold text-gray-900">32</dd>
+                                <dd class="text-2xl font-semibold text-gray-900" id="total-produtos">{{ total_produtos|default:0 }}</dd>
                             </dl>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
+            <!-- Vendas Chart -->
+            <div class="bg-white shadow-soft rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Vendas dos Últimos 7 Dias</h3>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-pizza-500 rounded-full mr-2"></div>
+                        <span class="text-sm text-gray-600">Pedidos</span>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="vendasChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Receita Chart -->
+            <div class="bg-white shadow-soft rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Receita Mensal</h3>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        <span class="text-sm text-gray-600">Faturamento</span>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="receitaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- More Charts Section -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
+            <!-- Produtos Chart -->
+            <div class="bg-white shadow-soft rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Produtos Mais Vendidos</h3>
+                    <button class="text-pizza-600 hover:text-pizza-700 text-sm font-medium">Ver todos</button>
+                </div>
+                <div class="h-64">
+                    <canvas id="produtosChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Clientes Chart -->
+            <div class="bg-white shadow-soft rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Crescimento de Clientes</h3>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                        <span class="text-sm text-gray-600">Clientes</span>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="clientesChart"></canvas>
                 </div>
             </div>
         </div>
@@ -211,6 +274,223 @@
                 </div>
             </div>
         </div>
+
+        <!-- JavaScript para os gráficos -->
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurações globais do Chart.js
+            Chart.defaults.font.family = 'Inter, sans-serif';
+            Chart.defaults.font.size = 12;
+            Chart.defaults.color = '#6B7280';
+
+            // Dados do servidor
+            const vendasData = {{ vendas_data|safe }};
+            const produtosData = {{ produtos_data|safe }};
+            const clientesData = {{ clientes_data|safe }};
+            const receitaData = {{ receita_data|safe }};
+
+            // Gráfico de Vendas (Linha)
+            const vendasCtx = document.getElementById('vendasChart').getContext('2d');
+            new Chart(vendasCtx, {
+                type: 'line',
+                data: {
+                    labels: vendasData.map(item => item.date),
+                    datasets: [{
+                        label: 'Vendas',
+                        data: vendasData.map(item => item.vendas),
+                        borderColor: '#DC2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#DC2626',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#F3F4F6'
+                            },
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: '#DC2626'
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Receita (Barra)
+            const receitaCtx = document.getElementById('receitaChart').getContext('2d');
+            new Chart(receitaCtx, {
+                type: 'bar',
+                data: {
+                    labels: receitaData.map(item => item.mes),
+                    datasets: [{
+                        label: 'Receita',
+                        data: receitaData.map(item => item.receita),
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        borderColor: '#22C55E',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#F3F4F6'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Produtos (Doughnut)
+            const produtosCtx = document.getElementById('produtosChart').getContext('2d');
+            new Chart(produtosCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: produtosData.map(item => item.nome),
+                    datasets: [{
+                        data: produtosData.map(item => item.vendas),
+                        backgroundColor: [
+                            '#DC2626',
+                            '#EF4444',
+                            '#F87171',
+                            '#FCA5A5',
+                            '#FECACA'
+                        ],
+                        borderWidth: 0,
+                        hoverBorderWidth: 2,
+                        hoverBorderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+
+            // Gráfico de Clientes (Área)
+            const clientesCtx = document.getElementById('clientesChart').getContext('2d');
+            new Chart(clientesCtx, {
+                type: 'line',
+                data: {
+                    labels: clientesData.map(item => item.mes),
+                    datasets: [{
+                        label: 'Clientes',
+                        data: clientesData.map(item => item.total),
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#8B5CF6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#F3F4F6'
+                            },
+                            ticks: {
+                                stepSize: 20
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Função para atualizar dados via AJAX (opcional)
+            function updateDashboard() {
+                fetch('/api/dashboard-data/')
+                .then(response => response.json())
+                .then(data => {
+                    // Atualizar estatísticas
+                    document.getElementById('pedidos-hoje').textContent = data.stats.pedidos_hoje;
+                    document.getElementById('total-clientes').textContent = data.stats.total_clientes;
+                    document.getElementById('total-produtos').textContent = data.stats.total_produtos;
+                })
+                .catch(error => console.error('Erro ao atualizar dashboard:', error));
+            }
+
+            // Atualizar dashboard a cada 5 minutos (opcional)
+            // setInterval(updateDashboard, 300000);
+        });
+        </script>
 
     {% else %}
         <div class="text-center py-12">

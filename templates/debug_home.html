@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DEBUG - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-6">🔍 DEBUG Dashboard</h1>
+        
+        <!-- DEBUG INFO -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Debug Information</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <strong>User:</strong> {{ user|default:"None" }}
+                </div>
+                <div>
+                    <strong>Authenticated:</strong> {{ user.is_authenticated|yesno:"YES,NO" }}
+                </div>
+                <div>
+                    <strong>User ID:</strong> {{ debug_info.user_id|default:"None" }}
+                </div>
+                <div>
+                    <strong>Username:</strong> {{ debug_info.username|default:"None" }}
+                </div>
+                <div>
+                    <strong>Session Key:</strong> {{ debug_info.session_key|default:"None" }}
+                </div>
+            </div>
+        </div>
+
+        {% if user.is_authenticated %}
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+                ✅ <strong>USUÁRIO LOGADO!</strong> Olá, {{ user.first_name|default:user.username }}!
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-sm text-gray-500">Pedidos Hoje</h3>
+                    <p class="text-2xl font-bold">{{ pedidos_hoje|default:0 }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-sm text-gray-500">Total Clientes</h3>
+                    <p class="text-2xl font-bold">{{ total_clientes|default:0 }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-sm text-gray-500">Total Produtos</h3>
+                    <p class="text-2xl font-bold">{{ total_produtos|default:0 }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-sm text-gray-500">Total Pedidos</h3>
+                    <p class="text-2xl font-bold">{{ total_pedidos|default:0 }}</p>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">📈 Vendas (7 dias)</h3>
+                    <canvas id="vendasChart" height="200"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">💰 Receita Mensal</h3>
+                    <canvas id="receitaChart" height="200"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">🍕 Produtos Mais Vendidos</h3>
+                    <canvas id="produtosChart" height="200"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">👥 Crescimento Clientes</h3>
+                    <canvas id="clientesChart" height="200"></canvas>
+                </div>
+            </div>
+
+            <script>
+            // Dados dos gráficos
+            const vendasData = {{ vendas_data|safe }};
+            const produtosData = {{ produtos_data|safe }};
+            const clientesData = {{ clientes_data|safe }};
+            const receitaData = {{ receita_data|safe }};
+
+            // Gráfico de Vendas
+            new Chart(document.getElementById('vendasChart'), {
+                type: 'line',
+                data: {
+                    labels: vendasData.map(item => item.date),
+                    datasets: [{
+                        label: 'Vendas',
+                        data: vendasData.map(item => item.vendas),
+                        borderColor: '#DC2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Gráfico de Receita
+            new Chart(document.getElementById('receitaChart'), {
+                type: 'bar',
+                data: {
+                    labels: receitaData.map(item => item.mes),
+                    datasets: [{
+                        label: 'Receita',
+                        data: receitaData.map(item => item.receita),
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Gráfico de Produtos
+            new Chart(document.getElementById('produtosChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: produtosData.map(item => item.nome),
+                    datasets: [{
+                        data: produtosData.map(item => item.vendas),
+                        backgroundColor: ['#DC2626', '#EF4444', '#F87171', '#FCA5A5', '#FECACA']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Gráfico de Clientes
+            new Chart(document.getElementById('clientesChart'), {
+                type: 'line',
+                data: {
+                    labels: clientesData.map(item => item.mes),
+                    datasets: [{
+                        label: 'Clientes',
+                        data: clientesData.map(item => item.total),
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+            </script>
+
+        {% else %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                ❌ <strong>USUÁRIO NÃO LOGADO!</strong> 
+                <a href="/auth/login/" class="underline">Clique aqui para fazer login</a>
+            </div>
+        {% endif %}
+
+        <div class="mt-8 text-center">
+            <a href="/auth/login/" class="bg-blue-500 text-white px-4 py-2 rounded mr-4">Login</a>
+            <a href="/auth/logout/" class="bg-red-500 text-white px-4 py-2 rounded">Logout</a>
+        </div>
+    </div>
+</body>
+</html>

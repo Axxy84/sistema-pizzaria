@@ -1,46 +1,150 @@
-{% extends 'base.html' %}
+{% extends 'layouts/simple.html' %}
 
-{% block title %}Registrar - Django + Supabase{% endblock %}
+{% block title %}Criar Conta{% endblock %}
 
-{% block content %}
-<div class="auth-form">
-    <div class="card">
-        <h2 style="text-align: center; margin-bottom: 1.5rem;">Criar Conta</h2>
-        
-        <form method="post">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label for="first_name">Nome:</label>
-                <input type="text" id="first_name" name="first_name">
+{% block simple_content %}
+<div class="min-h-screen bg-gradient-subtle flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="flex justify-center">
+            <div class="w-12 h-12 bg-pizza-600 rounded-lg flex items-center justify-center">
+                <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+                </svg>
             </div>
-            
-            <div class="form-group">
-                <label for="last_name">Sobrenome:</label>
-                <input type="text" id="last_name" name="last_name">
-            </div>
-            
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Senha:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password_confirm">Confirmar Senha:</label>
-                <input type="password" id="password_confirm" name="password_confirm" required>
-            </div>
-            
-            <button type="submit" style="width: 100%; margin-top: 1rem;">Registrar</button>
-        </form>
-        
-        <p style="text-align: center; margin-top: 1.5rem;">
-            Já tem uma conta? <a href="{% url 'login' %}">Faça login</a>
+        </div>
+        <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+            Criar sua conta
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Ou
+            <a href="{% url 'login' %}" class="font-medium text-pizza-600 hover:text-pizza-500 transition-colors duration-200">
+                faça login se já tem uma conta
+            </a>
         </p>
     </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow-soft sm:rounded-lg sm:px-10">
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-4 rounded-md p-4 {% if message.tags == 'error' %}bg-red-50 border border-red-200{% elif message.tags == 'success' %}bg-green-50 border border-green-200{% else %}bg-blue-50 border border-blue-200{% endif %}">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                {% if message.tags == 'error' %}
+                                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% elif message.tags == 'success' %}
+                                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium {% if message.tags == 'error' %}text-red-800{% elif message.tags == 'success' %}text-green-800{% else %}text-blue-800{% endif %}">
+                                    {{ message }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <label for="first_name" class="form-label">
+                            Nome
+                        </label>
+                        <input type="text" 
+                               id="first_name" 
+                               name="first_name" 
+                               class="form-input"
+                               placeholder="Digite seu nome"
+                               value="{{ request.POST.first_name|default:'' }}">
+                    </div>
+                    
+                    <div>
+                        <label for="last_name" class="form-label">
+                            Sobrenome
+                        </label>
+                        <input type="text" 
+                               id="last_name" 
+                               name="last_name" 
+                               class="form-input"
+                               placeholder="Digite seu sobrenome"
+                               value="{{ request.POST.last_name|default:'' }}">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="email" class="form-label">
+                        Email <span class="text-red-500">*</span>
+                    </label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           required 
+                           class="form-input"
+                           placeholder="seu@email.com"
+                           value="{{ request.POST.email|default:'' }}">
+                </div>
+                
+                <div>
+                    <label for="password" class="form-label">
+                        Senha <span class="text-red-500">*</span>
+                    </label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           required 
+                           class="form-input"
+                           placeholder="Mínimo 6 caracteres">
+                    <p class="form-help">Sua senha deve ter pelo menos 6 caracteres.</p>
+                </div>
+                
+                <div>
+                    <label for="password_confirm" class="form-label">
+                        Confirmar Senha <span class="text-red-500">*</span>
+                    </label>
+                    <input type="password" 
+                           id="password_confirm" 
+                           name="password_confirm" 
+                           required 
+                           class="form-input"
+                           placeholder="Digite a senha novamente">
+                </div>
+                
+                <div>
+                    <button type="submit" 
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 transition-colors duration-200">
+                        <svg class="hidden w-4 h-4 mr-2" id="loading-spinner" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span id="submit-text">Criar Conta</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const submitText = document.getElementById('submit-text');
+    
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        loadingSpinner.classList.remove('hidden');
+        submitText.textContent = 'Criando conta...';
+    });
+});
+</script>
 {% endblock %}

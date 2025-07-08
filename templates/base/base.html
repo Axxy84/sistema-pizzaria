@@ -45,6 +45,9 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     
+    <!-- Extra head content -->
+    {% block extra_head %}{% endblock %}
+    
     <style>
         body { font-family: 'Inter', sans-serif; }
         

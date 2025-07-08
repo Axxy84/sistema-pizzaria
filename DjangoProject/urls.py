@@ -22,6 +22,8 @@ from . import views
 
 urlpatterns = [
     path('', views.home_view, name='home'),
+    path('force-login/', views.force_login_view, name='force_login'),
+    path('api/dashboard-data/', views.dashboard_data_api, name='dashboard_data_api'),
     path('admin/', admin.site.urls),
     path('auth/', include('apps.authentication.urls')),
     path('api/auth/', include('apps.authentication.api_urls')),
