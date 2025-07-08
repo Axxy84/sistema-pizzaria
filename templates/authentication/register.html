@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar - Django + Supabase{% endblock %}
+
+{% block content %}
+<div class="auth-form">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 1.5rem;">Criar Conta</h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="first_name">Nome:</label>
+                <input type="text" id="first_name" name="first_name">
+            </div>
+            
+            <div class="form-group">
+                <label for="last_name">Sobrenome:</label>
+                <input type="text" id="last_name" name="last_name">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password_confirm">Confirmar Senha:</label>
+                <input type="password" id="password_confirm" name="password_confirm" required>
+            </div>
+            
+            <button type="submit" style="width: 100%; margin-top: 1rem;">Registrar</button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 1.5rem;">
+            Já tem uma conta? <a href="{% url 'login' %}">Faça login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

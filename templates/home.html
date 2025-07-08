@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Django + Supabase{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Bem-vindo ao Django + Supabase!</h2>
+    
+    {% if user.is_authenticated %}
+        <p>Olá, <strong>{{ user.email|default:user.username }}</strong>!</p>
+        <p>Você está autenticado com sucesso usando o Supabase.</p>
+        
+        <div style="margin-top: 2rem;">
+            <h3>Informações da Conta:</h3>
+            <ul>
+                <li><strong>Email:</strong> {{ user.email }}</li>
+                <li><strong>Nome:</strong> {{ user.first_name }} {{ user.last_name }}</li>
+                <li><strong>Data de Cadastro:</strong> {{ user.date_joined|date:"d/m/Y H:i" }}</li>
+            </ul>
+        </div>
+        
+        {% if request.supabase_user %}
+        <div style="margin-top: 2rem;">
+            <h3>Dados do Supabase:</h3>
+            <ul>
+                <li><strong>ID do Usuário:</strong> {{ request.supabase_user.id }}</li>
+                <li><strong>Criado em:</strong> {{ request.supabase_user.created_at }}</li>
+            </ul>
+        </div>
+        {% endif %}
+    {% else %}
+        <p>Esta é uma aplicação de exemplo integrando Django com Supabase.</p>
+        <p>Por favor, faça <a href="{% url 'login' %}">login</a> ou <a href="{% url 'register' %}">registre-se</a> para continuar.</p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h3>Sobre esta Integração</h3>
+    <p>Este projeto demonstra como integrar o Django com o Supabase para:</p>
+    <ul>
+        <li>Autenticação de usuários usando Supabase Auth</li>
+        <li>Gerenciamento de sessões sincronizado entre Django e Supabase</li>
+        <li>Backend de autenticação customizado</li>
+        <li>Middleware para validação de tokens</li>
+    </ul>
+</div>
+{% endblock %}
