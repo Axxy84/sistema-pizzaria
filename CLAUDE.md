@@ -52,10 +52,35 @@ DjangoProject/
 
 ## Key Configuration
 
-- **Database**: SQLite (default)
-- **Templates**: Configured to use `/templates/` directory
-- **Installed Apps**: Only Django defaults (admin, auth, contenttypes, sessions, messages, staticfiles)
+- **Database**: Supabase PostgreSQL (pooler IPv4) - configurado para `USE_SUPABASE_DB=True`
+- **Templates**: Configured to use `/templates/` directory  
+- **Installed Apps**: Django defaults + REST framework + CORS + custom apps (authentication, produtos, pedidos, clientes, estoque, financeiro, dashboard)
 - **DEBUG**: True (development mode)
+
+## Database Configuration
+
+### Supabase Connection
+- **Host**: `aws-0-sa-east-1.pooler.supabase.com` (pooler IPv4)
+- **User**: `postgres.aewcurtmikqelqykpqoa` 
+- **Database**: `postgres`
+- **Port**: `5432`
+- **SSL**: Required
+
+### Connection Issues Resolution
+Se houver problemas de conectividade IPv6, use o pooler do Supabase:
+- Configure `DATABASE_HOST=aws-0-sa-east-1.pooler.supabase.com`
+- Use formato de usuário: `postgres.{project_ref}`
+- Mantenha `sslmode=require` na connection string
+
+### Toggle Database
+Para alternar entre SQLite e Supabase:
+```bash
+# Para usar Supabase
+USE_SUPABASE_DB=True
+
+# Para usar SQLite local
+USE_SUPABASE_DB=False
+```
 
 ## Creating New Django Apps
 
