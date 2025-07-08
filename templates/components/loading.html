@@ -1,0 +1,84 @@
+<!-- Loading Components -->
+
+<!-- Loading Spinner -->
+{% if loading_type == 'spinner' %}
+    <div class="flex justify-center items-center {{ container_class|default:'' }}">
+        <div class="animate-spin rounded-full h-{{ size|default:'8' }} w-{{ size|default:'8' }} border-b-2 border-pizza-600"></div>
+        {% if text %}
+            <span class="ml-3 text-gray-600 text-sm">{{ text }}</span>
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- Loading Dots -->
+{% if loading_type == 'dots' %}
+    <div class="flex justify-center items-center space-x-2 {{ container_class|default:'' }}">
+        <div class="bg-pizza-600 rounded-full h-2 w-2 animate-bounce"></div>
+        <div class="bg-pizza-600 rounded-full h-2 w-2 animate-bounce" style="animation-delay: 0.1s"></div>
+        <div class="bg-pizza-600 rounded-full h-2 w-2 animate-bounce" style="animation-delay: 0.2s"></div>
+        {% if text %}
+            <span class="ml-3 text-gray-600 text-sm">{{ text }}</span>
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- Loading Pulse -->
+{% if loading_type == 'pulse' %}
+    <div class="flex justify-center items-center {{ container_class|default:'' }}">
+        <div class="h-{{ size|default:'8' }} w-{{ size|default:'8' }} bg-pizza-600 rounded-full animate-pulse"></div>
+        {% if text %}
+            <span class="ml-3 text-gray-600 text-sm">{{ text }}</span>
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- Loading Skeleton (for content) -->
+{% if loading_type == 'skeleton' %}
+    <div class="animate-pulse {{ container_class|default:'' }}">
+        {% if skeleton_type == 'text' %}
+            <div class="space-y-3">
+                <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
+        {% elif skeleton_type == 'card' %}
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div class="space-y-2">
+                    <div class="h-4 bg-gray-200 rounded"></div>
+                    <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                </div>
+            </div>
+        {% elif skeleton_type == 'table' %}
+            <div class="space-y-4">
+                <div class="h-8 bg-gray-200 rounded"></div>
+                <div class="space-y-2">
+                    <div class="h-6 bg-gray-200 rounded"></div>
+                    <div class="h-6 bg-gray-200 rounded"></div>
+                    <div class="h-6 bg-gray-200 rounded"></div>
+                </div>
+            </div>
+        {% else %}
+            <div class="h-{{ height|default:'24' }} bg-gray-200 rounded {{ width_class|default:'w-full' }}"></div>
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- Full page loading overlay -->
+{% if loading_type == 'overlay' %}
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-3 shadow-xl">
+            <div class="animate-spin rounded-full h-6 w-6 border-2 border-pizza-600 border-t-transparent"></div>
+            <span class="text-gray-700 font-medium">{{ text|default:'Carregando...' }}</span>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Button loading state -->
+{% if loading_type == 'button' %}
+    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+{% endif %}

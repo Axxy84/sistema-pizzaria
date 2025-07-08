@@ -1,0 +1,461 @@
+/* Custom CSS for Pizzaria Management System */
+
+/* Base Styles */
+:root {
+    --pizza-50: #fef2f2;
+    --pizza-100: #fee2e2;
+    --pizza-200: #fecaca;
+    --pizza-300: #fca5a5;
+    --pizza-400: #f87171;
+    --pizza-500: #ef4444;
+    --pizza-600: #dc2626;
+    --pizza-700: #b91c1c;
+    --pizza-800: #991b1b;
+    --pizza-900: #7f1d1d;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* Focus styles for accessibility */
+.focus-ring:focus {
+    outline: 2px solid var(--pizza-500);
+    outline-offset: 2px;
+}
+
+/* Custom animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Animation utilities */
+.animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slide-out-right {
+    animation: slideOutRight 0.3s ease-out;
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.animate-fade-in-down {
+    animation: fadeInDown 0.3s ease-out;
+}
+
+.animate-pulse-custom {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom gradient backgrounds */
+.bg-gradient-pizza {
+    background: linear-gradient(135deg, var(--pizza-600) 0%, var(--pizza-700) 100%);
+}
+
+.bg-gradient-subtle {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Glass morphism effect */
+.glass {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Custom shadows */
+.shadow-pizza {
+    box-shadow: 0 4px 14px 0 rgba(220, 38, 38, 0.15);
+}
+
+.shadow-soft {
+    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* Button enhancements */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Form enhancements */
+.form-input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm;
+}
+
+.form-input:invalid {
+    @apply border-red-300 focus:border-red-500 focus:ring-red-500;
+}
+
+.form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.form-error {
+    @apply mt-1 text-sm text-red-600;
+}
+
+.form-help {
+    @apply mt-1 text-sm text-gray-500;
+}
+
+/* Table enhancements */
+.table-auto th {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+
+.table-auto td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+}
+
+.table-auto tbody tr:hover {
+    @apply bg-gray-50;
+}
+
+/* Card enhancements */
+.card {
+    @apply bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200;
+}
+
+.card-header {
+    @apply px-6 py-4 border-b border-gray-200 bg-gray-50;
+}
+
+.card-body {
+    @apply px-6 py-4;
+}
+
+.card-footer {
+    @apply px-6 py-4 border-t border-gray-200 bg-gray-50;
+}
+
+/* Badge styles */
+.badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-success {
+    @apply bg-green-100 text-green-800;
+}
+
+.badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-danger {
+    @apply bg-red-100 text-red-800;
+}
+
+.badge-info {
+    @apply bg-blue-100 text-blue-800;
+}
+
+.badge-primary {
+    @apply bg-pizza-100 text-pizza-800;
+}
+
+/* Progress bar */
+.progress {
+    @apply w-full bg-gray-200 rounded-full h-2;
+}
+
+.progress-bar {
+    @apply bg-pizza-600 h-2 rounded-full transition-all duration-300 ease-in-out;
+}
+
+/* Loading skeleton */
+.skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+}
+
+.skeleton-text {
+    @apply h-4 bg-gray-200 rounded;
+}
+
+.skeleton-avatar {
+    @apply h-10 w-10 bg-gray-200 rounded-full;
+}
+
+/* Sidebar active indicator */
+.sidebar-item-active {
+    @apply bg-pizza-50 border-r-2 border-pizza-500 text-pizza-700;
+}
+
+.sidebar-item-active svg {
+    @apply text-pizza-500;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+    .mobile-hidden {
+        display: none !important;
+    }
+    
+    .mobile-full {
+        width: 100% !important;
+    }
+    
+    .mobile-stack > * {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+    }
+}
+
+@media (min-width: 641px) {
+    .desktop-hidden {
+        display: none !important;
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .print-break {
+        page-break-after: always;
+    }
+    
+    .print-avoid-break {
+        page-break-inside: avoid;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .card {
+        @apply border-2 border-gray-900;
+    }
+    
+    .btn-primary {
+        @apply border-2 border-gray-900;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode support (future enhancement) */
+@media (prefers-color-scheme: dark) {
+    .dark-mode {
+        /* Dark mode styles would go here */
+    }
+}
+
+/* Custom utilities */
+.text-truncate {
+    @apply truncate;
+}
+
+.text-balance {
+    text-wrap: balance;
+}
+
+.aspect-pizza {
+    aspect-ratio: 1 / 1;
+}
+
+.aspect-card {
+    aspect-ratio: 3 / 2;
+}
+
+/* Focus trap for modals */
+.focus-trap {
+    position: relative;
+}
+
+.focus-trap:before,
+.focus-trap:after {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.focus-trap:before {
+    top: 0;
+    left: 0;
+}
+
+.focus-trap:after {
+    bottom: 0;
+    right: 0;
+}
+
+/* Custom checkbox and radio styles */
+.custom-checkbox {
+    @apply appearance-none h-4 w-4 border border-gray-300 rounded bg-white checked:bg-pizza-600 checked:border-pizza-600 focus:outline-none focus:ring-2 focus:ring-pizza-500 focus:ring-offset-2;
+}
+
+.custom-checkbox:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6 10.293l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
+}
+
+.custom-radio {
+    @apply appearance-none h-4 w-4 border border-gray-300 rounded-full bg-white checked:bg-pizza-600 checked:border-pizza-600 focus:outline-none focus:ring-2 focus:ring-pizza-500 focus:ring-offset-2;
+}
+
+.custom-radio:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+
+/* Image optimizations */
+.img-responsive {
+    @apply max-w-full h-auto;
+}
+
+.img-cover {
+    @apply object-cover w-full h-full;
+}
+
+.img-contain {
+    @apply object-contain w-full h-full;
+}
+
+/* Transition utilities */
+.transition-all-300 {
+    transition: all 0.3s ease;
+}
+
+.transition-colors-200 {
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.transition-transform-200 {
+    transition: transform 0.2s ease;
+}
+
+/* Hover effects */
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+}
+
+/* Status indicators */
+.status-online {
+    @apply inline-block w-2 h-2 bg-green-400 rounded-full;
+}
+
+.status-offline {
+    @apply inline-block w-2 h-2 bg-gray-400 rounded-full;
+}
+
+.status-away {
+    @apply inline-block w-2 h-2 bg-yellow-400 rounded-full;
+}
+
+.status-busy {
+    @apply inline-block w-2 h-2 bg-red-400 rounded-full;
+}

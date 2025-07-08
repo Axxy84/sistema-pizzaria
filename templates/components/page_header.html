@@ -1,0 +1,119 @@
+<!-- Page Header Component -->
+<div class="mb-8">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <!-- Left side - Title and description -->
+        <div class="flex-1">
+            <h1 class="text-2xl font-bold leading-tight text-gray-900">
+                {% if icon %}
+                    <span class="inline-flex items-center">
+                        <svg class="w-6 h-6 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {{ icon|safe }}
+                        </svg>
+                        {{ title }}
+                    </span>
+                {% else %}
+                    {{ title }}
+                {% endif %}
+            </h1>
+            
+            {% if description %}
+                <p class="mt-2 text-sm text-gray-600">{{ description }}</p>
+            {% endif %}
+            
+            {% if stats %}
+                <div class="mt-3 flex items-center space-x-4 text-sm text-gray-500">
+                    {% for stat in stats %}
+                        <span>{{ stat.label }}: <span class="font-medium text-gray-900">{{ stat.value }}</span></span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right side - Actions -->
+        {% if actions %}
+            <div class="mt-4 sm:mt-0 sm:ml-4 flex space-x-3">
+                {% for action in actions %}
+                    {% if action.type == 'primary' %}
+                        {% include 'components/buttons.html' with button_type='primary' text=action.text href=action.href onclick=action.onclick icon_before=action.icon %}
+                    {% elif action.type == 'secondary' %}
+                        {% include 'components/buttons.html' with button_type='secondary' text=action.text href=action.href onclick=action.onclick icon_before=action.icon %}
+                    {% elif action.type == 'danger' %}
+                        {% include 'components/buttons.html' with button_type='danger' text=action.text href=action.href onclick=action.onclick icon_before=action.icon %}
+                    {% else %}
+                        <a href="{{ action.href }}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
+                            {% if action.icon %}
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {{ action.icon|safe }}
+                                </svg>
+                            {% endif %}
+                            {{ action.text }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block page_actions %}
+            <!-- Additional page-specific actions can be added here -->
+        {% endblock %}
+    </div>
+    
+    <!-- Optional tabs navigation -->
+    {% if tabs %}
+        <div class="mt-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    {% for tab in tabs %}
+                        <a href="{{ tab.href }}" 
+                           class="{% if tab.active %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                            {% if tab.icon %}
+                                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {{ tab.icon|safe }}
+                                </svg>
+                            {% endif %}
+                            {{ tab.text }}
+                            {% if tab.count %}
+                                <span class="ml-2 hidden rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-900 sm:inline">{{ tab.count }}</span>
+                            {% endif %}
+                        </a>
+                    {% endfor %}
+                </nav>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Optional filters bar -->
+    {% if filters %}
+        <div class="mt-4 bg-gray-50 rounded-lg p-4">
+            <div class="flex flex-wrap items-center gap-4">
+                <span class="text-sm font-medium text-gray-700">Filtros:</span>
+                {% for filter in filters %}
+                    {% if filter.type == 'select' %}
+                        <select class="block w-auto rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm">
+                            <option value="">{{ filter.placeholder }}</option>
+                            {% for option in filter.options %}
+                                <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.text }}</option>
+                            {% endfor %}
+                        </select>
+                    {% elif filter.type == 'search' %}
+                        <div class="relative">
+                            <input type="text" 
+                                   placeholder="{{ filter.placeholder }}" 
+                                   class="block w-64 rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm pl-10">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- Clear filters button -->
+                <button type="button" class="text-sm text-gray-500 hover:text-gray-700">
+                    Limpar filtros
+                </button>
+            </div>
+        </div>
+    {% endif %}
+</div>

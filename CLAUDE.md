@@ -82,6 +82,38 @@ USE_SUPABASE_DB=True
 USE_SUPABASE_DB=False
 ```
 
+## Database Schema Overview
+
+### Tabelas Criadas (34 tabelas)
+
+**Django Core:**
+- `auth_user`, `auth_group`, `auth_permission` - Sistema de autenticação
+- `django_admin_log`, `django_content_type`, `django_migrations`, `django_session` - Core Django
+
+**Apps Customizados:**
+- **Clientes**: `clientes_cliente`, `clientes_endereco`
+- **Produtos**: `produtos_produto`, `produtos_categoria`, `produtos_produtopreco`, `produtos_tamanho`
+- **Pedidos**: `pedidos_pedido`, `pedidos_itempedido`
+- **Estoque**: `estoque_ingrediente`, `estoque_movimentoestoque`, `estoque_receitaproduto`, `estoque_unidademedida`
+- **Financeiro**: `financeiro_caixa`, `financeiro_contapagar`, `financeiro_movimentocaixa`
+
+**Tabelas Extras** (possivelmente de projetos anteriores):
+- `customers`, `orders`, `order_items`, `products`, `profiles`, `settings`
+- `pizza_borders`, `pizza_flavors`, `pizza_sizes`
+
+### Comandos para Verificar Banco
+
+```bash
+# Listar todas as tabelas
+echo '\dt' | python manage.py dbshell
+
+# Ver estrutura de uma tabela específica
+echo '\d+ nome_da_tabela' | python manage.py dbshell
+
+# Exemplo: ver estrutura da tabela produtos
+echo '\d+ produtos_produto' | python manage.py dbshell
+```
+
 ## Creating New Django Apps
 
 To add functionality, create Django apps:

@@ -1,0 +1,11 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pizza slice shape -->
+  <path d="M8 20L20 8V32L8 20Z" fill="#DC2626"/>
+  <circle cx="12" cy="14" r="1.5" fill="#FEF2F2"/>
+  <circle cx="16" cy="18" r="1" fill="#FEF2F2"/>
+  <circle cx="14" cy="24" r="1.2" fill="#FEF2F2"/>
+  
+  <!-- Text -->
+  <text x="28" y="16" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#1F2937">Pizzaria</text>
+  <text x="28" y="28" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="400" fill="#6B7280">Sistema</text>
+</svg>

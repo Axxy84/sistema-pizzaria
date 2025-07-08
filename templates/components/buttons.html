@@ -1,0 +1,171 @@
+<!-- Button Components Library -->
+
+<!-- Primary Button -->
+{% comment %}
+Usage: {% include 'components/buttons.html' with button_type='primary' text='Salvar' href='#' %}
+{% endcomment %}
+
+{% if button_type == 'primary' %}
+    {% if href %}
+        <a href="{{ href }}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 transition-colors duration-200 {{ extra_classes|default:'' }}"
+           {% if onclick %}onclick="{{ onclick }}"{% endif %}
+           {% if disabled %}disabled{% endif %}>
+            {% if icon_before %}
+                <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_before|safe }}
+                </svg>
+            {% endif %}
+            {{ text }}
+            {% if icon_after %}
+                <svg class="w-4 h-4 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_after|safe }}
+                </svg>
+            {% endif %}
+        </a>
+    {% else %}
+        <button type="{{ type|default:'button' }}" 
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 transition-colors duration-200 {{ extra_classes|default:'' }}"
+                {% if onclick %}onclick="{{ onclick }}"{% endif %}
+                {% if disabled %}disabled{% endif %}>
+            {% if icon_before %}
+                <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_before|safe }}
+                </svg>
+            {% endif %}
+            {{ text }}
+            {% if icon_after %}
+                <svg class="w-4 h-4 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_after|safe }}
+                </svg>
+            {% endif %}
+        </button>
+    {% endif %}
+{% endif %}
+
+<!-- Secondary Button -->
+{% if button_type == 'secondary' %}
+    {% if href %}
+        <a href="{{ href }}" 
+           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 transition-colors duration-200 {{ extra_classes|default:'' }}"
+           {% if onclick %}onclick="{{ onclick }}"{% endif %}
+           {% if disabled %}disabled{% endif %}>
+            {% if icon_before %}
+                <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_before|safe }}
+                </svg>
+            {% endif %}
+            {{ text }}
+            {% if icon_after %}
+                <svg class="w-4 h-4 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_after|safe }}
+                </svg>
+            {% endif %}
+        </a>
+    {% else %}
+        <button type="{{ type|default:'button' }}" 
+                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 transition-colors duration-200 {{ extra_classes|default:'' }}"
+                {% if onclick %}onclick="{{ onclick }}"{% endif %}
+                {% if disabled %}disabled{% endif %}>
+            {% if icon_before %}
+                <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_before|safe }}
+                </svg>
+            {% endif %}
+            {{ text }}
+            {% if icon_after %}
+                <svg class="w-4 h-4 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_after|safe }}
+                </svg>
+            {% endif %}
+        </button>
+    {% endif %}
+{% endif %}
+
+<!-- Danger Button -->
+{% if button_type == 'danger' %}
+    {% if href %}
+        <a href="{{ href }}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 {{ extra_classes|default:'' }}"
+           {% if onclick %}onclick="{{ onclick }}"{% endif %}
+           {% if disabled %}disabled{% endif %}>
+            {% if icon_before %}
+                <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_before|safe }}
+                </svg>
+            {% endif %}
+            {{ text }}
+            {% if icon_after %}
+                <svg class="w-4 h-4 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_after|safe }}
+                </svg>
+            {% endif %}
+        </a>
+    {% else %}
+        <button type="{{ type|default:'button' }}" 
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 {{ extra_classes|default:'' }}"
+                {% if onclick %}onclick="{{ onclick }}"{% endif %}
+                {% if disabled %}disabled{% endif %}>
+            {% if icon_before %}
+                <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_before|safe }}
+                </svg>
+            {% endif %}
+            {{ text }}
+            {% if icon_after %}
+                <svg class="w-4 h-4 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_after|safe }}
+                </svg>
+            {% endif %}
+        </button>
+    {% endif %}
+{% endif %}
+
+<!-- Success Button -->
+{% if button_type == 'success' %}
+    {% if href %}
+        <a href="{{ href }}" 
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 {{ extra_classes|default:'' }}"
+           {% if onclick %}onclick="{{ onclick }}"{% endif %}
+           {% if disabled %}disabled{% endif %}>
+            {% if icon_before %}
+                <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_before|safe }}
+                </svg>
+            {% endif %}
+            {{ text }}
+            {% if icon_after %}
+                <svg class="w-4 h-4 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_after|safe }}
+                </svg>
+            {% endif %}
+        </a>
+    {% else %}
+        <button type="{{ type|default:'button' }}" 
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 {{ extra_classes|default:'' }}"
+                {% if onclick %}onclick="{{ onclick }}"{% endif %}
+                {% if disabled %}disabled{% endif %}>
+            {% if icon_before %}
+                <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_before|safe }}
+                </svg>
+            {% endif %}
+            {{ text }}
+            {% if icon_after %}
+                <svg class="w-4 h-4 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{ icon_after|safe }}
+                </svg>
+            {% endif %}
+        </button>
+    {% endif %}
+{% endif %}
+
+<!-- Small Button Size -->
+{% if size == 'sm' %}
+    {% comment %}Add sm classes to any button type{% endcomment %}
+{% endif %}
+
+<!-- Large Button Size -->
+{% if size == 'lg' %}
+    {% comment %}Add lg classes to any button type{% endcomment %}
+{% endif %}

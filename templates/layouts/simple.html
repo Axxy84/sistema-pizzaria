@@ -1,0 +1,46 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title|default:'Pizzaria' }}{% endblock %}
+
+<!-- Override sidebar to not show it -->
+{% block sidebar %}{% endblock %}
+
+<!-- Override breadcrumb for simpler layout -->
+{% block breadcrumb %}{% endblock %}
+
+<!-- Simple page header -->
+{% block page_header %}
+    {% if page_title %}
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">{{ page_title }}</h1>
+            {% if page_description %}
+                <p class="mt-2 text-lg text-gray-600">{{ page_description }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+<!-- Content area with centered container -->
+{% block content %}
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            {% block simple_content %}
+                <!-- Default simple content -->
+                <div class="text-center">
+                    <img class="mx-auto h-12 w-auto" src="{% load static %}{% static 'images/logo.png' %}" alt="Pizzaria Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="hidden mx-auto w-12 h-12 bg-pizza-600 rounded-full items-center justify-center" style="display: flex;">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5z"/>
+                        </svg>
+                    </div>
+                    <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                        Bem-vindo à Pizzaria
+                    </h2>
+                    <p class="mt-2 text-sm text-gray-600">
+                        Sistema de gestão completo para sua pizzaria
+                    </p>
+                </div>
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
