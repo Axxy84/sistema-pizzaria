@@ -63,9 +63,13 @@ def register_view(request):
                     # Armazena tokens na sessão
                     request.session['supabase_access_token'] = response.session.access_token
                     request.session['supabase_refresh_token'] = response.session.refresh_token
+                    request.session['supabase_user_id'] = response.user.id
+                    
+                    # Define o backend antes do login
+                    user.backend = 'authentication.backends.SupabaseBackend'
                     
                     # Login no Django
-                    django_login(request, user, backend='authentication.backends.SupabaseBackend')
+                    django_login(request, user)
                     return redirect('home')
                 else:
                     messages.success(request, "Registro realizado com sucesso! Verifique seu email para confirmar.")
@@ -98,52 +102,26 @@ def login_view(request):
         
         print(f"DEBUG LOGIN ATTEMPT: Email={email}, Password={'*' * len(password)}")
         
-        try:
-            supabase = get_supabase_client()
+        # Usar o sistema de autenticação do Django
+        from django.contrib.auth import authenticate
+        
+        print(f"DEBUG: Tentando autenticar com Django/Supabase backend")
+        user = authenticate(request, username=email, password=password)
+        
+        if user:
+            # Login no Django
+            django_login(request, user)
             
-            # Login no Supabase
-            print(f"DEBUG: Tentando login no Supabase com {email}")
-            response = supabase.auth.sign_in_with_password({
-                "email": email,
-                "password": password
-            })
-            print(f"DEBUG: Response do Supabase = {type(response).__name__}")
+            print(f"DEBUG LOGIN: Usuário {user.username} logado com sucesso")
+            print(f"DEBUG LOGIN: request.user = {request.user}, authenticated = {request.user.is_authenticated}")
+            print(f"DEBUG LOGIN: Session key = {request.session.session_key}")
+            print(f"DEBUG LOGIN: _auth_user_id = {request.session.get('_auth_user_id')}")
             
-            if response.user:
-                # Busca ou cria usuário Django
-                user, created = User.objects.get_or_create(
-                    username=email,
-                    defaults={'email': email}
-                )
-                
-                # Armazena tokens na sessão
-                request.session['supabase_access_token'] = response.session.access_token
-                request.session['supabase_refresh_token'] = response.session.refresh_token
-                
-                # Força a sessão a ser salva antes do login
-                request.session.save()
-                
-                # Login no Django
-                django_login(request, user, backend='authentication.backends.SupabaseBackend')
-                
-                # Força a sessão a ser salva novamente após o login
-                request.session.save()
-                
-                print(f"DEBUG LOGIN: Usuário {user.username} logado com sucesso")
-                print(f"DEBUG LOGIN: request.user = {request.user}, authenticated = {request.user.is_authenticated}")
-                print(f"DEBUG LOGIN: Session key = {request.session.session_key}")
-                
-                messages.success(request, "Login realizado com sucesso!")
-                return redirect('home')
-                
-        except AuthApiError as e:
-            print(f"DEBUG: AuthApiError - {e}")
+            messages.success(request, "Login realizado com sucesso!")
+            return redirect('home')
+        else:
+            print(f"DEBUG: Falha na autenticação para {email}")
             messages.error(request, "Email ou senha inválidos.")
-        except Exception as e:
-            print(f"DEBUG: Erro inesperado: {e}")
-            import traceback
-            traceback.print_exc()
-            messages.error(request, "Erro ao fazer login.")
     
     return render(request, 'authentication/login.html')
 

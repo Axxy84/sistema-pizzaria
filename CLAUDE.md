@@ -451,7 +451,42 @@ DEBUG: Tentando login no Supabase com Axxycorporation@gmail.com
 DEBUG: Response do Supabase = AuthResponse
 DEBUG HOME VIEW: User = AnonymousUser, Authenticated = False
 ```
-**Status**: Em investigação - Force login funcionando como workaround
+**Status**: ✅ RESOLVIDO
+
+**Causa Raiz**: 
+1. A senha no Supabase estava incorreta/expirada
+2. O sistema tentava autenticar apenas via Supabase, sem fallback para Django
+3. Mesmo com sucesso no Supabase, a sessão Django não era criada corretamente
+
+**Solução Implementada**:
+1. **Backend Híbrido** (`apps/authentication/backends.py`):
+   ```python
+   # Primeiro tenta autenticação Django local
+   if user and user.has_usable_password():
+       if user.check_password(password):
+           return user
+   
+   # Se falhar, tenta Supabase
+   response = supabase.auth.sign_in_with_password(...)
+   ```
+
+2. **View de Login Simplificada** (`apps/authentication/views.py`):
+   ```python
+   # Usa authenticate() do Django corretamente
+   user = authenticate(request, username=email, password=password)
+   if user:
+       django_login(request, user)
+       return redirect('home')
+   ```
+
+3. **Criação de usuário com senha Django**:
+   ```python
+   # Script fix_user_password.py
+   user.set_password(password)
+   user.save()
+   ```
+
+**Resultado**: Login funcionando perfeitamente com autenticação híbrida Django + Supabase
 
 ### 🔧 Comandos de Debug Úteis
 
@@ -497,7 +532,7 @@ print(f"DEBUG LOGIN ATTEMPT: Email={email}, Password={'*' * len(password)}")
 1. **Sistema de Templates Moderno** - ✅ Funcionando
 2. **Gráficos Interativos Chart.js** - ✅ Funcionando  
 3. **Conectividade Supabase** - ✅ Funcionando
-4. **Autenticação Django + Supabase** - ⚠️ Parcialmente (force-login funciona)
+4. **Autenticação Django + Supabase** - ✅ Funcionando (híbrida)
 5. **Dashboard Responsivo** - ✅ Funcionando
 6. **Arquivos Estáticos** - ✅ Funcionando
 

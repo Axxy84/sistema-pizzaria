@@ -12,6 +12,19 @@ class SupabaseBackend(BaseBackend):
         if username is None or password is None:
             return None
         
+        # Primeiro, tenta buscar o usuário Django
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = None
+        
+        # Se o usuário existe e tem senha Django, tenta autenticar localmente primeiro
+        if user and user.has_usable_password():
+            if user.check_password(password):
+                print(f"DEBUG BACKEND: Autenticação Django bem-sucedida para {username}")
+                return user
+        
+        # Se falhou localmente, tenta com Supabase
         try:
             supabase = get_supabase_client()
             
@@ -37,11 +50,14 @@ class SupabaseBackend(BaseBackend):
                     request.session['supabase_access_token'] = response.session.access_token
                     request.session['supabase_refresh_token'] = response.session.refresh_token
                 
+                print(f"DEBUG BACKEND: Autenticação Supabase bem-sucedida para {username}")
                 return user
                 
-        except AuthApiError:
+        except AuthApiError as e:
+            print(f"DEBUG BACKEND: Erro Supabase - {e}")
             return None
-        except Exception:
+        except Exception as e:
+            print(f"DEBUG BACKEND: Erro inesperado - {e}")
             return None
         
         return None
