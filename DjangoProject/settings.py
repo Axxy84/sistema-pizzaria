@@ -64,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'apps.authentication.middleware.SupabaseSessionMiddleware',  # TEMPORARIAMENTE REMOVIDO
+    # 'apps.authentication.debug_middleware.AuthenticationDebugMiddleware',  # Descomente para debug
 ]
 
 ROOT_URLCONF = 'DjangoProject.urls'

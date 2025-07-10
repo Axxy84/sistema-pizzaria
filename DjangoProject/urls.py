@@ -26,6 +26,11 @@ urlpatterns = [
     path('api/dashboard-data/', views.dashboard_data_api, name='dashboard_data_api'),
     path('admin/', admin.site.urls),
     path('auth/', include('apps.authentication.urls')),
+    
+    # URLs HTML dos apps
+    path('produtos/', include('apps.produtos.urls_html')),
+    
+    # APIs REST
     path('api/auth/', include('apps.authentication.api_urls')),
     path('api/produtos/', include('apps.produtos.urls')),
     path('api/clientes/', include('apps.clientes.urls')),

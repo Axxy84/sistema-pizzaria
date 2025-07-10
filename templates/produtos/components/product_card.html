@@ -1,0 +1,79 @@
+<div class="product-card bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" data-product-id="{{ produto.id }}">
+    <!-- Imagem -->
+    <div class="h-48 bg-gray-100 relative">
+        {% if produto.imagem %}
+            <img src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" class="w-full h-full object-cover">
+        {% else %}
+            <div class="flex items-center justify-center h-full">
+                {% if produto.tipo_produto == 'pizza' %}
+                    <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2m8 0V5a2 2 0 012-2h2a2 2 0 012 2v3m0 0h2a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2v-9a2 2 0 012-2h16z"></path>
+                    </svg>
+                {% elif produto.tipo_produto == 'bebida' %}
+                    <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                    </svg>
+                {% else %}
+                    <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <!-- Badge de tipo -->
+        <div class="absolute top-2 left-2">
+            <span class="px-2 py-1 text-xs font-medium rounded-full {{ produto.get_tipo_display_badge }}">
+                {{ produto.get_tipo_produto_display }}
+            </span>
+        </div>
+        
+        <!-- Badge de status -->
+        <div class="absolute top-2 right-2">
+            <span class="status-badge px-2 py-1 text-xs font-medium rounded-full {% if produto.ativo %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                {% if produto.ativo %}Ativo{% else %}Inativo{% endif %}
+            </span>
+        </div>
+    </div>
+    
+    <!-- Conteúdo -->
+    <div class="p-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ produto.nome }}</h3>
+        <p class="text-sm text-gray-600 mb-2">{{ produto.categoria.nome }}</p>
+        
+        {% if produto.descricao %}
+            <p class="text-sm text-gray-500 mb-3 line-clamp-2">{{ produto.descricao|truncatewords:15 }}</p>
+        {% endif %}
+        
+        {% if produto.ingredientes %}
+            <p class="text-xs text-gray-500 mb-3">
+                <span class="font-medium">Ingredientes:</span> {{ produto.ingredientes|truncatewords:10 }}
+            </p>
+        {% endif %}
+        
+        <!-- Preço -->
+        <div class="mb-4">
+            <p class="text-lg font-bold text-red-600">{{ produto.preco_display }}</p>
+            {% if produto.tem_tamanhos and produto.precos.exists %}
+                <p class="text-xs text-gray-500">
+                    {% for preco in produto.precos.all|slice:":3" %}
+                        {{ preco.tamanho.nome }}: R$ {{ preco.preco_final }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                    {% if produto.precos.count > 3 %}...{% endif %}
+                </p>
+            {% endif %}
+        </div>
+        
+        <!-- Ações -->
+        <div class="flex gap-2">
+            <a href="{% url 'product_update' produto.pk %}" 
+               class="flex-1 px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded hover:bg-gray-200 transition-colors text-center">
+                Editar
+            </a>
+            <button onclick="toggleProductStatus({{ produto.id }})" 
+                    class="toggle-btn flex-1 px-3 py-2 bg-red-100 text-red-700 text-sm font-medium rounded hover:bg-red-200 transition-colors">
+                {% if produto.ativo %}Desativar{% else %}Ativar{% endif %}
+            </button>
+        </div>
+    </div>
+</div>

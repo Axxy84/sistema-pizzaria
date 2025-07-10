@@ -1,0 +1,89 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Excluir Produto{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a href="{% url 'home' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li><a href="{% url 'product_list' %}" class="text-gray-500 hover:text-gray-700">Produtos</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li class="text-gray-900 font-medium">Excluir</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Card de Confirmação -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-lg font-medium text-gray-900">Confirmar Exclusão</h3>
+                    <div class="mt-2 text-sm text-gray-500">
+                        <p>Tem certeza que deseja excluir o produto <strong class="text-gray-700">{{ object.nome }}</strong>?</p>
+                        <p class="mt-2">Esta ação não pode ser desfeita.</p>
+                    </div>
+                    
+                    <!-- Detalhes do Produto -->
+                    <div class="mt-4 bg-gray-50 rounded-lg p-4">
+                        <dl class="grid grid-cols-1 gap-2 text-sm">
+                            <div>
+                                <dt class="font-medium text-gray-700">Categoria:</dt>
+                                <dd class="text-gray-600">{{ object.categoria.nome }}</dd>
+                            </div>
+                            <div>
+                                <dt class="font-medium text-gray-700">Tipo:</dt>
+                                <dd class="text-gray-600">{{ object.get_tipo_produto_display }}</dd>
+                            </div>
+                            {% if object.preco_unitario %}
+                            <div>
+                                <dt class="font-medium text-gray-700">Preço:</dt>
+                                <dd class="text-gray-600">R$ {{ object.preco_unitario }}</dd>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <dt class="font-medium text-gray-700">Status:</dt>
+                                <dd class="text-gray-600">{% if object.ativo %}Ativo{% else %}Inativo{% endif %}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    
+                    <!-- Avisos -->
+                    {% if object.precos.exists %}
+                    <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <p class="text-sm text-yellow-800">
+                            <strong>Atenção:</strong> Este produto possui {{ object.precos.count }} preço(s) por tamanho que também serão excluídos.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botões -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <form method="post" class="flex justify-end space-x-3">
+                {% csrf_token %}
+                <a href="{% url 'product_list' %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Sim, Excluir Produto
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Gestão de Produtos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .product-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Gestão de Produtos</h1>
+            <p class="text-gray-600 mt-1">Gerencie o cardápio da sua pizzaria</p>
+        </div>
+        <a href="{% url 'product_create' %}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Adicionar Produto
+        </a>
+    </div>
+
+    <!-- Filtros por Tipo -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-4">
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'product_list' %}?status={{ current_status }}" 
+                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if not current_tipo or current_tipo == 'todos' %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    Todos ({{ tipo_counts.todos }})
+                </a>
+                <a href="{% url 'pizza_list' %}?status={{ current_status }}" 
+                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if current_tipo == 'pizza' %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    Pizzas ({{ tipo_counts.pizza }})
+                </a>
+                <a href="{% url 'bebida_list' %}?status={{ current_status }}" 
+                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if current_tipo == 'bebida' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    Bebidas ({{ tipo_counts.bebida }})
+                </a>
+                <a href="{% url 'borda_list' %}?status={{ current_status }}" 
+                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if current_tipo == 'borda' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    Bordas ({{ tipo_counts.borda }})
+                </a>
+                <a href="{% url 'sobremesa_list' %}?status={{ current_status }}" 
+                   class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {% if current_tipo == 'sobremesa' %}bg-purple-100 text-purple-700{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                    Sobremesas ({{ tipo_counts.sobremesa }})
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Busca e Filtros -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <form method="get" class="flex flex-wrap gap-4" id="filterForm">
+            <!-- Busca -->
+            <div class="flex-1 min-w-[300px]">
+                <div class="relative">
+                    <input type="text" 
+                           name="q" 
+                           value="{{ search_query }}"
+                           placeholder="Buscar por nome, descrição ou ingredientes..."
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                <option value="ativo" {% if current_status == 'ativo' %}selected{% endif %}>Ativos</option>
+                <option value="inativo" {% if current_status == 'inativo' %}selected{% endif %}>Inativos</option>
+                <option value="todos" {% if current_status == 'todos' %}selected{% endif %}>Todos</option>
+            </select>
+
+            <!-- Ordenação -->
+            <select name="ordering" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                <option value="nome" {% if current_ordering == 'nome' %}selected{% endif %}>Nome (A-Z)</option>
+                <option value="-nome" {% if current_ordering == '-nome' %}selected{% endif %}>Nome (Z-A)</option>
+                <option value="-criado_em" {% if current_ordering == '-criado_em' %}selected{% endif %}>Mais recentes</option>
+                <option value="criado_em" {% if current_ordering == 'criado_em' %}selected{% endif %}>Mais antigos</option>
+                <option value="tipo_produto" {% if current_ordering == 'tipo_produto' %}selected{% endif %}>Por tipo</option>
+            </select>
+
+            <!-- Botão Buscar -->
+            <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                Filtrar
+            </button>
+        </form>
+    </div>
+
+    <!-- Lista de Produtos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for produto in produtos %}
+            {% include 'produtos/components/product_card.html' with produto=produto %}
+        {% empty %}
+            <div class="col-span-full text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                <p class="text-gray-500 text-lg">Nenhum produto encontrado</p>
+                <p class="text-gray-400 mt-2">Tente ajustar os filtros ou adicione um novo produto</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginação -->
+    {% if is_paginated %}
+    <div class="flex justify-center mt-8">
+        <nav class="flex space-x-2">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_ordering %}&ordering={{ current_ordering }}{% endif %}" 
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50">
+                    Anterior
+                </a>
+            {% endif %}
+
+            <span class="px-4 py-2 bg-red-600 text-white rounded-lg">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_ordering %}&ordering={{ current_ordering }}{% endif %}" 
+                   class="px-3 py-2 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50">
+                    Próxima
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Busca em tempo real
+const searchInput = document.querySelector('input[name="q"]');
+let searchTimeout;
+
+searchInput.addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+        const query = e.target.value;
+        if (query.length >= 3 || query.length === 0) {
+            document.getElementById('filterForm').submit();
+        }
+    }, 500);
+});
+
+// Toggle status via AJAX
+function toggleProductStatus(productId) {
+    fetch(`/produtos/${productId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Atualizar UI
+            const card = document.querySelector(`[data-product-id="${productId}"]`);
+            const statusBadge = card.querySelector('.status-badge');
+            const toggleBtn = card.querySelector('.toggle-btn');
+            
+            if (data.ativo) {
+                statusBadge.textContent = 'Ativo';
+                statusBadge.classList.remove('bg-gray-100', 'text-gray-700');
+                statusBadge.classList.add('bg-green-100', 'text-green-700');
+                toggleBtn.textContent = 'Desativar';
+            } else {
+                statusBadge.textContent = 'Inativo';
+                statusBadge.classList.remove('bg-green-100', 'text-green-700');
+                statusBadge.classList.add('bg-gray-100', 'text-gray-700');
+                toggleBtn.textContent = 'Ativar';
+            }
+            
+            // Mostrar mensagem de sucesso
+            Alpine.store('app').showToast(data.message, 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        Alpine.store('app').showToast('Erro ao atualizar produto', 'error');
+    });
+}
+</script>
+{% endblock %}
