@@ -7,29 +7,55 @@
 <style>
     .price-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.25rem;
     }
     
     .price-input-group {
-        background: #F9FAFB;
-        border: 1px solid #E5E7EB;
-        border-radius: 0.5rem;
-        padding: 1rem;
+        background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+        border: 2px solid #E5E7EB;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
         text-align: center;
         transition: all 0.2s;
+        position: relative;
+        overflow: hidden;
     }
     
-    .price-input-group:hover {
+    .price-input-group::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(135deg, #DC2626, #EF4444);
+        border-radius: 0.75rem;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: -1;
+    }
+    
+    .price-input-group:hover::before,
+    .price-input-group:focus-within::before {
+        opacity: 0.1;
+    }
+    
+    .price-input-group:hover,
+    .price-input-group:focus-within {
         border-color: #DC2626;
-        background: #FEF2F2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
     }
     
     .price-input-group label {
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 0.5rem;
-        display: block;
+        font-weight: 700;
+        color: #1F2937;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 0.875rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -37,27 +63,97 @@
     
     .price-input-group input {
         text-align: center;
-        font-size: 1.125rem;
-        font-weight: 600;
+        font-size: 1.25rem;
+        font-weight: 700;
         color: #059669;
+        padding-left: 2rem;
+        font-variant-numeric: tabular-nums;
+    }
+    
+    .price-input-group input:focus {
+        outline: 2px solid #DC2626;
+        outline-offset: 2px;
+    }
+    
+    .price-input-group.has-error input {
+        color: #DC2626;
+        border-color: #DC2626;
+    }
+    
+    .size-icon {
+        font-size: 1.5rem;
     }
     
     .ingredients-preview {
-        background: #F3F4F6;
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-        margin-top: 0.5rem;
+        background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+        border: 1px solid #E2E8F0;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-top: 0.75rem;
     }
     
     .ingredient-tag {
         display: inline-block;
         background: white;
-        padding: 0.25rem 0.75rem;
+        padding: 0.375rem 1rem;
         border-radius: 9999px;
         margin: 0.25rem;
         font-size: 0.875rem;
-        color: #4B5563;
+        color: #374151;
         border: 1px solid #E5E7EB;
+        font-weight: 500;
+        transition: all 0.15s;
+    }
+    
+    .ingredient-tag:hover {
+        border-color: #DC2626;
+        color: #DC2626;
+        transform: scale(1.05);
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        border: 1px solid #E5E7EB;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .image-preview {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .image-preview img {
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .image-preview::after {
+        content: '📇';
+        position: absolute;
+        bottom: -0.5rem;
+        right: -0.5rem;
+        background: #DC2626;
+        color: white;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 </style>
 {% endblock %}
@@ -95,12 +191,11 @@
         </div>
         {% endif %}
         
-        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
-            <div class="p-6 space-y-6">
-                <!-- Informações Básicas -->
-                <div>
-                    <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="space-y-6">
+            <!-- Informações Básicas -->
+            <div class="form-section">
+                    <h2 class="form-section-title">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         Informações da Pizza
@@ -161,31 +256,36 @@
                 </div>
                 
                 <!-- Preços por Tamanho -->
-                <div class="pt-6 border-t border-gray-200">
-                    <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="form-section">
+                    <h2 class="form-section-title">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         Preços por Tamanho
                     </h2>
                     
-                    <p class="text-sm text-gray-600 mb-4">
-                        Defina os preços para cada tamanho. Os valores devem ser crescentes (Pequena < Média < Grande < Família).
-                    </p>
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                        <p class="text-sm text-amber-800 flex items-start gap-2">
+                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <span>Os preços devem ser crescentes: Pequena < Média < Grande < Família</span>
+                        </p>
+                    </div>
                     
                     <div class="price-grid">
                         {% for field in form %}
                             {% if 'preco_' in field.name %}
                             <div class="price-input-group">
                                 <label for="{{ field.id_for_label }}">
-                                    {% if 'broto' in field.name %}
-                                        🍕 Broto
+                                    {% if 'pequena' in field.name or 'broto' in field.name %}
+                                        <span class="size-icon">🍕</span> PEQUENA
                                     {% elif 'média' in field.name %}
-                                        🍕 Média
+                                        <span class="size-icon">🍕🍕</span> MÉDIA
                                     {% elif 'grande' in field.name %}
-                                        🍕 Grande
+                                        <span class="size-icon">🍕🍕🍕</span> GRANDE
                                     {% elif 'família' in field.name %}
-                                        🍕 Família
+                                        <span class="size-icon">🍕🍕🍕🍕</span> FAMÍLIA
                                     {% else %}
                                         {{ field.label }}
                                     {% endif %}
@@ -204,8 +304,14 @@
                 </div>
                 
                 <!-- Imagem e Status -->
-                <div class="pt-6 border-t border-gray-200">
-                    <h2 class="text-lg font-medium text-gray-900 mb-4">Configurações Adicionais</h2>
+                <div class="form-section">
+                    <h2 class="form-section-title">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Configurações Adicionais
+                    </h2>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Imagem -->
@@ -215,9 +321,9 @@
                             </label>
                             
                             {% if form.instance.imagem %}
-                            <div class="mb-3">
+                            <div class="mb-3 image-preview">
                                 <img src="{{ form.instance.imagem.url }}" alt="{{ form.instance.nome }}" 
-                                     class="w-32 h-32 object-cover rounded-lg border border-gray-200">
+                                     class="w-40 h-40 object-cover">
                             </div>
                             {% endif %}
                             
@@ -242,16 +348,18 @@
                         </div>
                     </div>
                 </div>
-            </div>
             
             <!-- Botões -->
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex justify-between items-center">
                 <a href="{% url 'pizza_table' %}" 
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                    ❌ Cancelar
+                   class="px-5 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Cancelar
                 </a>
                 <button type="submit" 
-                        class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
+                        class="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
@@ -304,22 +412,32 @@ document.addEventListener('DOMContentLoaded', function() {
         // Limpar erros anteriores
         priceInputs.forEach(input => {
             input.classList.remove('border-red-500');
+            input.closest('.price-input-group').classList.remove('has-error');
             const errorMsg = input.parentElement.parentElement.querySelector('.text-red-600');
             if (errorMsg && errorMsg.dataset.dynamic === 'true') {
                 errorMsg.remove();
             }
         });
         
+        // Ordem esperada dos preços
+        const expectedOrder = ['pequena', 'média', 'grande', 'família'];
+        const sortedPrices = prices.sort((a, b) => {
+            const aIndex = expectedOrder.findIndex(size => a.name.includes(size));
+            const bIndex = expectedOrder.findIndex(size => b.name.includes(size));
+            return aIndex - bIndex;
+        });
+        
         // Verificar ordem crescente
-        for (let i = 1; i < prices.length; i++) {
-            if (prices[i].value <= prices[i-1].value) {
-                prices[i].input.classList.add('border-red-500');
+        for (let i = 1; i < sortedPrices.length; i++) {
+            if (sortedPrices[i].value <= sortedPrices[i-1].value) {
+                sortedPrices[i].input.classList.add('border-red-500');
+                sortedPrices[i].input.closest('.price-input-group').classList.add('has-error');
                 
                 const error = document.createElement('p');
-                error.className = 'mt-1 text-xs text-red-600';
+                error.className = 'mt-1 text-xs text-red-600 font-medium';
                 error.dataset.dynamic = 'true';
                 error.textContent = 'Deve ser maior que o tamanho anterior';
-                prices[i].input.parentElement.parentElement.appendChild(error);
+                sortedPrices[i].input.parentElement.parentElement.appendChild(error);
             }
         }
     }
