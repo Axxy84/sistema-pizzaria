@@ -19,6 +19,7 @@ urlpatterns = [
     
     # CRUD
     path('novo/', views_html.ProductCreateView.as_view(), name='product_create'),
+    path('novo/wizard/', views_html.ProductCreateWizardView.as_view(), name='product_create_wizard'),
     path('<int:pk>/editar/', views_html.ProductUpdateView.as_view(), name='product_update'),
     path('<int:pk>/excluir/', views_html.ProductDeleteView.as_view(), name='product_delete'),
     path('<int:pk>/delete/', views_html.ProductDeleteView.as_view(), name='product_delete_post'),

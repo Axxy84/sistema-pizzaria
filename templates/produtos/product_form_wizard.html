@@ -1,0 +1,926 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Novo Produto{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Cards de Tipo de Produto */
+    .type-card {
+        background: white;
+        border: 2px solid #E5E7EB;
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .type-card:hover {
+        border-color: #DC2626;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -10px rgba(220, 38, 38, 0.25);
+    }
+    
+    .type-card.selected {
+        border-color: #DC2626;
+        background: #FEF2F2;
+    }
+    
+    .type-card.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: #DC2626;
+        color: white;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    
+    .type-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        display: block;
+        animation: bounce 2s infinite;
+    }
+    
+    .type-card:hover .type-icon {
+        animation-play-state: paused;
+        transform: scale(1.1);
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .type-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin-bottom: 0.5rem;
+    }
+    
+    .type-description {
+        font-size: 0.875rem;
+        color: #6B7280;
+    }
+    
+    /* Etapas */
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 3rem;
+        gap: 2rem;
+    }
+    
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+    }
+    
+    .step-number {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background: #E5E7EB;
+        color: #6B7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .step.active .step-number {
+        background: #DC2626;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .step.completed .step-number {
+        background: #10B981;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6B7280;
+        transition: color 0.3s;
+    }
+    
+    .step.active .step-label {
+        color: #DC2626;
+        font-weight: 600;
+    }
+    
+    .step.completed .step-label {
+        color: #10B981;
+    }
+    
+    /* Linha conectora entre steps */
+    .step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 100%;
+        width: 2rem;
+        height: 2px;
+        background: #E5E7EB;
+        transform: translateY(-50%);
+    }
+    
+    .step.completed:not(:last-child)::after {
+        background: #10B981;
+    }
+    
+    /* Formulário */
+    .form-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .price-input-container {
+        background: #F9FAFB;
+        border: 2px solid #E5E7EB;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .price-input-container:hover,
+    .price-input-container:focus-within {
+        border-color: #DC2626;
+        background: #FEF2F2;
+    }
+    
+    .price-size-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .price-size-label {
+        font-weight: 700;
+        color: #1F2937;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+    }
+    
+    .price-size-info {
+        font-size: 0.75rem;
+        color: #6B7280;
+        margin-bottom: 1rem;
+    }
+    
+    .price-input {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        border: none;
+        background: transparent;
+        color: #059669;
+        width: 100%;
+        padding: 0.5rem;
+    }
+    
+    .price-input:focus {
+        outline: 2px solid #DC2626;
+        outline-offset: 2px;
+        border-radius: 0.375rem;
+    }
+    
+    /* Sugestões de ingredientes */
+    .ingredient-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #E5E7EB;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 10;
+        margin-top: 0.25rem;
+    }
+    
+    .ingredient-suggestion {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .ingredient-suggestion:hover {
+        background: #F3F4F6;
+    }
+    
+    .ingredient-suggestion-icon {
+        font-size: 1.25rem;
+    }
+    
+    /* Validação visual */
+    .field-valid {
+        border-color: #10B981 !important;
+    }
+    
+    .field-invalid {
+        border-color: #EF4444 !important;
+    }
+    
+    .validation-message {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .validation-message.success {
+        color: #10B981;
+    }
+    
+    .validation-message.error {
+        color: #EF4444;
+    }
+    
+    /* Botões */
+    .wizard-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn-wizard {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-wizard-primary {
+        background: linear-gradient(135deg, #DC2626, #B91C1C);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.25);
+    }
+    
+    .btn-wizard-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px -1px rgba(220, 38, 38, 0.35);
+    }
+    
+    .btn-wizard-secondary {
+        background: white;
+        color: #6B7280;
+        border: 2px solid #E5E7EB;
+    }
+    
+    .btn-wizard-secondary:hover {
+        border-color: #9CA3AF;
+        color: #4B5563;
+    }
+    
+    /* Mobile */
+    @media (max-width: 768px) {
+        .type-cards-grid {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .step-indicator {
+            gap: 1rem;
+        }
+        
+        .step-label {
+            display: none;
+        }
+        
+        .price-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto" x-data="productWizard()">
+    <!-- Header -->
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Vamos cadastrar um novo produto!</h1>
+        <p class="text-gray-600">Siga os passos abaixo para adicionar um produto ao seu cardápio</p>
+    </div>
+    
+    <!-- Indicador de Etapas -->
+    <div class="step-indicator" x-show="currentStep > 0">
+        <div class="step" :class="{ 'active': currentStep === 1, 'completed': currentStep > 1 }">
+            <span class="step-number">1</span>
+            <span class="step-label">Tipo</span>
+        </div>
+        <div class="step" :class="{ 'active': currentStep === 2, 'completed': currentStep > 2 }">
+            <span class="step-number">2</span>
+            <span class="step-label">Informações</span>
+        </div>
+        <div class="step" x-show="productType === 'pizza'" :class="{ 'active': currentStep === 3 }">
+            <span class="step-number">3</span>
+            <span class="step-label">Preços</span>
+        </div>
+    </div>
+    
+    <!-- Etapa 0: Seleção de Tipo -->
+    <div x-show="currentStep === 0" x-transition>
+        <div class="form-section">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 text-center">Que tipo de produto você quer adicionar?</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 type-cards-grid">
+                <div class="type-card" 
+                     @click="selectType('pizza')"
+                     :class="{ 'selected': productType === 'pizza' }">
+                    <span class="type-icon">🍕</span>
+                    <div class="type-name">Pizza</div>
+                    <div class="type-description">Múltiplos tamanhos</div>
+                </div>
+                
+                <div class="type-card" 
+                     @click="selectType('bebida')"
+                     :class="{ 'selected': productType === 'bebida' }">
+                    <span class="type-icon">🥤</span>
+                    <div class="type-name">Bebida</div>
+                    <div class="type-description">Preço único</div>
+                </div>
+                
+                <div class="type-card" 
+                     @click="selectType('sobremesa')"
+                     :class="{ 'selected': productType === 'sobremesa' }">
+                    <span class="type-icon">🎂</span>
+                    <div class="type-name">Sobremesa</div>
+                    <div class="type-description">Preço único</div>
+                </div>
+                
+                <div class="type-card" 
+                     @click="selectType('acompanhamento')"
+                     :class="{ 'selected': productType === 'acompanhamento' }">
+                    <span class="type-icon">🍟</span>
+                    <div class="type-name">Acompanhamento</div>
+                    <div class="type-description">Preço único</div>
+                </div>
+                
+                <div class="type-card" 
+                     @click="selectType('outro')"
+                     :class="{ 'selected': productType === 'outro' }">
+                    <span class="type-icon">📦</span>
+                    <div class="type-name">Outro</div>
+                    <div class="type-description">Preço único</div>
+                </div>
+            </div>
+            
+            <div class="wizard-buttons mt-8">
+                <a href="{% url 'product_list' %}" class="btn-wizard btn-wizard-secondary">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Cancelar
+                </a>
+                <button @click="nextStep()" 
+                        :disabled="!productType"
+                        class="btn-wizard btn-wizard-primary"
+                        :class="{ 'opacity-50 cursor-not-allowed': !productType }">
+                    Próximo
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Etapa 1: Informações Básicas -->
+    <div x-show="currentStep === 1" x-transition>
+        <form method="post" enctype="multipart/form-data" @submit.prevent="handleSubmit">
+            {% csrf_token %}
+            <input type="hidden" name="tipo_produto" :value="productType">
+            
+            <div class="form-section">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">
+                    <span x-text="getStepTitle()"></span>
+                </h2>
+                
+                <!-- Nome do Produto -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <span x-text="productType === 'pizza' ? 'Nome da Pizza' : 'Nome do Produto'"></span>
+                    </label>
+                    <input type="text" 
+                           name="nome" 
+                           x-model="formData.nome"
+                           @input="validateField('nome', $event.target.value)"
+                           :class="{ 'field-valid': validations.nome === true, 'field-invalid': validations.nome === false }"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                           :placeholder="productType === 'pizza' ? 'Ex: Margherita' : 'Nome do produto'">
+                    <div x-show="validations.nome === true" class="validation-message success">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        Nome válido
+                    </div>
+                    <div x-show="validations.nome === false" class="validation-message error">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                        Nome é obrigatório
+                    </div>
+                </div>
+                
+                <!-- Categoria -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                    <select name="categoria" 
+                            x-model="formData.categoria"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                        <option value="">Selecione uma categoria</option>
+                        <template x-for="cat in getCategories()" :key="cat.value">
+                            <option :value="cat.value" x-text="cat.label"></option>
+                        </template>
+                    </select>
+                </div>
+                
+                <!-- Ingredientes (apenas para pizza) -->
+                <div class="mb-6 relative" x-show="productType === 'pizza'">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ingredientes</label>
+                    <textarea name="ingredientes" 
+                              x-model="formData.ingredientes"
+                              @input="searchIngredients($event.target.value)"
+                              @keydown.escape="showSuggestions = false"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                              rows="3"
+                              placeholder="Ex: Molho de tomate, mussarela, manjericão, azeite"></textarea>
+                    
+                    <!-- Sugestões de ingredientes -->
+                    <div x-show="showSuggestions && filteredIngredients.length > 0" 
+                         class="ingredient-suggestions"
+                         @click.away="showSuggestions = false">
+                        <template x-for="ingredient in filteredIngredients" :key="ingredient">
+                            <div class="ingredient-suggestion" @click="addIngredient(ingredient)">
+                                <span class="ingredient-suggestion-icon">🧀</span>
+                                <span x-text="ingredient"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Descrição (opcional) -->
+                <div class="mb-6" x-show="productType !== 'pizza'">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição (opcional)</label>
+                    <textarea name="descricao" 
+                              x-model="formData.descricao"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                              rows="2"
+                              placeholder="Descrição breve do produto"></textarea>
+                </div>
+                
+                <!-- Preço único (para não-pizzas) -->
+                <div class="mb-6" x-show="productType !== 'pizza'">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Preço</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-500">R$</span>
+                        <input type="number" 
+                               name="preco_unitario" 
+                               x-model="formData.preco_unitario"
+                               @input="validatePrice($event.target.value)"
+                               class="pl-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                               placeholder="0,00"
+                               step="0.01"
+                               min="0.01">
+                    </div>
+                    <div x-show="priceSuggestion" class="validation-message success mt-1">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span x-text="priceSuggestion"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wizard-buttons">
+                <button type="button" @click="previousStep()" class="btn-wizard btn-wizard-secondary">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Voltar
+                </button>
+                <button type="button" 
+                        @click="productType === 'pizza' ? nextStep() : submitForm()"
+                        class="btn-wizard btn-wizard-primary">
+                    <span x-text="productType === 'pizza' ? 'Próximo: Definir Preços' : 'Salvar Produto'"></span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Etapa 2: Preços (apenas para pizzas) -->
+    <div x-show="currentStep === 2 && productType === 'pizza'" x-transition>
+        <form method="post" @submit.prevent="submitForm">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h2 class="text-xl font-bold text-gray-900 mb-2">Defina os preços por tamanho</h2>
+                <p class="text-gray-600 mb-8">Os preços devem ser crescentes conforme o tamanho aumenta</p>
+                
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 price-grid">
+                    <div class="price-input-container">
+                        <div class="price-size-icon">🍕</div>
+                        <div class="price-size-label">Pequena</div>
+                        <div class="price-size-info">25-35cm</div>
+                        <div class="relative">
+                            <span class="absolute left-2 top-2 text-xl text-gray-500">R$</span>
+                            <input type="number" 
+                                   name="preco_pequena"
+                                   x-model="formData.preco_pequena"
+                                   @input="validatePrices()"
+                                   class="price-input pl-10"
+                                   placeholder="0,00"
+                                   step="0.01"
+                                   min="0.01">
+                        </div>
+                    </div>
+                    
+                    <div class="price-input-container">
+                        <div class="price-size-icon">🍕🍕</div>
+                        <div class="price-size-label">Média</div>
+                        <div class="price-size-info">35-40cm</div>
+                        <div class="relative">
+                            <span class="absolute left-2 top-2 text-xl text-gray-500">R$</span>
+                            <input type="number" 
+                                   name="preco_média"
+                                   x-model="formData.preco_media"
+                                   @input="validatePrices()"
+                                   class="price-input pl-10"
+                                   placeholder="0,00"
+                                   step="0.01"
+                                   min="0.01">
+                        </div>
+                    </div>
+                    
+                    <div class="price-input-container">
+                        <div class="price-size-icon">🍕🍕🍕</div>
+                        <div class="price-size-label">Grande</div>
+                        <div class="price-size-info">40-45cm</div>
+                        <div class="relative">
+                            <span class="absolute left-2 top-2 text-xl text-gray-500">R$</span>
+                            <input type="number" 
+                                   name="preco_grande"
+                                   x-model="formData.preco_grande"
+                                   @input="validatePrices()"
+                                   class="price-input pl-10"
+                                   placeholder="0,00"
+                                   step="0.01"
+                                   min="0.01">
+                        </div>
+                    </div>
+                    
+                    <div class="price-input-container">
+                        <div class="price-size-icon">🍕🍕🍕🍕</div>
+                        <div class="price-size-label">Família</div>
+                        <div class="price-size-info">45-50cm</div>
+                        <div class="relative">
+                            <span class="absolute left-2 top-2 text-xl text-gray-500">R$</span>
+                            <input type="number" 
+                                   name="preco_família"
+                                   x-model="formData.preco_familia"
+                                   @input="validatePrices()"
+                                   class="price-input pl-10"
+                                   placeholder="0,00"
+                                   step="0.01"
+                                   min="0.01">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mensagem de validação de preços -->
+                <div x-show="priceValidation" class="mt-4">
+                    <div :class="priceValidation.valid ? 'validation-message success' : 'validation-message error'">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path x-show="priceValidation.valid" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            <path x-show="!priceValidation.valid" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span x-text="priceValidation.message"></span>
+                    </div>
+                </div>
+                
+                <!-- Sugestão automática de preços -->
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm">
+                            <p class="text-blue-800 font-medium mb-1">Dica: Preços proporcionais</p>
+                            <p class="text-blue-700">Geralmente a diferença entre tamanhos é de R$ 5,00 a R$ 10,00</p>
+                            <button type="button" 
+                                    @click="suggestPrices()"
+                                    class="mt-2 text-blue-600 hover:text-blue-800 font-medium underline">
+                                Sugerir preços automáticos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wizard-buttons">
+                <button type="button" @click="previousStep()" class="btn-wizard btn-wizard-secondary">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Voltar
+                </button>
+                <button type="submit" 
+                        :disabled="!priceValidation || !priceValidation.valid"
+                        class="btn-wizard btn-wizard-primary"
+                        :class="{ 'opacity-50 cursor-not-allowed': !priceValidation || !priceValidation.valid }">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Salvar Pizza
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Estado de Salvamento -->
+    <div x-show="saving" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-4"></div>
+            <p class="text-lg font-medium text-gray-900">Salvando produto...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function productWizard() {
+    return {
+        currentStep: 0,
+        productType: null,
+        formData: {
+            nome: '',
+            categoria: '',
+            ingredientes: '',
+            descricao: '',
+            preco_unitario: '',
+            preco_pequena: '',
+            preco_media: '',
+            preco_grande: '',
+            preco_familia: '',
+            ativo: true
+        },
+        validations: {},
+        showSuggestions: false,
+        filteredIngredients: [],
+        priceSuggestion: '',
+        priceValidation: null,
+        saving: false,
+        
+        // Lista de ingredientes comuns
+        commonIngredients: [
+            'Molho de tomate', 'Mussarela', 'Orégano', 'Azeitona',
+            'Presunto', 'Calabresa', 'Cebola', 'Tomate', 'Pimentão',
+            'Milho', 'Ervilha', 'Bacon', 'Catupiry', 'Cheddar',
+            'Provolone', 'Parmesão', 'Manjericão', 'Rúcula',
+            'Champignon', 'Palmito', 'Atum', 'Frango', 'Carne moída',
+            'Pepperoni', 'Salame', 'Anchovas', 'Camarão'
+        ],
+        
+        selectType(type) {
+            this.productType = type;
+            this.currentStep = 1;
+        },
+        
+        nextStep() {
+            if (this.currentStep === 0 && this.productType) {
+                this.currentStep = 1;
+            } else if (this.currentStep === 1 && this.validateStep1()) {
+                this.currentStep = 2;
+            }
+        },
+        
+        previousStep() {
+            if (this.currentStep > 0) {
+                this.currentStep--;
+            }
+        },
+        
+        getStepTitle() {
+            const titles = {
+                'pizza': 'Informações da Pizza',
+                'bebida': 'Informações da Bebida',
+                'sobremesa': 'Informações da Sobremesa',
+                'acompanhamento': 'Informações do Acompanhamento',
+                'outro': 'Informações do Produto'
+            };
+            return titles[this.productType] || 'Informações do Produto';
+        },
+        
+        getCategories() {
+            const categories = {
+                'pizza': [
+                    { value: '1', label: 'Pizzas Tradicionais' },
+                    { value: '2', label: 'Pizzas Especiais' }
+                ],
+                'bebida': [
+                    { value: '3', label: 'Refrigerantes' },
+                    { value: '4', label: 'Sucos' },
+                    { value: '5', label: 'Águas' },
+                    { value: '6', label: 'Cervejas' }
+                ],
+                'sobremesa': [
+                    { value: '7', label: 'Doces' },
+                    { value: '8', label: 'Sorvetes' }
+                ],
+                'acompanhamento': [
+                    { value: '9', label: 'Porções' },
+                    { value: '10', label: 'Saladas' }
+                ],
+                'outro': [
+                    { value: '11', label: 'Outros' }
+                ]
+            };
+            return categories[this.productType] || [];
+        },
+        
+        validateField(field, value) {
+            if (field === 'nome') {
+                this.validations.nome = value.length >= 3;
+            }
+        },
+        
+        validateStep1() {
+            return this.formData.nome.length >= 3 && this.formData.categoria;
+        },
+        
+        searchIngredients(value) {
+            if (!value || value.length < 2) {
+                this.showSuggestions = false;
+                return;
+            }
+            
+            const lastIngredient = value.split(',').pop().trim().toLowerCase();
+            if (lastIngredient.length < 2) {
+                this.showSuggestions = false;
+                return;
+            }
+            
+            this.filteredIngredients = this.commonIngredients.filter(ing => 
+                ing.toLowerCase().includes(lastIngredient) &&
+                !value.toLowerCase().includes(ing.toLowerCase())
+            ).slice(0, 5);
+            
+            this.showSuggestions = this.filteredIngredients.length > 0;
+        },
+        
+        addIngredient(ingredient) {
+            const ingredients = this.formData.ingredientes.split(',').map(i => i.trim());
+            ingredients[ingredients.length - 1] = ingredient;
+            this.formData.ingredientes = ingredients.join(', ') + ', ';
+            this.showSuggestions = false;
+        },
+        
+        validatePrice(value) {
+            const price = parseFloat(value);
+            if (price > 0 && price < 10) {
+                this.priceSuggestion = 'Preço baixo para ' + this.productType;
+            } else if (price > 100) {
+                this.priceSuggestion = 'Preço alto para ' + this.productType + '. Verifique se está correto.';
+            } else {
+                this.priceSuggestion = '';
+            }
+        },
+        
+        validatePrices() {
+            const prices = {
+                pequena: parseFloat(this.formData.preco_pequena) || 0,
+                media: parseFloat(this.formData.preco_media) || 0,
+                grande: parseFloat(this.formData.preco_grande) || 0,
+                familia: parseFloat(this.formData.preco_familia) || 0
+            };
+            
+            // Verifica se todos os preços foram preenchidos
+            if (Object.values(prices).some(p => p === 0)) {
+                this.priceValidation = {
+                    valid: false,
+                    message: 'Preencha todos os preços'
+                };
+                return;
+            }
+            
+            // Verifica ordem crescente
+            if (prices.pequena >= prices.media || 
+                prices.media >= prices.grande || 
+                prices.grande >= prices.familia) {
+                this.priceValidation = {
+                    valid: false,
+                    message: 'Os preços devem ser crescentes (Pequena < Média < Grande < Família)'
+                };
+                return;
+            }
+            
+            this.priceValidation = {
+                valid: true,
+                message: 'Preços válidos! ✓'
+            };
+        },
+        
+        suggestPrices() {
+            const basePrice = parseFloat(this.formData.preco_pequena) || 25;
+            this.formData.preco_pequena = basePrice.toFixed(2);
+            this.formData.preco_media = (basePrice + 8).toFixed(2);
+            this.formData.preco_grande = (basePrice + 16).toFixed(2);
+            this.formData.preco_familia = (basePrice + 24).toFixed(2);
+            this.validatePrices();
+        },
+        
+        async submitForm() {
+            this.saving = true;
+            
+            // Preparar dados do formulário
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            formData.append('tipo_produto', this.productType);
+            formData.append('nome', this.formData.nome);
+            formData.append('categoria', this.formData.categoria);
+            formData.append('ativo', this.formData.ativo);
+            
+            if (this.productType === 'pizza') {
+                formData.append('ingredientes', this.formData.ingredientes);
+                formData.append('preco_pequena', this.formData.preco_pequena);
+                formData.append('preco_média', this.formData.preco_media);
+                formData.append('preco_grande', this.formData.preco_grande);
+                formData.append('preco_família', this.formData.preco_familia);
+            } else {
+                formData.append('descricao', this.formData.descricao);
+                formData.append('preco_unitario', this.formData.preco_unitario);
+            }
+            
+            try {
+                const response = await fetch('{% url "product_create_wizard" %}', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.href = data.redirect_url || '{% url "product_list" %}';
+                    } else {
+                        alert('Erro ao salvar produto: ' + (data.error || 'Erro desconhecido'));
+                    }
+                } else {
+                    alert('Erro ao salvar produto');
+                }
+            } catch (error) {
+                alert('Erro ao salvar produto: ' + error.message);
+            } finally {
+                this.saving = false;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

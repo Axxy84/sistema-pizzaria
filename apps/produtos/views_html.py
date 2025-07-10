@@ -324,3 +324,74 @@ class PizzaUpdateView(LoginRequiredMixin, UpdateView):
                     )
         
         return response
+
+
+class ProductCreateWizardView(LoginRequiredMixin, TemplateView):
+    """View para o formulário wizard de criação de produtos"""
+    template_name = "produtos/product_form_wizard.html"
+    
+    def post(self, request, *args, **kwargs):
+        """Processa o formulário wizard"""
+        try:
+            tipo_produto = request.POST.get("tipo_produto")
+            nome = request.POST.get("nome")
+            categoria_id = request.POST.get("categoria")
+            ativo = request.POST.get("ativo", "true") == "true"
+            
+            # Validações básicas
+            if not nome or not categoria_id:
+                return JsonResponse({
+                    "success": False,
+                    "error": "Nome e categoria são obrigatórios"
+                })
+            
+            # Buscar categoria
+            try:
+                categoria = Categoria.objects.get(id=categoria_id)
+            except Categoria.DoesNotExist:
+                return JsonResponse({
+                    "success": False,
+                    "error": "Categoria inválida"
+                })
+            
+            # Criar produto
+            produto = Produto.objects.create(
+                nome=nome,
+                categoria=categoria,
+                tipo_produto=tipo_produto,
+                ativo=ativo,
+                descricao=request.POST.get("descricao", ""),
+                ingredientes=request.POST.get("ingredientes", ""),
+                preco_unitario=request.POST.get("preco_unitario") or None
+            )
+            
+            # Se for pizza, criar preços por tamanho
+            if tipo_produto == "pizza":
+                tamanhos = Tamanho.objects.filter(ativo=True).order_by("ordem")
+                for tamanho in tamanhos:
+                    preco_field = f"preco_{tamanho.nome.lower()}"
+                    preco_value = request.POST.get(preco_field)
+                    if preco_value:
+                        ProdutoPreco.objects.create(
+                            produto=produto,
+                            tamanho=tamanho,
+                            preco=preco_value
+                        )
+            
+            # Redirecionar baseado no tipo
+            if tipo_produto == "pizza":
+                redirect_url = reverse_lazy("pizza_list")
+            else:
+                redirect_url = reverse_lazy("product_list")
+            
+            return JsonResponse({
+                "success": True,
+                "redirect_url": str(redirect_url),
+                "message": f"{produto.nome} cadastrado com sucesso\!"
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "error": str(e)
+            })
