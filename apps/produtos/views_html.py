@@ -233,12 +233,6 @@ class PizzaTableView(LoginRequiredMixin, ListView):
             categoria = pizza.categoria.nome
             if categoria not in pizzas_por_categoria:
                 pizzas_por_categoria[categoria] = []
-            
-            # Organizar preços por tamanho
-            pizza.precos_dict = {}
-            for preco in pizza.precos.all():
-                pizza.precos_dict[preco.tamanho.id] = preco.preco_final
-            
             pizzas_por_categoria[categoria].append(pizza)
         
         context['pizzas_por_categoria'] = pizzas_por_categoria

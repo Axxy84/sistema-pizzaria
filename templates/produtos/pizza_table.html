@@ -1,5 +1,6 @@
 {% extends 'layouts/dashboard.html' %}
 {% load static %}
+{% load produto_tags %}
 
 {% block title %}Cardápio de Pizzas{% endblock %}
 
@@ -144,7 +145,7 @@
                             
                             {% for tamanho in tamanhos %}
                             <td class="px-4 py-4 text-center">
-                                {% with preco=pizza.precos_dict|get:tamanho.id %}
+                                {% with preco=pizza|get_preco_tamanho:tamanho %}
                                     {% if preco %}
                                         <span class="price-cell">R$ {{ preco|floatformat:2 }}</span>
                                     {% else %}
@@ -228,7 +229,7 @@
                     {% for tamanho in tamanhos %}
                     <div class="bg-gray-50 rounded p-2 text-center">
                         <div class="text-xs text-gray-500">{{ tamanho.nome }}</div>
-                        {% with preco=pizza.precos_dict|get:tamanho.id %}
+                        {% with preco=pizza|get_preco_tamanho:tamanho %}
                             {% if preco %}
                                 <div class="font-bold text-green-600">R$ {{ preco|floatformat:2 }}</div>
                             {% else %}

@@ -88,6 +88,11 @@ class Produto(models.Model):
             'outro': 'bg-gray-100 text-gray-800',
         }
         return cores.get(self.tipo_produto, cores['outro'])
+    
+    def get_preco_por_tamanho(self, tamanho_id):
+        """Retorna o preço para um tamanho específico"""
+        preco = self.precos.filter(tamanho_id=tamanho_id).first()
+        return preco.preco_final if preco else None
 
 class ProdutoPreco(models.Model):
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE, related_name='precos')
