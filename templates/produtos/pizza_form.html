@@ -1,0 +1,332 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Pizza{% endblock %}
+
+{% block extra_css %}
+<style>
+    .price-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .price-input-group {
+        background: #F9FAFB;
+        border: 1px solid #E5E7EB;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.2s;
+    }
+    
+    .price-input-group:hover {
+        border-color: #DC2626;
+        background: #FEF2F2;
+    }
+    
+    .price-input-group label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .price-input-group input {
+        text-align: center;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #059669;
+    }
+    
+    .ingredients-preview {
+        background: #F3F4F6;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+    }
+    
+    .ingredient-tag {
+        display: inline-block;
+        background: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        margin: 0.25rem;
+        font-size: 0.875rem;
+        color: #4B5563;
+        border: 1px solid #E5E7EB;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a href="{% url 'home' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li><a href="{% url 'pizza_table' %}" class="text-gray-500 hover:text-gray-700">Pizzas</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li class="text-gray-900 font-medium">{% if form.instance.pk %}Editar{% else %}Nova{% endif %}</li>
+            </ol>
+        </nav>
+        
+        <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <span class="text-3xl">{% if form.instance.pk %}✏️{% else %}🍕{% endif %}</span>
+            {% if form.instance.pk %}Editar Pizza: {{ form.instance.nome }}{% else %}Nova Pizza{% endif %}
+        </h1>
+    </div>
+
+    <!-- Formulário -->
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Erros do formulário -->
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {% for error in form.non_field_errors %}
+                <p class="text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+            <div class="p-6 space-y-6">
+                <!-- Informações Básicas -->
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Informações da Pizza
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Nome -->
+                        <div>
+                            <label for="{{ form.nome.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Nome da Pizza
+                            </label>
+                            {{ form.nome }}
+                            {% if form.nome.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.nome.errors|first }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Categoria -->
+                        <div>
+                            <label for="{{ form.categoria.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Categoria
+                            </label>
+                            {{ form.categoria }}
+                            {% if form.categoria.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.categoria.errors|first }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Descrição -->
+                    <div class="mt-6">
+                        <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Descrição (opcional)
+                        </label>
+                        {{ form.descricao }}
+                        {% if form.descricao.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.descricao.errors|first }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Ingredientes -->
+                    <div class="mt-6">
+                        <label for="{{ form.ingredientes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Ingredientes
+                        </label>
+                        {{ form.ingredientes }}
+                        <p class="mt-1 text-xs text-gray-500">Separe os ingredientes por vírgula</p>
+                        {% if form.ingredientes.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.ingredientes.errors|first }}</p>
+                        {% endif %}
+                        
+                        <!-- Preview dos ingredientes -->
+                        <div id="ingredients-preview" class="ingredients-preview hidden">
+                            <p class="text-xs text-gray-600 mb-2">Preview:</p>
+                            <div id="ingredients-tags"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Preços por Tamanho -->
+                <div class="pt-6 border-t border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Preços por Tamanho
+                    </h2>
+                    
+                    <p class="text-sm text-gray-600 mb-4">
+                        Defina os preços para cada tamanho. Os valores devem ser crescentes (Pequena < Média < Grande < Família).
+                    </p>
+                    
+                    <div class="price-grid">
+                        {% for field in form %}
+                            {% if 'preco_' in field.name %}
+                            <div class="price-input-group">
+                                <label for="{{ field.id_for_label }}">
+                                    {% if 'broto' in field.name %}
+                                        🍕 Broto
+                                    {% elif 'média' in field.name %}
+                                        🍕 Média
+                                    {% elif 'grande' in field.name %}
+                                        🍕 Grande
+                                    {% elif 'família' in field.name %}
+                                        🍕 Família
+                                    {% else %}
+                                        {{ field.label }}
+                                    {% endif %}
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2 text-gray-500">R$</span>
+                                    {{ field }}
+                                </div>
+                                {% if field.errors %}
+                                    <p class="mt-1 text-xs text-red-600">{{ field.errors|first }}</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Imagem e Status -->
+                <div class="pt-6 border-t border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Configurações Adicionais</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Imagem -->
+                        <div>
+                            <label for="{{ form.imagem.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {% if form.instance.imagem %}Alterar imagem{% else %}Imagem da pizza{% endif %}
+                            </label>
+                            
+                            {% if form.instance.imagem %}
+                            <div class="mb-3">
+                                <img src="{{ form.instance.imagem.url }}" alt="{{ form.instance.nome }}" 
+                                     class="w-32 h-32 object-cover rounded-lg border border-gray-200">
+                            </div>
+                            {% endif %}
+                            
+                            {{ form.imagem }}
+                            {% if form.imagem.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.imagem.errors|first }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <div class="flex items-center">
+                                {{ form.ativo }}
+                                <label for="{{ form.ativo.id_for_label }}" class="ml-2 text-sm text-gray-600">
+                                    Pizza ativa e disponível no cardápio
+                                </label>
+                            </div>
+                            {% if form.ativo.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.ativo.errors|first }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botões -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between">
+                <a href="{% url 'pizza_table' %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    ❌ Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    {% if form.instance.pk %}Salvar Alterações{% else %}Criar Pizza{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Preview dos ingredientes
+document.addEventListener('DOMContentLoaded', function() {
+    const ingredientsInput = document.getElementById('{{ form.ingredientes.id_for_label }}');
+    const preview = document.getElementById('ingredients-preview');
+    const tagsContainer = document.getElementById('ingredients-tags');
+    
+    function updatePreview() {
+        const value = ingredientsInput.value.trim();
+        
+        if (value) {
+            preview.classList.remove('hidden');
+            const ingredients = value.split(',').map(i => i.trim()).filter(i => i);
+            
+            tagsContainer.innerHTML = ingredients.map(ingredient => 
+                `<span class="ingredient-tag">${ingredient}</span>`
+            ).join('');
+        } else {
+            preview.classList.add('hidden');
+        }
+    }
+    
+    ingredientsInput.addEventListener('input', updatePreview);
+    updatePreview(); // Initial preview
+    
+    // Validação em tempo real dos preços
+    const priceInputs = document.querySelectorAll('input[name^="preco_"]');
+    
+    function validatePrices() {
+        const prices = Array.from(priceInputs)
+            .map(input => ({
+                name: input.name,
+                value: parseFloat(input.value) || 0,
+                input: input
+            }))
+            .filter(p => p.value > 0);
+        
+        // Limpar erros anteriores
+        priceInputs.forEach(input => {
+            input.classList.remove('border-red-500');
+            const errorMsg = input.parentElement.parentElement.querySelector('.text-red-600');
+            if (errorMsg && errorMsg.dataset.dynamic === 'true') {
+                errorMsg.remove();
+            }
+        });
+        
+        // Verificar ordem crescente
+        for (let i = 1; i < prices.length; i++) {
+            if (prices[i].value <= prices[i-1].value) {
+                prices[i].input.classList.add('border-red-500');
+                
+                const error = document.createElement('p');
+                error.className = 'mt-1 text-xs text-red-600';
+                error.dataset.dynamic = 'true';
+                error.textContent = 'Deve ser maior que o tamanho anterior';
+                prices[i].input.parentElement.parentElement.appendChild(error);
+            }
+        }
+    }
+    
+    priceInputs.forEach(input => {
+        input.addEventListener('blur', validatePrices);
+    });
+});
+</script>
+{% endblock %}

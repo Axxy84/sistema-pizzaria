@@ -12,6 +12,11 @@ urlpatterns = [
     path('sobremesas/', views_html.ProductFilterView.as_view(), {'tipo': 'sobremesa'}, name='sobremesa_list'),
     path('acompanhamentos/', views_html.ProductFilterView.as_view(), {'tipo': 'acompanhamento'}, name='acompanhamento_list'),
     
+    # Views específicas para pizzas (estilo cardápio)
+    path('pizzas/cardapio/', views_html.PizzaTableView.as_view(), name='pizza_table'),
+    path('pizzas/nova/', views_html.PizzaCreateView.as_view(), name='pizza_create'),
+    path('pizzas/<int:pk>/editar/', views_html.PizzaUpdateView.as_view(), name='pizza_update'),
+    
     # CRUD
     path('novo/', views_html.ProductCreateView.as_view(), name='product_create'),
     path('<int:pk>/editar/', views_html.ProductUpdateView.as_view(), name='product_update'),

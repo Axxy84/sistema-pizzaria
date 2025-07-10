@@ -5,8 +5,8 @@ from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
-from .models import Produto, Categoria, ProdutoPreco
-from .forms import ProdutoForm
+from .models import Produto, Categoria, ProdutoPreco, Tamanho
+from .forms import ProdutoForm, PizzaForm
 
 
 class ProductListView(LoginRequiredMixin, ListView):
@@ -207,3 +207,126 @@ def product_toggle_status(request, pk):
         })
     
     return JsonResponse({'success': False, 'message': 'Método não permitido'}, status=405)
+
+
+class PizzaTableView(LoginRequiredMixin, ListView):
+    """View para listagem de pizzas estilo cardápio"""
+    model = Produto
+    template_name = 'produtos/pizza_table.html'
+    context_object_name = 'pizzas'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        return Produto.objects.filter(
+            tipo_produto='pizza'
+        ).select_related('categoria').prefetch_related('precos__tamanho').order_by('categoria', 'nome')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Obter todos os tamanhos ordenados
+        context['tamanhos'] = Tamanho.objects.filter(ativo=True).order_by('ordem')
+        
+        # Agrupar pizzas por categoria
+        pizzas_por_categoria = {}
+        for pizza in context['pizzas']:
+            categoria = pizza.categoria.nome
+            if categoria not in pizzas_por_categoria:
+                pizzas_por_categoria[categoria] = []
+            
+            # Organizar preços por tamanho
+            pizza.precos_dict = {}
+            for preco in pizza.precos.all():
+                pizza.precos_dict[preco.tamanho.id] = preco.preco_final
+            
+            pizzas_por_categoria[categoria].append(pizza)
+        
+        context['pizzas_por_categoria'] = pizzas_por_categoria
+        context['search_query'] = self.request.GET.get('q', '')
+        
+        return context
+
+
+class PizzaCreateView(LoginRequiredMixin, CreateView):
+    """View para criar pizza com formulário específico"""
+    model = Produto
+    form_class = PizzaForm
+    template_name = 'produtos/pizza_form.html'
+    success_url = reverse_lazy('pizza_table')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tamanhos'] = Tamanho.objects.filter(ativo=True).order_by('ordem')
+        return context
+    
+    def form_valid(self, form):
+        form.instance.tipo_produto = 'pizza'
+        response = super().form_valid(form)
+        
+        # Salvar preços por tamanho
+        tamanhos = Tamanho.objects.filter(ativo=True)
+        for tamanho in tamanhos:
+            preco_field = f'preco_{tamanho.nome.lower()}'
+            if preco_field in form.cleaned_data:
+                preco_value = form.cleaned_data[preco_field]
+                if preco_value:
+                    ProdutoPreco.objects.create(
+                        produto=self.object,
+                        tamanho=tamanho,
+                        preco=preco_value
+                    )
+        
+        return response
+
+
+class PizzaUpdateView(LoginRequiredMixin, UpdateView):
+    """View para editar pizza com formulário específico"""
+    model = Produto
+    form_class = PizzaForm
+    template_name = 'produtos/pizza_form.html'
+    success_url = reverse_lazy('pizza_table')
+    
+    def get_queryset(self):
+        return super().get_queryset().filter(tipo_produto='pizza')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tamanhos'] = Tamanho.objects.filter(ativo=True).order_by('ordem')
+        
+        # Preencher preços existentes
+        precos_dict = {}
+        for preco in self.object.precos.all():
+            precos_dict[preco.tamanho.nome.lower()] = preco.preco
+        context['precos_existentes'] = precos_dict
+        
+        return context
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        
+        # Adicionar preços existentes ao initial data
+        for preco in self.object.precos.all():
+            field_name = f'preco_{preco.tamanho.nome.lower()}'
+            initial[field_name] = preco.preco
+        
+        return initial
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        
+        # Atualizar preços por tamanho
+        self.object.precos.all().delete()  # Limpar preços antigos
+        
+        tamanhos = Tamanho.objects.filter(ativo=True)
+        for tamanho in tamanhos:
+            preco_field = f'preco_{tamanho.nome.lower()}'
+            if preco_field in form.cleaned_data:
+                preco_value = form.cleaned_data[preco_field]
+                if preco_value:
+                    ProdutoPreco.objects.create(
+                        produto=self.object,
+                        tamanho=tamanho,
+                        preco=preco_value
+                    )
+        
+        return response

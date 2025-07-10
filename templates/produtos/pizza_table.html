@@ -1,0 +1,288 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Cardápio de Pizzas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pizza-table {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .pizza-table th {
+        background-color: #FEF2F2;
+        color: #991B1B;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .pizza-row:hover {
+        background-color: #FEF2F2;
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+    .pizza-name {
+        font-weight: 600;
+        color: #1F2937;
+    }
+    
+    .pizza-ingredients {
+        color: #6B7280;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
+    
+    .price-cell {
+        font-weight: 600;
+        color: #059669;
+        font-size: 0.875rem;
+    }
+    
+    .category-header {
+        background: linear-gradient(to right, #DC2626, #EF4444);
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+    
+    @media (max-width: 768px) {
+        .pizza-card {
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: white;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .pizza-card:active {
+            transform: scale(0.98);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <span class="text-3xl">🍕</span>
+                Cardápio de Pizzas
+            </h1>
+            <p class="text-gray-600 mt-1">Gerencie suas pizzas e preços por tamanho</p>
+        </div>
+        <a href="{% url 'pizza_create' %}" 
+           class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Adicionar Pizza
+        </a>
+    </div>
+
+    <!-- Busca -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <form method="get" class="flex gap-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <input type="text" 
+                           name="q" 
+                           value="{{ search_query }}"
+                           placeholder="Buscar pizza por nome ou ingredientes..."
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <button type="submit" 
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                Buscar
+            </button>
+        </form>
+    </div>
+
+    <!-- Tabela Desktop -->
+    <div class="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full pizza-table">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 text-left">Pizza</th>
+                        {% for tamanho in tamanhos %}
+                        <th class="px-4 py-3 text-center">{{ tamanho.nome }}</th>
+                        {% endfor %}
+                        <th class="px-4 py-3 text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for categoria, pizzas in pizzas_por_categoria.items %}
+                        <!-- Header da Categoria -->
+                        <tr>
+                            <td colspan="{{ tamanhos|length|add:2 }}" class="category-header px-6 py-3">
+                                {{ categoria }}
+                            </td>
+                        </tr>
+                        
+                        <!-- Pizzas da Categoria -->
+                        {% for pizza in pizzas %}
+                        <tr class="pizza-row">
+                            <td class="px-6 py-4">
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl flex-shrink-0">🍕</span>
+                                    <div class="flex-1">
+                                        <div class="pizza-name">{{ pizza.nome|upper }}</div>
+                                        <div class="pizza-ingredients">{{ pizza.ingredientes|default:"" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            {% for tamanho in tamanhos %}
+                            <td class="px-4 py-4 text-center">
+                                {% with preco=pizza.precos_dict|get:tamanho.id %}
+                                    {% if preco %}
+                                        <span class="price-cell">R$ {{ preco|floatformat:2 }}</span>
+                                    {% else %}
+                                        <span class="text-gray-400">-</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            {% endfor %}
+                            
+                            <td class="px-4 py-4 text-center">
+                                <div class="flex justify-center gap-2">
+                                    <a href="{% url 'pizza_update' pizza.pk %}" 
+                                       class="text-blue-600 hover:text-blue-800 transition-colors"
+                                       title="Editar">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                    <button onclick="toggleProductStatus({{ pizza.id }})" 
+                                            class="{% if pizza.ativo %}text-green-600 hover:text-green-800{% else %}text-gray-400 hover:text-gray-600{% endif %} transition-colors"
+                                            title="{% if pizza.ativo %}Desativar{% else %}Ativar{% endif %}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            {% if pizza.ativo %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            {% else %}
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            {% endif %}
+                                        </svg>
+                                    </button>
+                                    <a href="{% url 'product_delete' pizza.pk %}" 
+                                       class="text-red-600 hover:text-red-800 transition-colors"
+                                       title="Excluir">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="{{ tamanhos|length|add:2 }}" class="px-6 py-12 text-center text-gray-500">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-6xl mb-4">🍕</span>
+                                    <p class="text-lg">Nenhuma pizza cadastrada</p>
+                                    <p class="text-sm mt-2">Clique em "Adicionar Pizza" para começar</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Cards Mobile -->
+    <div class="md:hidden space-y-4">
+        {% for categoria, pizzas in pizzas_por_categoria.items %}
+            <div class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider">
+                {{ categoria }}
+            </div>
+            
+            {% for pizza in pizzas %}
+            <div class="pizza-card">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-start gap-2 flex-1">
+                        <span class="text-2xl">🍕</span>
+                        <div>
+                            <h3 class="font-bold text-gray-900">{{ pizza.nome|upper }}</h3>
+                            <p class="text-sm text-gray-600 mt-1">{{ pizza.ingredientes|default:"" }}</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 text-xs rounded-full {% if pizza.ativo %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {% if pizza.ativo %}Ativo{% else %}Inativo{% endif %}
+                    </span>
+                </div>
+                
+                <!-- Grid de Preços -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    {% for tamanho in tamanhos %}
+                    <div class="bg-gray-50 rounded p-2 text-center">
+                        <div class="text-xs text-gray-500">{{ tamanho.nome }}</div>
+                        {% with preco=pizza.precos_dict|get:tamanho.id %}
+                            {% if preco %}
+                                <div class="font-bold text-green-600">R$ {{ preco|floatformat:2 }}</div>
+                            {% else %}
+                                <div class="text-gray-400">-</div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Ações -->
+                <div class="flex gap-2">
+                    <a href="{% url 'pizza_update' pizza.pk %}" 
+                       class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors text-center">
+                        Editar
+                    </a>
+                    <button onclick="toggleProductStatus({{ pizza.id }})" 
+                            class="flex-1 px-3 py-2 {% if pizza.ativo %}bg-gray-100 text-gray-700{% else %}bg-green-100 text-green-700{% endif %} text-sm font-medium rounded hover:opacity-80 transition-opacity">
+                        {% if pizza.ativo %}Desativar{% else %}Ativar{% endif %}
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% empty %}
+            <div class="text-center py-12">
+                <span class="text-6xl">🍕</span>
+                <p class="text-gray-500 mt-4">Nenhuma pizza cadastrada</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle status da pizza
+function toggleProductStatus(pizzaId) {
+    fetch(`/produtos/${pizzaId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        Alpine.store('app').showToast('Erro ao atualizar pizza', 'error');
+    });
+}
+</script>
+{% endblock %}
