@@ -349,6 +349,22 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Handle Product Menu Click
+function handleProductClick(event, isOpen) {
+    // Se o submenu já está aberto, apenas navegar
+    if (isOpen) {
+        return true;
+    }
+    
+    // Se está fechado, prevenir navegação e apenas abrir o menu
+    event.preventDefault();
+    // O Alpine.js vai cuidar de mudar o estado de 'open'
+    // Navegar após um pequeno delay para mostrar a animação
+    setTimeout(() => {
+        window.location.href = event.currentTarget.href;
+    }, 150);
+}
+
 // Export utilities for global use
 window.PizzariaUtils = {
     formatCurrency,
@@ -356,3 +372,6 @@ window.PizzariaUtils = {
     debounce,
     getCsrfToken
 };
+
+// Export global functions
+window.handleProductClick = handleProductClick;

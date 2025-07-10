@@ -15,18 +15,22 @@
 
             <!-- Produtos Section -->
             <div x-data="{ open: {% if 'produtos' in request.path %}true{% else %}false{% endif %} }">
-                <button @click="open = !open" 
-                        class="{% if 'produtos' in request.path %}bg-pizza-50 text-pizza-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex w-full items-center px-3 py-2 text-left text-sm font-medium rounded-l-md transition-colors duration-200">
+                <a href="{% url 'product_list' %}" 
+                   @click="handleProductClick($event, open)"
+                   class="{% if 'produtos' in request.path %}bg-pizza-50 border-r-2 border-pizza-500 text-pizza-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex w-full items-center px-3 py-2 text-left text-sm font-medium rounded-l-md transition-colors duration-200 cursor-pointer">
                     <!-- Heroicon: squares-plus -->
                     <svg class="{% if 'produtos' in request.path %}text-pizza-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} mr-3 h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z" />
                     </svg>
                     <span class="flex-1">Produtos</span>
                     <!-- Chevron -->
-                    <svg :class="{ 'rotate-90': open }" class="ml-2 h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
-                </button>
+                    <button @click.stop.prevent="open = !open" 
+                            class="ml-2 p-1 rounded hover:bg-gray-200 transition-colors">
+                        <svg :class="{ 'rotate-90': open }" class="h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                </a>
                 
                 <!-- Submenu -->
                 <div x-show="open" 
@@ -37,16 +41,20 @@
                      x-transition:leave-start="opacity-100 translate-y-0"
                      x-transition:leave-end="opacity-0 -translate-y-1"
                      class="space-y-1 mt-1">
-                    <a href="{% url 'product_list' %}" class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'product_list' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md">
+                    <a href="{% url 'product_list' %}" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name in 'product_list,pizza_list,bebida_list,borda_list,sobremesa_list,acompanhamento_list' or request.path == '/produtos/' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Listar Produtos
                     </a>
-                    <a href="{% url 'product_create' %}" class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'product_create' %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md">
+                    <a href="{% url 'product_create' %}" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'product_create' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Adicionar Produto
                     </a>
-                    <a href="#" class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md">
+                    <a href="#" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md transition-colors">
                         Categorias
                     </a>
-                    <a href="#" class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md">
+                    <a href="#" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md transition-colors">
                         Tamanhos
                     </a>
                 </div>
