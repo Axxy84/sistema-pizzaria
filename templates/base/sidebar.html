@@ -13,10 +13,10 @@
                 Dashboard
             </a>
 
+
             <!-- Produtos Section -->
             <div x-data="{ open: {% if 'produtos' in request.path %}true{% else %}false{% endif %} }">
                 <a href="{% url 'product_list' %}" 
-                   @click="handleProductClick($event, open)"
                    class="{% if 'produtos' in request.path %}bg-pizza-50 border-r-2 border-pizza-500 text-pizza-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex w-full items-center px-3 py-2 text-left text-sm font-medium rounded-l-md transition-colors duration-200 cursor-pointer">
                     <!-- Heroicon: squares-plus -->
                     <svg class="{% if 'produtos' in request.path %}text-pizza-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} mr-3 h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -44,10 +44,6 @@
                     <a href="{% url 'product_list' %}" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name in 'product_list,pizza_list,bebida_list,borda_list,sobremesa_list,acompanhamento_list' or request.path == '/produtos/' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Todos Produtos
-                    </a>
-                    <a href="{% url 'pizza_table' %}" 
-                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name in 'pizza_table,pizza_create,pizza_update' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
-                        🍕 Cardápio Pizzas
                     </a>
                     <a href="{% url 'product_create' %}" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'product_create' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
