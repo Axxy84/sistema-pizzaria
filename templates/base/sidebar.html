@@ -62,8 +62,8 @@
 
             <!-- Pedidos Section -->
             <div x-data="{ open: {% if 'pedidos' in request.path %}true{% else %}false{% endif %} }">
-                <button @click="open = !open" 
-                        class="{% if 'pedidos' in request.path %}bg-pizza-50 text-pizza-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex w-full items-center px-3 py-2 text-left text-sm font-medium rounded-l-md transition-colors duration-200">
+                <a href="{% url 'pedido_list' %}" 
+                   class="{% if 'pedidos' in request.path %}bg-pizza-50 border-r-2 border-pizza-500 text-pizza-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex w-full items-center px-3 py-2 text-left text-sm font-medium rounded-l-md transition-colors duration-200 cursor-pointer">
                     <!-- Heroicon: shopping-bag -->
                     <svg class="{% if 'pedidos' in request.path %}text-pizza-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} mr-3 h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.119-1.243l1.263-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -74,29 +74,40 @@
                         5
                     </span>
                     <!-- Chevron -->
-                    <svg :class="{ 'rotate-90': open }" class="ml-1 h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
-                </button>
+                    <button @click.stop.prevent="open = !open" 
+                            class="ml-2 p-1 rounded hover:bg-gray-200 transition-colors">
+                        <svg :class="{ 'rotate-90': open }" class="h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                    </button>
+                </a>
                 
                 <div x-show="open" 
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0 -translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0"
                      class="space-y-1 mt-1">
-                    <a href="#" class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md">
+                    <a href="{% url 'pedido_list' %}" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_list' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Todos os Pedidos
                     </a>
-                    <a href="#" class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md">
+                    <a href="{% url 'pedido_create' %}" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_create' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Novo Pedido
                     </a>
-                    <a href="#" class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md">
+                    <a href="{% url 'pedido_kanban' %}" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_kanban' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
+                        Kanban
+                    </a>
+                    <a href="{% url 'pedido_list' %}?status=preparando" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md transition-colors">
                         Em Preparo
                         <span class="ml-auto inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
                             3
                         </span>
                     </a>
-                    <a href="#" class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md">
+                    <a href="{% url 'pedido_list' %}?status=saiu_entrega" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md transition-colors">
                         Para Entrega
                         <span class="ml-auto inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
                             2

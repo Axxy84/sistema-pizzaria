@@ -29,6 +29,7 @@ urlpatterns = [
     
     # URLs HTML dos apps
     path('produtos/', include('apps.produtos.urls_html')),
+    path('pedidos/', include('apps.pedidos.urls_html')),
     
     # APIs REST
     path('api/auth/', include('apps.authentication.api_urls')),

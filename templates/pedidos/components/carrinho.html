@@ -1,0 +1,209 @@
+{% load static %}
+
+<!-- Carrinho Component -->
+<!-- Usage: {% include 'pedidos/components/carrinho.html' %} -->
+
+<div class="bg-white shadow rounded-lg sticky top-4" x-data="carrinhoComponent()">
+    <div class="px-4 py-5 sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Carrinho
+            </h3>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pizza-100 text-pizza-800"
+                  x-text="totalItens + ' ' + (totalItens === 1 ? 'item' : 'itens')">
+                0 itens
+            </span>
+        </div>
+        
+        <!-- Itens do carrinho -->
+        <div class="space-y-3" x-show="itens.length > 0">
+            <template x-for="(item, index) in itens" :key="index">
+                <div class="flex justify-between items-start py-3 border-b border-gray-100 last:border-b-0">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900" x-text="item.nome"></p>
+                        <p class="text-xs text-gray-500" x-show="item.tamanho" x-text="item.tamanho"></p>
+                        <p class="text-xs text-gray-500" x-show="item.observacoes" x-text="'Obs: ' + item.observacoes"></p>
+                        
+                        <!-- Controles de quantidade -->
+                        <div class="flex items-center mt-2">
+                            <button type="button"
+                                    @click="diminuirQuantidade(index)"
+                                    class="inline-flex items-center p-1 border border-transparent text-xs font-medium rounded text-gray-500 hover:text-gray-700 focus:outline-none">
+                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                </svg>
+                            </button>
+                            <span class="mx-2 text-sm font-medium text-gray-900" x-text="item.quantidade"></span>
+                            <button type="button"
+                                    @click="aumentarQuantidade(index)"
+                                    class="inline-flex items-center p-1 border border-transparent text-xs font-medium rounded text-gray-500 hover:text-gray-700 focus:outline-none">
+                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="ml-4 flex flex-col items-end">
+                        <p class="text-sm font-medium text-gray-900">
+                            R$ <span x-text="(item.preco * item.quantidade).toFixed(2)"></span>
+                        </p>
+                        <p class="text-xs text-gray-500" x-text="'Unit: R$ ' + item.preco.toFixed(2)"></p>
+                        <button type="button"
+                                @click="removerItem(index)"
+                                class="mt-1 text-red-400 hover:text-red-500">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+        
+        <!-- Carrinho vazio -->
+        <div x-show="itens.length === 0" class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">Carrinho vazio</p>
+            <p class="text-xs text-gray-400">Adicione produtos para continuar</p>
+        </div>
+        
+        <!-- Totais -->
+        <div x-show="itens.length > 0" class="mt-6 border-t pt-4">
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Subtotal</span>
+                    <span class="font-medium">R$ <span x-text="subtotal.toFixed(2)"></span></span>
+                </div>
+                
+                <div x-show="taxaEntrega > 0" class="flex justify-between text-sm">
+                    <span class="text-gray-600">Taxa de entrega</span>
+                    <span class="font-medium">R$ <span x-text="taxaEntrega.toFixed(2)"></span></span>
+                </div>
+                
+                <div x-show="desconto > 0" class="flex justify-between text-sm">
+                    <span class="text-gray-600">Desconto</span>
+                    <span class="font-medium text-green-600">-R$ <span x-text="desconto.toFixed(2)"></span></span>
+                </div>
+                
+                <div class="flex justify-between text-base font-semibold pt-2 border-t">
+                    <span>Total</span>
+                    <span class="text-pizza-600">R$ <span x-text="total.toFixed(2)"></span></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ações -->
+        <div x-show="itens.length > 0" class="mt-6 space-y-3">
+            <button type="button"
+                    @click="limparCarrinho()"
+                    class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Limpar carrinho
+            </button>
+        </div>
+        
+        <!-- Campo para observações -->
+        <div x-show="itens.length > 0" class="mt-4">
+            <label for="observacoes-carrinho" class="block text-xs font-medium text-gray-700 mb-1">
+                Observações do pedido
+            </label>
+            <textarea id="observacoes-carrinho"
+                      x-model="observacoesPedido"
+                      rows="2"
+                      class="block w-full text-xs border-gray-300 rounded-md shadow-sm focus:ring-pizza-500 focus:border-pizza-500"
+                      placeholder="Alguma observação especial?"></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+function carrinhoComponent() {
+    return {
+        itens: [],
+        taxaEntrega: 0,
+        desconto: 0,
+        observacoesPedido: '',
+        
+        // Computed properties
+        get totalItens() {
+            return this.itens.reduce((total, item) => total + item.quantidade, 0);
+        },
+        
+        get subtotal() {
+            return this.itens.reduce((total, item) => total + (item.preco * item.quantidade), 0);
+        },
+        
+        get total() {
+            return this.subtotal + this.taxaEntrega - this.desconto;
+        },
+        
+        // Métodos
+        adicionarItem(produto) {
+            const itemExistente = this.itens.find(item => 
+                item.id === produto.id && item.tamanho === produto.tamanho
+            );
+            
+            if (itemExistente) {
+                itemExistente.quantidade++;
+            } else {
+                this.itens.push({
+                    id: produto.id,
+                    nome: produto.nome,
+                    preco: produto.preco,
+                    quantidade: 1,
+                    tamanho: produto.tamanho || '',
+                    observacoes: produto.observacoes || ''
+                });
+            }
+        },
+        
+        aumentarQuantidade(index) {
+            this.itens[index].quantidade++;
+        },
+        
+        diminuirQuantidade(index) {
+            if (this.itens[index].quantidade > 1) {
+                this.itens[index].quantidade--;
+            } else {
+                this.removerItem(index);
+            }
+        },
+        
+        removerItem(index) {
+            this.itens.splice(index, 1);
+        },
+        
+        limparCarrinho() {
+            if (confirm('Tem certeza que deseja limpar o carrinho?')) {
+                this.itens = [];
+                this.observacoesPedido = '';
+            }
+        },
+        
+        atualizarTaxaEntrega(valor) {
+            this.taxaEntrega = valor;
+        },
+        
+        aplicarDesconto(valor) {
+            this.desconto = valor;
+        },
+        
+        // Método para exportar dados do carrinho
+        obterDados() {
+            return {
+                itens: this.itens,
+                subtotal: this.subtotal,
+                taxaEntrega: this.taxaEntrega,
+                desconto: this.desconto,
+                total: this.total,
+                observacoes: this.observacoesPedido
+            };
+        }
+    }
+}
+</script>

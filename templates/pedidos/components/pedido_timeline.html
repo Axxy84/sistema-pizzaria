@@ -1,0 +1,115 @@
+{% load static %}
+
+<!-- Timeline Component -->
+<!-- Usage: {% include 'pedidos/components/pedido_timeline.html' with pedido=pedido %} -->
+
+<div class="flow-root">
+    <ul class="-mb-8">
+        {% for status_code, status_label in pedido.STATUS_CHOICES %}
+        {% if status_code != 'cancelado' or pedido.status == 'cancelado' %}
+        <li class="relative {% if not forloop.last %}pb-8{% endif %}">
+            {% if not forloop.last %}
+            <span class="absolute left-5 top-5 -ml-px h-full w-0.5 
+                {% if status_code == pedido.status %}bg-pizza-200
+                {% else %}
+                    {% for s_code, s_label in pedido.STATUS_CHOICES %}
+                        {% if s_code == pedido.status %}
+                            {% if forloop.counter0 > forloop.parentloop.counter0 %}bg-gray-200{% else %}bg-green-300{% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}" 
+                  aria-hidden="true"></span>
+            {% endif %}
+            
+            <div class="relative flex space-x-3">
+                <div>
+                    <span class="h-10 w-10 rounded-full flex items-center justify-center ring-8 ring-white
+                        {% if status_code == pedido.status %}bg-pizza-600 text-white
+                        {% else %}
+                            {% for s_code, s_label in pedido.STATUS_CHOICES %}
+                                {% if s_code == pedido.status %}
+                                    {% if forloop.counter0 > forloop.parentloop.counter0 %}bg-gray-400 text-white{% else %}bg-green-500 text-white{% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}">
+                        
+                        <!-- Ícones específicos para cada status -->
+                        {% if status_code == 'pendente' %}
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        {% elif status_code == 'confirmado' %}
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        {% elif status_code == 'preparando' %}
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                            </svg>
+                        {% elif status_code == 'saiu_entrega' %}
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            </svg>
+                        {% elif status_code == 'entregue' %}
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        {% elif status_code == 'cancelado' %}
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ status_label }}</p>
+                        {% if status_code == pedido.status %}
+                        <p class="text-xs text-gray-500">
+                            {{ pedido.atualizado_em|date:"d/m/Y H:i" }}
+                        </p>
+                        {% elif status_code == 'pendente' %}
+                        <p class="text-xs text-gray-500">
+                            {{ pedido.criado_em|date:"d/m/Y H:i" }}
+                        </p>
+                        {% endif %}
+                        
+                        <!-- Descrições específicas -->
+                        {% if status_code == 'pendente' %}
+                        <p class="text-xs text-gray-400 mt-1">Aguardando confirmação</p>
+                        {% elif status_code == 'confirmado' %}
+                        <p class="text-xs text-gray-400 mt-1">Pedido confirmado e enviado para cozinha</p>
+                        {% elif status_code == 'preparando' %}
+                        <p class="text-xs text-gray-400 mt-1">Em preparação na cozinha</p>
+                        {% elif status_code == 'saiu_entrega' %}
+                        <p class="text-xs text-gray-400 mt-1">Saiu para entrega</p>
+                        {% elif status_code == 'entregue' %}
+                        <p class="text-xs text-gray-400 mt-1">Pedido entregue ao cliente</p>
+                        {% elif status_code == 'cancelado' %}
+                        <p class="text-xs text-gray-400 mt-1">Pedido cancelado</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Tempo estimado ou tempo real -->
+                    {% if status_code == pedido.status and status_code == 'preparando' %}
+                    <div class="text-right text-xs">
+                        <span class="text-yellow-600 font-medium">
+                            {{ pedido.criado_em|timesince }}
+                        </span>
+                        <p class="text-gray-400">preparando</p>
+                    </div>
+                    {% elif status_code == pedido.status and status_code == 'saiu_entrega' %}
+                    <div class="text-right text-xs">
+                        <span class="text-orange-600 font-medium">
+                            A caminho
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </li>
+        {% endif %}
+        {% endfor %}
+    </ul>
+</div>

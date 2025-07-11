@@ -1,0 +1,43 @@
+{% load static %}
+
+<!-- Status Badge Component -->
+<!-- Usage: {% include 'pedidos/components/pedido_status.html' with status=pedido.status status_display=pedido.get_status_display %} -->
+
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+    {% if status == 'pendente' %}bg-blue-100 text-blue-800
+    {% elif status == 'confirmado' %}bg-indigo-100 text-indigo-800
+    {% elif status == 'preparando' %}bg-yellow-100 text-yellow-800
+    {% elif status == 'saiu_entrega' %}bg-orange-100 text-orange-800
+    {% elif status == 'entregue' %}bg-gray-100 text-gray-800
+    {% elif status == 'cancelado' %}bg-red-100 text-red-800
+    {% else %}bg-gray-100 text-gray-800{% endif %}">
+    
+    <!-- Ícone do status -->
+    {% if status == 'pendente' %}
+        <svg class="mr-1.5 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="3" />
+        </svg>
+    {% elif status == 'confirmado' %}
+        <svg class="mr-1.5 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="3" />
+        </svg>
+    {% elif status == 'preparando' %}
+        <svg class="mr-1.5 h-2 w-2 animate-pulse" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="3" />
+        </svg>
+    {% elif status == 'saiu_entrega' %}
+        <svg class="mr-1.5 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="3" />
+        </svg>
+    {% elif status == 'entregue' %}
+        <svg class="mr-1.5 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="3" />
+        </svg>
+    {% elif status == 'cancelado' %}
+        <svg class="mr-1.5 h-2 w-2" fill="currentColor" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="3" />
+        </svg>
+    {% endif %}
+    
+    {{ status_display|default:status }}
+</span>

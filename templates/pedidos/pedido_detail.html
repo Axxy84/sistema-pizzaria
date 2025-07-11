@@ -1,0 +1,482 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Pedido #{{ pedido.numero }} - Pizzaria{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    .status-pendente { @apply bg-blue-100 text-blue-800; }
+    .status-confirmado { @apply bg-indigo-100 text-indigo-800; }
+    .status-preparando { @apply bg-yellow-100 text-yellow-800; }
+    .status-saiu_entrega { @apply bg-orange-100 text-orange-800; }
+    .status-entregue { @apply bg-gray-100 text-gray-800; }
+    .status-cancelado { @apply bg-red-100 text-red-800; }
+    
+    .timeline-item {
+        @apply relative pb-8;
+    }
+    .timeline-item:last-child {
+        @apply pb-0;
+    }
+    .timeline-line {
+        @apply absolute left-5 top-5 h-full w-0.5 bg-gray-200;
+    }
+    .timeline-item:last-child .timeline-line {
+        @apply hidden;
+    }
+    .timeline-dot {
+        @apply relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2;
+    }
+    .timeline-dot-active {
+        @apply bg-pizza-600 border-pizza-600 text-white;
+    }
+    .timeline-dot-completed {
+        @apply bg-green-600 border-green-600 text-white;
+    }
+    .timeline-dot-pending {
+        @apply bg-white border-gray-300 text-gray-400;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="pedidoDetailApp()">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <nav class="flex" aria-label="Breadcrumb">
+                    <ol role="list" class="flex items-center space-x-4">
+                        <li>
+                            <div>
+                                <a href="{% url 'pedido_list' %}" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.119-1.243l1.263-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                    </svg>
+                                    <span class="sr-only">Pedidos</span>
+                                </a>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 flex-shrink-0 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                                <a href="{% url 'pedido_list' %}" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                                    Pedidos
+                                </a>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 flex-shrink-0 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                                <span class="ml-4 text-sm font-medium text-gray-500">
+                                    #{{ pedido.numero }}
+                                </span>
+                            </div>
+                        </li>
+                    </ol>
+                </nav>
+                <div class="mt-2 flex items-center">
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        Pedido #{{ pedido.numero }}
+                    </h1>
+                    <span class="ml-4 status-badge status-{{ pedido.status }}">
+                        {{ pedido.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-600 mt-1">
+                    Criado em {{ pedido.criado_em|date:"d/m/Y H:i" }} por {{ pedido.usuario.first_name|default:pedido.usuario.username }}
+                </p>
+            </div>
+            
+            <!-- Ações -->
+            <div class="flex space-x-3">
+                {% if pedido.status not in 'entregue,cancelado' %}
+                <button @click="abrirModalStatus()"
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
+                    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Atualizar Status
+                </button>
+                {% endif %}
+                
+                <a href="{% url 'pedido_update' pedido.pk %}"
+                   class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
+                    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Editar
+                </a>
+                
+                <a href="{% url 'pedido_print' pedido.pk %}"
+                   target="_blank"
+                   class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
+                    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Imprimir
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Informações do Pedido -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Dados do Cliente -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Dados do Cliente
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Nome</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ pedido.cliente.nome }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Telefone</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ pedido.cliente.telefone }}</dd>
+                        </div>
+                        {% if pedido.cliente.email %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">E-mail</dt>
+                            <dd class="mt-1 text-sm text-gray-900">{{ pedido.cliente.email }}</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Tipo de Pedido</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {% if pedido.tipo == 'delivery' %}
+                                    📦 Delivery
+                                {% elif pedido.tipo == 'balcao' %}
+                                    🏪 Balcão
+                                {% else %}
+                                    🍽️ Mesa {{ pedido.mesa }}
+                                {% endif %}
+                            </dd>
+                        </div>
+                    </div>
+                    
+                    {% if pedido.endereco_entrega %}
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <dt class="text-sm font-medium text-gray-500">Endereço de Entrega</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {{ pedido.endereco_entrega.logradouro }}, {{ pedido.endereco_entrega.numero }}
+                            {% if pedido.endereco_entrega.complemento %}, {{ pedido.endereco_entrega.complemento }}{% endif %}<br>
+                            {{ pedido.endereco_entrega.bairro }} - {{ pedido.endereco_entrega.cidade }}/{{ pedido.endereco_entrega.estado }}
+                            {% if pedido.endereco_entrega.referencia %}
+                            <br><span class="text-gray-500">Ref: {{ pedido.endereco_entrega.referencia }}</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Itens do Pedido -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Itens do Pedido
+                    </h3>
+                    <div class="flow-root">
+                        <ul class="-my-6 divide-y divide-gray-200">
+                            {% for item in pedido.itens.all %}
+                            <li class="py-6">
+                                <div class="flex items-center">
+                                    <div class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                                        {% if item.produto_preco.produto.imagem %}
+                                        <img src="{{ item.produto_preco.produto.imagem.url }}" 
+                                             alt="{{ item.produto_preco.produto.nome }}"
+                                             class="h-full w-full object-cover object-center">
+                                        {% else %}
+                                        <div class="h-full w-full bg-gray-200 flex items-center justify-center">
+                                            <span class="text-2xl">
+                                                {% if item.produto_preco.produto.categoria.nome == 'Pizza' %}🍕
+                                                {% elif item.produto_preco.produto.categoria.nome == 'Bebida' %}🥤
+                                                {% elif item.produto_preco.produto.categoria.nome == 'Sobremesa' %}🍰
+                                                {% else %}🍴{% endif %}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="ml-4 flex flex-1 flex-col">
+                                        <div>
+                                            <div class="flex justify-between text-base font-medium text-gray-900">
+                                                <h3>{{ item.produto_preco.produto.nome }}</h3>
+                                                <p class="ml-4">R$ {{ item.subtotal|floatformat:2 }}</p>
+                                            </div>
+                                            <p class="mt-1 text-sm text-gray-500">
+                                                {% if item.produto_preco.tamanho %}
+                                                    Tamanho: {{ item.produto_preco.tamanho.nome }}
+                                                {% endif %}
+                                            </p>
+                                            {% if item.observacoes %}
+                                            <p class="mt-1 text-sm text-gray-500">
+                                                <span class="font-medium">Obs:</span> {{ item.observacoes }}
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex flex-1 items-end justify-between text-sm">
+                                            <p class="text-gray-500">Qtd: {{ item.quantidade }}</p>
+                                            <p class="text-gray-500">Unit: R$ {{ item.preco_unitario|floatformat:2 }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Observações -->
+            {% if pedido.observacoes %}
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Observações
+                    </h3>
+                    <p class="text-sm text-gray-700">{{ pedido.observacoes }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Resumo Financeiro -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Resumo Financeiro
+                    </h3>
+                    <dl class="space-y-3">
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-500">Subtotal</dt>
+                            <dd class="text-sm font-medium text-gray-900">R$ {{ pedido.subtotal|floatformat:2 }}</dd>
+                        </div>
+                        
+                        {% if pedido.taxa_entrega > 0 %}
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-500">Taxa de entrega</dt>
+                            <dd class="text-sm font-medium text-gray-900">R$ {{ pedido.taxa_entrega|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        {% if pedido.desconto > 0 %}
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-500">Desconto</dt>
+                            <dd class="text-sm font-medium text-green-600">-R$ {{ pedido.desconto|floatformat:2 }}</dd>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-between pt-3 border-t border-gray-200">
+                            <dt class="text-base font-medium text-gray-900">Total</dt>
+                            <dd class="text-base font-medium text-pizza-600">R$ {{ pedido.total|floatformat:2 }}</dd>
+                        </div>
+                    </dl>
+                    
+                    <!-- Forma de Pagamento -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h4 class="text-sm font-medium text-gray-900 mb-2">Forma de Pagamento</h4>
+                        <p class="text-sm text-gray-700">
+                            {% if pedido.forma_pagamento == 'dinheiro' %}
+                                💵 Dinheiro
+                                {% if pedido.precisa_troco %}
+                                <br><span class="text-gray-500">Troco para: R$ {{ pedido.troco_para|floatformat:2 }}</span>
+                                <br><span class="text-gray-500">Troco: R$ {{ pedido.troco_para|add:pedido.total|floatformat:2 }}</span>
+                                {% endif %}
+                            {% elif pedido.forma_pagamento == 'pix' %}
+                                📱 PIX
+                            {% elif pedido.forma_pagamento == 'cartao_credito' %}
+                                💳 Cartão de Crédito
+                            {% elif pedido.forma_pagamento == 'cartao_debito' %}
+                                💳 Cartão de Débito
+                            {% elif pedido.forma_pagamento == 'vale_refeicao' %}
+                                🎫 Vale Refeição
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Timeline de Status -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Timeline do Pedido
+                    </h3>
+                    
+                    <div class="flow-root">
+                        <ul class="-mb-8">
+                            {% for status_code, status_label in pedido.STATUS_CHOICES %}
+                            {% if status_code != 'cancelado' or pedido.status == 'cancelado' %}
+                            <li class="timeline-item">
+                                <div class="timeline-line"></div>
+                                <div class="relative flex space-x-3">
+                                    <div>
+                                        <span class="timeline-dot 
+                                            {% if status_code == pedido.status %}timeline-dot-active
+                                            {% elif forloop.counter0 < pedido.STATUS_CHOICES|length and status_code != pedido.status %}
+                                                {% for s_code, s_label in pedido.STATUS_CHOICES %}
+                                                    {% if s_code == pedido.status %}
+                                                        {% if forloop.counter0 > forloop.parentloop.counter0 %}timeline-dot-pending{% else %}timeline-dot-completed{% endif %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}timeline-dot-pending{% endif %}">
+                                            {% if status_code == 'pendente' %}
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            {% elif status_code == 'confirmado' %}
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            {% elif status_code == 'preparando' %}
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                                                </svg>
+                                            {% elif status_code == 'saiu_entrega' %}
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                                </svg>
+                                            {% elif status_code == 'entregue' %}
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            {% elif status_code == 'cancelado' %}
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">{{ status_label }}</p>
+                                            {% if status_code == pedido.status %}
+                                            <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de atualização de status -->
+    <div x-show="modalStatus" 
+         x-cloak
+         class="fixed z-10 inset-0 overflow-y-auto">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="modalStatus" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+            <div x-show="modalStatus" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full">
+                <form method="post" action="{% url 'pedido_update_status' pedido.pk %}">
+                    {% csrf_token %}
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            Atualizar Status do Pedido
+                        </h3>
+                        <div class="mt-4">
+                            <label for="status" class="block text-sm font-medium text-gray-700">
+                                Novo Status
+                            </label>
+                            <select name="status" 
+                                    id="status"
+                                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pizza-500 focus:border-pizza-500 sm:text-sm rounded-md"
+                                    x-model="novoStatus">
+                                <option value="">Selecione...</option>
+                                <template x-for="opcao in opcoesStatus">
+                                    <option :value="opcao.value" x-text="opcao.label"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit"
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pizza-600 text-base font-medium text-white hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Atualizar
+                        </button>
+                        <button type="button"
+                                @click="modalStatus = false"
+                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function pedidoDetailApp() {
+    return {
+        modalStatus: false,
+        novoStatus: '',
+        opcoesStatus: [],
+        
+        transicoesValidas: {
+            'pendente': [
+                {value: 'confirmado', label: 'Confirmado'},
+                {value: 'cancelado', label: 'Cancelado'}
+            ],
+            'confirmado': [
+                {value: 'preparando', label: 'Preparando'},
+                {value: 'cancelado', label: 'Cancelado'}
+            ],
+            'preparando': [
+                {value: 'saiu_entrega', label: 'Saiu para Entrega'},
+                {value: 'cancelado', label: 'Cancelado'}
+            ],
+            'saiu_entrega': [
+                {value: 'entregue', label: 'Entregue'},
+                {value: 'cancelado', label: 'Cancelado'}
+            ]
+        },
+        
+        abrirModalStatus() {
+            const statusAtual = '{{ pedido.status }}';
+            this.opcoesStatus = this.transicoesValidas[statusAtual] || [];
+            this.novoStatus = '';
+            this.modalStatus = true;
+        }
+    }
+}
+</script>
+{% endblock %}
