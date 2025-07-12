@@ -182,7 +182,7 @@
         <div class="mb-8">
             <h2 class="text-lg font-medium text-gray-900 mb-4">Ações Rápidas</h2>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <a href="#" class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pizza-500 rounded-lg shadow-soft hover:shadow-lg transition-all duration-200 hover-lift">
+                <a href="{% url 'pedidos:pedido_create' %}" class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pizza-500 rounded-lg shadow-soft hover:shadow-lg transition-all duration-200 hover-lift">
                     <div>
                         <span class="rounded-lg inline-flex p-3 bg-pizza-50 text-pizza-700 ring-4 ring-white group-hover:bg-pizza-100 transition-colors duration-200">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -201,7 +201,7 @@
                     </div>
                 </a>
 
-                <a href="#" class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pizza-500 rounded-lg shadow-soft hover:shadow-lg transition-all duration-200 hover-lift">
+                <a href="{% url 'product_create_wizard' %}" class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pizza-500 rounded-lg shadow-soft hover:shadow-lg transition-all duration-200 hover-lift">
                     <div>
                         <span class="rounded-lg inline-flex p-3 bg-blue-50 text-blue-700 ring-4 ring-white group-hover:bg-blue-100 transition-colors duration-200">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -220,7 +220,7 @@
                     </div>
                 </a>
 
-                <a href="#" class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pizza-500 rounded-lg shadow-soft hover:shadow-lg transition-all duration-200 hover-lift">
+                <a href="#" class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pizza-500 rounded-lg shadow-soft hover:shadow-lg transition-all duration-200 hover-lift" onclick="event.preventDefault(); Alpine.store('app').showToast('Gestão de clientes em desenvolvimento. Use a API REST por enquanto.', 'warning', 3000);">
                     <div>
                         <span class="rounded-lg inline-flex p-3 bg-green-50 text-green-700 ring-4 ring-white group-hover:bg-green-100 transition-colors duration-200">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -239,7 +239,7 @@
                     </div>
                 </a>
 
-                <a href="#" class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pizza-500 rounded-lg shadow-soft hover:shadow-lg transition-all duration-200 hover-lift">
+                <a href="{% url 'financeiro:dashboard' %}" class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-pizza-500 rounded-lg shadow-soft hover:shadow-lg transition-all duration-200 hover-lift">
                     <div>
                         <span class="rounded-lg inline-flex p-3 bg-purple-50 text-purple-700 ring-4 ring-white group-hover:bg-purple-100 transition-colors duration-200">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

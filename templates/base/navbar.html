@@ -45,7 +45,7 @@
                     Dashboard
                 </a>
                 
-                <a href="#" 
+                <a href="{% url 'product_list' %}" 
                    class="inline-flex items-center border-b-2 {% if 'produtos' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
                     <!-- Heroicon: squares-plus -->
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@
                     Produtos
                 </a>
                 
-                <a href="#" 
+                <a href="{% url 'pedidos:pedido_list' %}" 
                    class="inline-flex items-center border-b-2 {% if 'pedidos' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
                     <!-- Heroicon: shopping-bag -->
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@
                     Pedidos
                 </a>
                 
-                <a href="#" 
+                <a href="#" onclick="event.preventDefault(); Alpine.store('app').showToast('Gestão de clientes em desenvolvimento. Use a API REST por enquanto.', 'warning', 3000);" 
                    class="inline-flex items-center border-b-2 {% if 'clientes' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
                     <!-- Heroicon: users -->
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

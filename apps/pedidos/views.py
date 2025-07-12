@@ -39,6 +39,25 @@ class PedidoViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    @action(detail=True, methods=['patch'], url_path='status')
+    def status(self, request, pk=None):
+        """Atualizar apenas o status do pedido (para kanban)"""
+        pedido = self.get_object()
+        new_status = request.data.get('status')
+        
+        if not new_status:
+            return Response({'error': 'Status é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar se o status é válido
+        status_choices = [choice[0] for choice in Pedido.STATUS_CHOICES]
+        if new_status not in status_choices:
+            return Response({'error': 'Status inválido'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        pedido.status = new_status
+        pedido.save()
+        
+        return Response({'status': pedido.status, 'message': 'Status atualizado com sucesso'})
+    
     @action(detail=False, methods=['get'])
     def pendentes(self, request):
         pendentes = self.queryset.filter(status='pendente')
@@ -50,6 +69,29 @@ class PedidoViewSet(viewsets.ModelViewSet):
         em_prep = self.queryset.filter(status__in=['confirmado', 'preparando'])
         serializer = PedidoListSerializer(em_prep, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def kanban(self, request):
+        """Retorna pedidos organizados por status para o kanban"""
+        pedidos_por_status = {}
+        
+        status_choices = [
+            ('pendente', 'Pendente'),
+            ('confirmado', 'Confirmado'),
+            ('preparando', 'Preparando'),
+            ('pronto', 'Pronto'),
+            ('saiu_entrega', 'Saiu para Entrega'),
+            ('entregue', 'Entregue')
+        ]
+        
+        for status_code, status_label in status_choices:
+            pedidos = self.queryset.filter(status=status_code).select_related('cliente').prefetch_related('itens__produto')[:20]
+            pedidos_por_status[status_code] = {
+                'label': status_label,
+                'pedidos': PedidoListSerializer(pedidos, many=True).data
+            }
+        
+        return Response({'pedidos_por_status': pedidos_por_status})
     
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def supabase_health(self, request):
