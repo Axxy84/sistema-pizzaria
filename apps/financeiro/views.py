@@ -4,6 +4,14 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Count
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView, DetailView
+from django.views import View
+from datetime import date, timedelta
 from .models import Caixa, MovimentoCaixa, ContaPagar
 from .serializers import (
     CaixaListSerializer, CaixaDetailSerializer,
@@ -133,3 +141,278 @@ class ContaPagarViewSet(viewsets.ModelViewSet):
         )
         serializer = ContaPagarListSerializer(vencidas, many=True)
         return Response(serializer.data)
+
+
+# Template-based views for cash closing system
+@method_decorator(login_required, name='dispatch')
+class CaixaDashboardView(View):
+    """Dashboard principal do controle de caixa"""
+    
+    def get(self, request):
+        # Busca caixa aberto
+        caixa_aberto = Caixa.objects.filter(status='aberto').first()
+        
+        # Estatísticas do dia
+        hoje = date.today()
+        
+        # Busca pedidos do dia para calcular vendas
+        from apps.pedidos.models import Pedido
+        pedidos_hoje = Pedido.objects.filter(
+            data_pedido__date=hoje,
+            status='entregue'
+        )
+        
+        # Calcula totais de vendas
+        total_vendas = pedidos_hoje.aggregate(
+            total=Sum('total')
+        )['total'] or 0
+        
+        quantidade_pedidos = pedidos_hoje.count()
+        
+        # Calcula ticket médio
+        ticket_medio = total_vendas / quantidade_pedidos if quantidade_pedidos > 0 else 0
+        
+        # Vendas por forma de pagamento
+        vendas_por_pagamento = pedidos_hoje.values('forma_pagamento').annotate(
+            total=Sum('total'),
+            quantidade=Count('id')
+        )
+        
+        # Despesas do dia
+        if caixa_aberto:
+            despesas_hoje = MovimentoCaixa.objects.filter(
+                caixa=caixa_aberto,
+                tipo='saida',
+                data__date=hoje
+            )
+            total_despesas = despesas_hoje.aggregate(
+                total=Sum('valor')
+            )['total'] or 0
+        else:
+            despesas_hoje = MovimentoCaixa.objects.none()
+            total_despesas = 0
+        
+        # Calcula lucro
+        lucro_liquido = total_vendas - total_despesas
+        margem_lucro = (lucro_liquido / total_vendas * 100) if total_vendas > 0 else 0
+        
+        context = {
+            'caixa_aberto': caixa_aberto,
+            'total_vendas': total_vendas,
+            'quantidade_pedidos': quantidade_pedidos,
+            'ticket_medio': ticket_medio,
+            'vendas_por_pagamento': vendas_por_pagamento,
+            'despesas_hoje': despesas_hoje,
+            'total_despesas': total_despesas,
+            'lucro_liquido': lucro_liquido,
+            'margem_lucro': margem_lucro,
+            'hoje': hoje,
+        }
+        
+        return render(request, 'financeiro/dashboard.html', context)
+
+
+@method_decorator(login_required, name='dispatch')
+class AbrirCaixaView(View):
+    """View para abrir o caixa"""
+    
+    def get(self, request):
+        # Verifica se já existe caixa aberto
+        if Caixa.objects.filter(status='aberto').exists():
+            messages.warning(request, 'Já existe um caixa aberto.')
+            return redirect('financeiro:dashboard')
+        
+        return render(request, 'financeiro/abrir_caixa.html')
+    
+    def post(self, request):
+        # Verifica se já existe caixa aberto
+        if Caixa.objects.filter(status='aberto').exists():
+            messages.error(request, 'Já existe um caixa aberto.')
+            return redirect('financeiro:dashboard')
+        
+        saldo_inicial = request.POST.get('saldo_inicial', 0)
+        observacoes = request.POST.get('observacoes', '')
+        
+        try:
+            caixa = Caixa.objects.create(
+                usuario=request.user,
+                saldo_inicial=float(saldo_inicial),
+                observacoes=observacoes
+            )
+            messages.success(request, f'Caixa aberto com sucesso! Saldo inicial: R$ {saldo_inicial}')
+            return redirect('financeiro:dashboard')
+        except Exception as e:
+            messages.error(request, f'Erro ao abrir caixa: {str(e)}')
+            return render(request, 'financeiro/abrir_caixa.html')
+
+
+@method_decorator(login_required, name='dispatch')
+class FecharCaixaView(View):
+    """View para fechar o caixa com reconciliação"""
+    
+    def get(self, request):
+        caixa = get_object_or_404(Caixa, status='aberto')
+        
+        # Busca movimentos do caixa
+        movimentos = MovimentoCaixa.objects.filter(caixa=caixa)
+        
+        # Calcula totais
+        total_entradas = movimentos.filter(tipo='entrada').aggregate(
+            total=Sum('valor')
+        )['total'] or 0
+        
+        total_saidas = movimentos.filter(tipo='saida').aggregate(
+            total=Sum('valor')
+        )['total'] or 0
+        
+        saldo_teorico = caixa.saldo_inicial + total_entradas - total_saidas
+        
+        # Agrupa movimentos por categoria
+        movimentos_por_categoria = movimentos.values('categoria', 'tipo').annotate(
+            total=Sum('valor'),
+            quantidade=Count('id')
+        )
+        
+        context = {
+            'caixa': caixa,
+            'movimentos': movimentos.order_by('-data'),
+            'total_entradas': total_entradas,
+            'total_saidas': total_saidas,
+            'saldo_teorico': saldo_teorico,
+            'movimentos_por_categoria': movimentos_por_categoria,
+        }
+        
+        return render(request, 'financeiro/fechar_caixa.html', context)
+    
+    def post(self, request):
+        caixa = get_object_or_404(Caixa, status='aberto')
+        
+        saldo_final = request.POST.get('saldo_final')
+        observacoes_fechamento = request.POST.get('observacoes_fechamento', '')
+        
+        try:
+            # Calcula saldo teórico
+            movimentos = MovimentoCaixa.objects.filter(caixa=caixa)
+            total_entradas = movimentos.filter(tipo='entrada').aggregate(
+                total=Sum('valor')
+            )['total'] or 0
+            total_saidas = movimentos.filter(tipo='saida').aggregate(
+                total=Sum('valor')
+            )['total'] or 0
+            saldo_teorico = caixa.saldo_inicial + total_entradas - total_saidas
+            
+            # Calcula diferença
+            diferenca = float(saldo_final) - saldo_teorico
+            
+            # Fecha o caixa
+            caixa.status = 'fechado'
+            caixa.data_fechamento = timezone.now()
+            caixa.saldo_final = float(saldo_final)
+            caixa.diferenca = diferenca
+            
+            if observacoes_fechamento:
+                if caixa.observacoes:
+                    caixa.observacoes += f"\n\nFechamento: {observacoes_fechamento}"
+                else:
+                    caixa.observacoes = f"Fechamento: {observacoes_fechamento}"
+            
+            caixa.save()
+            
+            if abs(diferenca) > 0:
+                messages.warning(
+                    request, 
+                    f'Caixa fechado com diferença de R$ {diferenca:.2f}. '
+                    f'Saldo teórico: R$ {saldo_teorico:.2f}, Saldo informado: R$ {float(saldo_final):.2f}'
+                )
+            else:
+                messages.success(request, 'Caixa fechado com sucesso! Valores conferem.')
+            
+            return redirect('financeiro:dashboard')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao fechar caixa: {str(e)}')
+            return self.get(request)
+
+
+@method_decorator(login_required, name='dispatch')
+class AdicionarMovimentoView(View):
+    """View para adicionar movimentos (despesas/receitas) ao caixa"""
+    
+    def get(self, request):
+        caixa = Caixa.objects.filter(status='aberto').first()
+        if not caixa:
+            messages.error(request, 'Nenhum caixa aberto. Abra um caixa primeiro.')
+            return redirect('financeiro:abrir_caixa')
+        
+        context = {'caixa': caixa}
+        return render(request, 'financeiro/adicionar_movimento.html', context)
+    
+    def post(self, request):
+        caixa = Caixa.objects.filter(status='aberto').first()
+        if not caixa:
+            messages.error(request, 'Nenhum caixa aberto.')
+            return redirect('financeiro:abrir_caixa')
+        
+        try:
+            movimento = MovimentoCaixa.objects.create(
+                caixa=caixa,
+                usuario=request.user,
+                tipo=request.POST.get('tipo'),
+                categoria=request.POST.get('categoria'),
+                descricao=request.POST.get('descricao'),
+                valor=float(request.POST.get('valor')),
+                observacoes=request.POST.get('observacoes', '')
+            )
+            
+            messages.success(
+                request, 
+                f'Movimento adicionado: {movimento.get_tipo_display()} - '
+                f'{movimento.categoria} - R$ {movimento.valor:.2f}'
+            )
+            return redirect('financeiro:dashboard')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao adicionar movimento: {str(e)}')
+            return self.get(request)
+
+
+@method_decorator(login_required, name='dispatch')
+class HistoricoCaixaView(ListView):
+    """Lista histórico de caixas fechados"""
+    
+    model = Caixa
+    template_name = 'financeiro/historico_caixa.html'
+    context_object_name = 'caixas'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        return Caixa.objects.filter(status='fechado').order_by('-data_fechamento')
+
+
+@method_decorator(login_required, name='dispatch')
+class DetalhesCaixaView(DetailView):
+    """Detalhes de um caixa específico"""
+    
+    model = Caixa
+    template_name = 'financeiro/detalhes_caixa.html'
+    context_object_name = 'caixa'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        caixa = self.get_object()
+        
+        # Busca movimentos do caixa
+        movimentos = MovimentoCaixa.objects.filter(caixa=caixa).order_by('-data')
+        
+        # Agrupa por categoria
+        movimentos_por_categoria = movimentos.values('categoria', 'tipo').annotate(
+            total=Sum('valor'),
+            quantidade=Count('id')
+        )
+        
+        context.update({
+            'movimentos': movimentos,
+            'movimentos_por_categoria': movimentos_por_categoria,
+        })
+        
+        return context

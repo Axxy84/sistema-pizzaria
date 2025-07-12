@@ -1,12 +1,14 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from . import views
 
-router = DefaultRouter()
-router.register(r'caixas', views.CaixaViewSet)
-router.register(r'movimentos', views.MovimentoCaixaViewSet)
-router.register(r'contas-pagar', views.ContaPagarViewSet)
+app_name = 'financeiro'
 
+# Template-based routes for cash closing system  
 urlpatterns = [
-    path('', include(router.urls)),
+    path('', views.CaixaDashboardView.as_view(), name='dashboard'),
+    path('abrir-caixa/', views.AbrirCaixaView.as_view(), name='abrir_caixa'),
+    path('fechar-caixa/', views.FecharCaixaView.as_view(), name='fechar_caixa'),
+    path('adicionar-movimento/', views.AdicionarMovimentoView.as_view(), name='adicionar_movimento'),
+    path('historico/', views.HistoricoCaixaView.as_view(), name='historico'),
+    path('caixa/<int:pk>/', views.DetalhesCaixaView.as_view(), name='detalhes_caixa'),
 ]

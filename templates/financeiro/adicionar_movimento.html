@@ -1,0 +1,363 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Adicionar Movimento{% endblock %}
+
+{% block content %}
+<div x-data="adicionarMovimento()" class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="text-6xl mb-4">💸</div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Adicionar Movimento</h1>
+        <p class="text-gray-600">Registre receitas e despesas do caixa</p>
+    </div>
+
+    <!-- Informações do Caixa -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <div class="text-2xl mr-3">📊</div>
+            <div>
+                <div class="font-semibold text-blue-900">Caixa Aberto</div>
+                <div class="text-sm text-blue-700">
+                    Responsável: {{ caixa.usuario.get_full_name|default:caixa.usuario.username }} | 
+                    Aberto em: {{ caixa.data_abertura|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário -->
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <form method="post" @submit="validateForm" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Tipo de Movimento -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    ⚖️ Tipo de Movimento
+                </label>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="relative cursor-pointer">
+                        <input 
+                            type="radio" 
+                            name="tipo" 
+                            value="entrada"
+                            x-model="tipo"
+                            class="sr-only peer"
+                            required>
+                        <div class="border-2 border-gray-200 rounded-lg p-4 text-center peer-checked:border-green-500 peer-checked:bg-green-50 transition-all">
+                            <div class="text-3xl mb-2">💰</div>
+                            <div class="font-semibold text-gray-900">Entrada</div>
+                            <div class="text-sm text-gray-600">Receita/Dinheiro que entra</div>
+                        </div>
+                    </label>
+                    
+                    <label class="relative cursor-pointer">
+                        <input 
+                            type="radio" 
+                            name="tipo" 
+                            value="saida"
+                            x-model="tipo"
+                            class="sr-only peer"
+                            required>
+                        <div class="border-2 border-gray-200 rounded-lg p-4 text-center peer-checked:border-red-500 peer-checked:bg-red-50 transition-all">
+                            <div class="text-3xl mb-2">💸</div>
+                            <div class="font-semibold text-gray-900">Saída</div>
+                            <div class="text-sm text-gray-600">Despesa/Dinheiro que sai</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Categoria -->
+            <div>
+                <label for="categoria" class="block text-sm font-medium text-gray-700 mb-2">
+                    📂 Categoria
+                </label>
+                <select 
+                    id="categoria" 
+                    name="categoria"
+                    x-model="categoria"
+                    @change="updateSuggestions"
+                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required>
+                    <option value="">Selecione uma categoria...</option>
+                    
+                    <template x-if="tipo === 'entrada'">
+                        <optgroup label="💰 Entradas">
+                            <option value="vendas">Vendas</option>
+                            <option value="servicos">Serviços</option>
+                            <option value="outras_receitas">Outras Receitas</option>
+                            <option value="reembolso">Reembolso</option>
+                        </optgroup>
+                    </template>
+                    
+                    <template x-if="tipo === 'saida'">
+                        <optgroup label="💸 Saídas">
+                            <option value="ingredientes">🥫 Ingredientes</option>
+                            <option value="bebidas">🥤 Bebidas</option>
+                            <option value="combustivel">⛽ Combustível/Gás</option>
+                            <option value="pessoal">👥 Pessoal</option>
+                            <option value="utilidades">💡 Utilidades (Energia, Água)</option>
+                            <option value="impostos">📋 Impostos e Taxas</option>
+                            <option value="manutencao">🔧 Manutenção</option>
+                            <option value="marketing">📢 Marketing</option>
+                            <option value="embalagens">📦 Embalagens</option>
+                            <option value="transporte">🚗 Transporte</option>
+                            <option value="outros">📝 Outros</option>
+                        </optgroup>
+                    </template>
+                </select>
+            </div>
+
+            <!-- Valor -->
+            <div>
+                <label for="valor" class="block text-sm font-medium text-gray-700 mb-2">
+                    💵 Valor
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">R$</span>
+                    </div>
+                    <input 
+                        type="number" 
+                        id="valor" 
+                        name="valor"
+                        step="0.01"
+                        min="0.01"
+                        x-model="valor"
+                        class="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                        placeholder="0,00"
+                        required>
+                </div>
+                <div class="mt-1 text-sm" :class="tipo === 'entrada' ? 'text-green-600' : 'text-red-600'">
+                    <span x-show="tipo === 'entrada'">💰 Valor que entra no caixa</span>
+                    <span x-show="tipo === 'saida'">💸 Valor que sai do caixa</span>
+                </div>
+            </div>
+
+            <!-- Descrição -->
+            <div>
+                <label for="descricao" class="block text-sm font-medium text-gray-700 mb-2">
+                    📝 Descrição
+                </label>
+                <input 
+                    type="text" 
+                    id="descricao" 
+                    name="descricao"
+                    x-model="descricao"
+                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    :placeholder="getDescriptionPlaceholder()"
+                    required>
+                
+                <!-- Sugestões de Descrição -->
+                <div x-show="suggestions.length > 0" class="mt-2">
+                    <div class="text-sm text-gray-600 mb-1">Sugestões:</div>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="suggestion in suggestions" :key="suggestion">
+                            <button 
+                                type="button"
+                                @click="descricao = suggestion"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-md transition-colors">
+                                <span x-text="suggestion"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observações -->
+            <div>
+                <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-2">
+                    💭 Observações (Opcional)
+                </label>
+                <textarea 
+                    id="observacoes" 
+                    name="observacoes"
+                    rows="3"
+                    x-model="observacoes"
+                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Informações adicionais sobre este movimento..."></textarea>
+            </div>
+
+            <!-- Resumo do Movimento -->
+            <div x-show="tipo && categoria && valor" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-900 mb-2">📋 Resumo do Movimento</h3>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span>Tipo:</span>
+                        <span class="font-semibold" :class="tipo === 'entrada' ? 'text-green-600' : 'text-red-600'">
+                            <span x-show="tipo === 'entrada'">💰 Entrada</span>
+                            <span x-show="tipo === 'saida'">💸 Saída</span>
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Categoria:</span>
+                        <span class="font-semibold text-gray-900" x-text="getCategoryName()"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Valor:</span>
+                        <span class="font-semibold text-gray-900" x-text="formatCurrency(valor)"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Data/Hora:</span>
+                        <span class="font-semibold text-gray-900" x-text="formatDateTime()"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex space-x-4 pt-4">
+                <a href="{% url 'financeiro:dashboard' %}" 
+                   class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-6 rounded-lg text-center transition-colors">
+                    ❌ Cancelar
+                </a>
+                
+                <button 
+                    type="submit"
+                    :disabled="!tipo || !categoria || !valor || !descricao"
+                    :class="(tipo && categoria && valor && descricao) ? 
+                        (tipo === 'entrada' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700') + ' text-white' : 
+                        'bg-gray-400 text-gray-700 cursor-not-allowed'"
+                    class="flex-1 font-medium py-3 px-6 rounded-lg transition-colors">
+                    <span x-show="tipo === 'entrada'">💰 Registrar Entrada</span>
+                    <span x-show="tipo === 'saida'">💸 Registrar Saída</span>
+                    <span x-show="!tipo">📝 Registrar Movimento</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Dicas -->
+    <div class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <div class="text-2xl mr-3">💡</div>
+            <div>
+                <h3 class="font-semibold text-green-900 mb-1">Dicas</h3>
+                <ul class="text-sm text-green-800 space-y-1">
+                    <li>• Registre todas as movimentações imediatamente</li>
+                    <li>• Use descrições claras e específicas</li>
+                    <li>• Guarde comprovantes das despesas</li>
+                    <li>• Entradas são vendas e receitas que chegam ao caixa</li>
+                    <li>• Saídas são despesas e pagamentos que saem do caixa</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function adicionarMovimento() {
+    return {
+        tipo: '',
+        categoria: '',
+        valor: '',
+        descricao: '',
+        observacoes: '',
+        suggestions: [],
+        
+        categorySuggestions: {
+            ingredientes: ['Farinha de trigo', 'Queijo mussarela', 'Molho de tomate', 'Calabresa', 'Peperoni'],
+            bebidas: ['Coca-Cola', 'Guaraná Antarctica', 'Cerveja', 'Água mineral', 'Suco natural'],
+            combustivel: ['Recarga de gás', 'Gás para forno', 'Combustível moto entrega'],
+            pessoal: ['Salário funcionário', 'Comissão entregador', 'Vale transporte', 'Hora extra'],
+            utilidades: ['Conta de energia', 'Conta de água', 'Internet', 'Telefone'],
+            impostos: ['ICMS', 'ISS', 'Simples Nacional', 'Taxa municipal'],
+            manutencao: ['Manutenção forno', 'Conserto equipamento', 'Troca peças'],
+            marketing: ['Panfletos', 'Facebook Ads', 'Instagram', 'Material promocional'],
+            embalagens: ['Caixas de pizza', 'Sacolas', 'Guardanapos', 'Palitos'],
+            transporte: ['Combustível moto', 'Manutenção veículo', 'IPVA', 'Seguro'],
+            vendas: ['Venda pizza', 'Venda bebida', 'Taxa de entrega', 'Sobremesa'],
+            servicos: ['Serviço de festa', 'Evento corporativo', 'Catering'],
+            outras_receitas: ['Venda de equipamento', 'Aluguel de espaço', 'Juros recebidos'],
+            reembolso: ['Devolução fornecedor', 'Reembolso seguro', 'Ressarcimento']
+        },
+        
+        updateSuggestions() {
+            this.suggestions = this.categorySuggestions[this.categoria] || [];
+        },
+        
+        getDescriptionPlaceholder() {
+            if (!this.categoria) return 'Descreva o movimento...';
+            
+            const placeholders = {
+                ingredientes: 'Ex: Compra de queijo mussarela 5kg',
+                bebidas: 'Ex: Compra de refrigerantes para estoque',
+                combustivel: 'Ex: Recarga de gás para o forno',
+                pessoal: 'Ex: Pagamento salário João',
+                utilidades: 'Ex: Conta de energia elétrica',
+                vendas: 'Ex: Venda de pizza grande margherita',
+                outros: 'Ex: Descrição da despesa...'
+            };
+            
+            return placeholders[this.categoria] || 'Descreva o movimento...';
+        },
+        
+        getCategoryName() {
+            const names = {
+                ingredientes: '🥫 Ingredientes',
+                bebidas: '🥤 Bebidas',
+                combustivel: '⛽ Combustível/Gás',
+                pessoal: '👥 Pessoal',
+                utilidades: '💡 Utilidades',
+                impostos: '📋 Impostos',
+                manutencao: '🔧 Manutenção',
+                marketing: '📢 Marketing',
+                embalagens: '📦 Embalagens',
+                transporte: '🚗 Transporte',
+                vendas: '💰 Vendas',
+                servicos: '🛠️ Serviços',
+                outras_receitas: '💵 Outras Receitas',
+                reembolso: '🔄 Reembolso',
+                outros: '📝 Outros'
+            };
+            
+            return names[this.categoria] || this.categoria;
+        },
+        
+        formatCurrency(value) {
+            if (!value) return 'R$ 0,00';
+            return 'R$ ' + parseFloat(value).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        },
+        
+        formatDateTime() {
+            const now = new Date();
+            return now.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        },
+        
+        validateForm(event) {
+            if (!this.tipo || !this.categoria || !this.valor || !this.descricao) {
+                event.preventDefault();
+                Alpine.store('app').showAlert('Por favor, preencha todos os campos obrigatórios.', 'error');
+                return false;
+            }
+            
+            if (parseFloat(this.valor) <= 0) {
+                event.preventDefault();
+                Alpine.store('app').showAlert('O valor deve ser maior que zero.', 'error');
+                return false;
+            }
+            
+            // Confirmação para valores altos
+            if (parseFloat(this.valor) > 500) {
+                if (!confirm(`Valor alto detectado: ${this.formatCurrency(this.valor)}. Confirma o registro?`)) {
+                    event.preventDefault();
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+    }
+}
+</script>
+{% endblock %}

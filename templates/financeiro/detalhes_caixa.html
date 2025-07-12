@@ -1,0 +1,215 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Detalhes do Caixa - {{ caixa.data_abertura|date:"d/m/Y" }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">📋 Detalhes do Caixa</h1>
+            <p class="text-gray-600">{{ caixa.data_abertura|date:"d/m/Y" }} - {{ caixa.usuario.get_full_name|default:caixa.usuario.username }}</p>
+        </div>
+        
+        <div class="flex space-x-3">
+            <a href="{% url 'financeiro:historico' %}" 
+               class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-medium transition-colors">
+                📊 Histórico
+            </a>
+            <a href="{% url 'financeiro:dashboard' %}" 
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                🔙 Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Informações Gerais -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">ℹ️ Informações Gerais</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Status -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Status</div>
+                <div class="font-semibold">
+                    {% if caixa.status == 'aberto' %}
+                        <span class="text-green-600">🟢 Aberto</span>
+                    {% else %}
+                        <span class="text-red-600">🔒 Fechado</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Data de Abertura -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Abertura</div>
+                <div class="font-semibold text-gray-900">{{ caixa.data_abertura|date:"d/m/Y H:i" }}</div>
+            </div>
+            
+            <!-- Data de Fechamento -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Fechamento</div>
+                <div class="font-semibold text-gray-900">
+                    {% if caixa.data_fechamento %}
+                        {{ caixa.data_fechamento|date:"d/m/Y H:i" }}
+                    {% else %}
+                        <span class="text-gray-400">Em aberto</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Responsável -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600 mb-1">Responsável</div>
+                <div class="font-semibold text-gray-900">{{ caixa.usuario.get_full_name|default:caixa.usuario.username }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumo Financeiro -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">💰 Resumo Financeiro</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Saldo Inicial -->
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="text-sm text-blue-600 mb-1">Saldo Inicial</div>
+                <div class="text-2xl font-bold text-blue-800">R$ {{ caixa.saldo_inicial|floatformat:2 }}</div>
+            </div>
+            
+            <!-- Saldo Final -->
+            <div class="bg-green-50 p-4 rounded-lg">
+                <div class="text-sm text-green-600 mb-1">Saldo Final</div>
+                <div class="text-2xl font-bold text-green-800">
+                    {% if caixa.saldo_final %}
+                        R$ {{ caixa.saldo_final|floatformat:2 }}
+                    {% else %}
+                        <span class="text-gray-400">-</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Diferença -->
+            <div class="{% if caixa.diferenca == 0 %}bg-green-50{% elif caixa.diferenca > 0 %}bg-blue-50{% else %}bg-red-50{% endif %} p-4 rounded-lg">
+                <div class="text-sm {% if caixa.diferenca == 0 %}text-green-600{% elif caixa.diferenca > 0 %}text-blue-600{% else %}text-red-600{% endif %} mb-1">Diferença</div>
+                <div class="text-2xl font-bold {% if caixa.diferenca == 0 %}text-green-800{% elif caixa.diferenca > 0 %}text-blue-800{% else %}text-red-800{% endif %}">
+                    {% if caixa.diferenca %}
+                        {% if caixa.diferenca > 0 %}+{% endif %}R$ {{ caixa.diferenca|floatformat:2 }}
+                    {% else %}
+                        <span class="text-gray-400">-</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Tempo de Operação -->
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="text-sm text-purple-600 mb-1">Tempo de Operação</div>
+                <div class="text-2xl font-bold text-purple-800">
+                    {% if caixa.data_fechamento %}
+                        {{ caixa.data_fechamento|timeuntil:caixa.data_abertura }}
+                    {% else %}
+                        <span class="text-gray-400">Em aberto</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movimentações por Categoria -->
+    {% if movimentos_por_categoria %}
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">📊 Movimentações por Categoria</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for movimento in movimentos_por_categoria %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl">
+                                    {% if movimento.tipo == 'entrada' %}💰{% else %}💸{% endif %}
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">{{ movimento.categoria|title }}</div>
+                                    <div class="text-sm text-gray-600">{{ movimento.quantidade }} movimento{{ movimento.quantidade|pluralize }}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold {% if movimento.tipo == 'entrada' %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {% if movimento.tipo == 'saida' %}-{% endif %}R$ {{ movimento.total|floatformat:2 }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Detalhamento das Movimentações -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">📝 Detalhamento das Movimentações</h2>
+        
+        {% if movimentos %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data/Hora</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoria</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descrição</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Valor</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usuário</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for movimento in movimentos %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    {{ movimento.data|date:"d/m/Y H:i" }}
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                        {% if movimento.tipo == 'entrada' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {% if movimento.tipo == 'entrada' %}💰 Entrada{% else %}💸 Saída{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ movimento.categoria|title }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    <div>{{ movimento.descricao }}</div>
+                                    {% if movimento.observacoes %}
+                                        <div class="text-xs text-gray-500 mt-1">{{ movimento.observacoes|truncatechars:100 }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-right font-medium 
+                                    {% if movimento.tipo == 'entrada' %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {% if movimento.tipo == 'saida' %}-{% endif %}R$ {{ movimento.valor|floatformat:2 }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900">
+                                    {{ movimento.usuario.get_full_name|default:movimento.usuario.username }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-gray-500 py-8">
+                <div class="text-4xl mb-2">📋</div>
+                <p>Nenhuma movimentação registrada</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Observações -->
+    {% if caixa.observacoes %}
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">💭 Observações</h2>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-gray-900 whitespace-pre-line">{{ caixa.observacoes }}</div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

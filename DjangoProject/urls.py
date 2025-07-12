@@ -30,6 +30,7 @@ urlpatterns = [
     # URLs HTML dos apps
     path('produtos/', include('apps.produtos.urls_html')),
     path('pedidos/', include('apps.pedidos.urls_html')),
+    path('financeiro/', include('apps.financeiro.urls')),
     
     # APIs REST
     path('api/auth/', include('apps.authentication.api_urls')),
@@ -37,7 +38,7 @@ urlpatterns = [
     path('api/clientes/', include('apps.clientes.urls')),
     path('api/pedidos/', include('apps.pedidos.urls')),
     path('api/estoque/', include('apps.estoque.urls')),
-    path('api/financeiro/', include('apps.financeiro.urls')),
+    path('api/financeiro/', include('apps.financeiro.api_urls')),
     path('api/dashboard/', include('apps.dashboard.urls')),
 ]
 

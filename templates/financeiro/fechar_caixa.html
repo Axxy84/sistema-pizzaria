@@ -1,0 +1,320 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Fechar Caixa{% endblock %}
+
+{% block content %}
+<div x-data="fecharCaixa({{ saldo_teorico }})" class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="text-6xl mb-4">🔒</div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Fechar Caixa</h1>
+        <p class="text-gray-600">Reconciliação e fechamento do dia</p>
+    </div>
+
+    <!-- Resumo do Movimento -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">📊 Resumo do Movimento</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <!-- Saldo Inicial -->
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <div class="text-sm text-blue-600 mb-1">Saldo Inicial</div>
+                <div class="text-2xl font-bold text-blue-800">
+                    R$ {{ caixa.saldo_inicial|floatformat:2 }}
+                </div>
+            </div>
+            
+            <!-- Total Entradas -->
+            <div class="bg-green-50 p-4 rounded-lg">
+                <div class="text-sm text-green-600 mb-1">Total Entradas</div>
+                <div class="text-2xl font-bold text-green-800">
+                    R$ {{ total_entradas|floatformat:2 }}
+                </div>
+            </div>
+            
+            <!-- Total Saídas -->
+            <div class="bg-red-50 p-4 rounded-lg">
+                <div class="text-sm text-red-600 mb-1">Total Saídas</div>
+                <div class="text-2xl font-bold text-red-800">
+                    R$ {{ total_saidas|floatformat:2 }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Saldo Teórico -->
+        <div class="bg-gray-100 p-4 rounded-lg text-center">
+            <div class="text-sm text-gray-600 mb-1">Saldo Teórico (Calculado)</div>
+            <div class="text-3xl font-bold text-gray-900">
+                R$ {{ saldo_teorico|floatformat:2 }}
+            </div>
+            <div class="text-sm text-gray-600 mt-1">
+                ({{ caixa.saldo_inicial|floatformat:2 }} + {{ total_entradas|floatformat:2 }} - {{ total_saidas|floatformat:2 }})
+            </div>
+        </div>
+    </div>
+
+    <!-- Movimentações por Categoria -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">📋 Movimentações por Categoria</h2>
+        
+        {% if movimentos_por_categoria %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for movimento in movimentos_por_categoria %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <div class="text-xl">
+                                    {% if movimento.tipo == 'entrada' %}💰{% else %}💸{% endif %}
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">{{ movimento.categoria|title }}</div>
+                                    <div class="text-sm text-gray-600">{{ movimento.quantidade }} movimento{{ movimento.quantidade|pluralize }}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold {% if movimento.tipo == 'entrada' %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {% if movimento.tipo == 'saida' %}-{% endif %}R$ {{ movimento.total|floatformat:2 }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center text-gray-500 py-8">
+                <div class="text-4xl mb-2">📊</div>
+                <p>Nenhuma movimentação registrada hoje</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Detalhamento dos Movimentos -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">📝 Detalhamento dos Movimentos</h2>
+        
+        {% if movimentos %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hora</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoria</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descrição</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for movimento in movimentos %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ movimento.data|time:"H:i" }}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                        {% if movimento.tipo == 'entrada' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                        {% if movimento.tipo == 'entrada' %}💰 Entrada{% else %}💸 Saída{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ movimento.categoria|title }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ movimento.descricao|truncatechars:50 }}</td>
+                                <td class="px-4 py-3 text-sm text-right font-medium 
+                                    {% if movimento.tipo == 'entrada' %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {% if movimento.tipo == 'saida' %}-{% endif %}R$ {{ movimento.valor|floatformat:2 }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-gray-500 py-8">
+                <div class="text-4xl mb-2">📋</div>
+                <p>Nenhum movimento registrado</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Formulário de Fechamento -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">🔒 Fechamento do Caixa</h2>
+        
+        <form method="post" @submit="validateClosing" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Saldo Real Contado -->
+            <div>
+                <label for="saldo_final" class="block text-sm font-medium text-gray-700 mb-2">
+                    💵 Saldo Real Contado
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">R$</span>
+                    </div>
+                    <input 
+                        type="number" 
+                        id="saldo_final" 
+                        name="saldo_final"
+                        step="0.01"
+                        min="0"
+                        x-model="saldoReal"
+                        @input="calculateDifference"
+                        class="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                        placeholder="0,00"
+                        required>
+                </div>
+                <p class="mt-1 text-sm text-gray-500">
+                    Conte fisicamente o dinheiro no caixa e informe o valor real
+                </p>
+            </div>
+
+            <!-- Comparação -->
+            <div x-show="saldoReal !== ''" class="bg-gray-50 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-900 mb-3">🔍 Comparação</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="text-center">
+                        <div class="text-sm text-gray-600">Saldo Teórico</div>
+                        <div class="text-xl font-bold text-blue-600">R$ {{ saldo_teorico|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="text-sm text-gray-600">Saldo Real</div>
+                        <div class="text-xl font-bold text-green-600" x-text="formatCurrency(saldoReal)"></div>
+                    </div>
+                </div>
+                
+                <!-- Diferença -->
+                <div class="mt-4 text-center p-3 rounded-lg" :class="getDifferenceClass()">
+                    <div class="text-sm font-medium">Diferença</div>
+                    <div class="text-2xl font-bold" x-text="formatDifference()"></div>
+                    <div class="text-sm mt-1" x-text="getDifferenceMessage()"></div>
+                </div>
+            </div>
+
+            <!-- Observações do Fechamento -->
+            <div>
+                <label for="observacoes_fechamento" class="block text-sm font-medium text-gray-700 mb-2">
+                    📝 Observações do Fechamento
+                </label>
+                <textarea 
+                    id="observacoes_fechamento" 
+                    name="observacoes_fechamento"
+                    rows="3"
+                    x-model="observacoes"
+                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ex: Diferença devido a troco dado sem registro..."></textarea>
+            </div>
+
+            <!-- Confirmação -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-start">
+                    <div class="text-2xl mr-3">⚠️</div>
+                    <div>
+                        <h3 class="font-semibold text-yellow-900 mb-1">Atenção</h3>
+                        <p class="text-sm text-yellow-800">
+                            Após fechar o caixa, não será possível alterar as informações. 
+                            Verifique todos os dados antes de confirmar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex space-x-4 pt-4">
+                <a href="{% url 'financeiro:dashboard' %}" 
+                   class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-6 rounded-lg text-center transition-colors">
+                    ❌ Cancelar
+                </a>
+                
+                <button 
+                    type="submit"
+                    :disabled="saldoReal === ''"
+                    :class="saldoReal !== '' ? 
+                        'bg-red-600 hover:bg-red-700 text-white' : 
+                        'bg-gray-400 text-gray-700 cursor-not-allowed'"
+                    class="flex-1 font-medium py-3 px-6 rounded-lg transition-colors">
+                    🔒 Fechar Caixa Definitivo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function fecharCaixa(saldoTeorico) {
+    return {
+        saldoReal: '',
+        observacoes: '',
+        saldoTeorico: saldoTeorico,
+        diferenca: 0,
+        
+        calculateDifference() {
+            if (this.saldoReal !== '') {
+                this.diferenca = parseFloat(this.saldoReal) - this.saldoTeorico;
+            }
+        },
+        
+        formatCurrency(value) {
+            if (!value) return 'R$ 0,00';
+            return 'R$ ' + parseFloat(value).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        },
+        
+        formatDifference() {
+            if (this.saldoReal === '') return 'R$ 0,00';
+            const diff = Math.abs(this.diferenca);
+            const sign = this.diferenca >= 0 ? '+' : '-';
+            return sign + ' R$ ' + diff.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        },
+        
+        getDifferenceClass() {
+            if (this.saldoReal === '') return 'bg-gray-100';
+            if (Math.abs(this.diferenca) < 0.01) return 'bg-green-100 text-green-800';
+            if (Math.abs(this.diferenca) <= 5.00) return 'bg-yellow-100 text-yellow-800';
+            return 'bg-red-100 text-red-800';
+        },
+        
+        getDifferenceMessage() {
+            if (this.saldoReal === '') return '';
+            if (Math.abs(this.diferenca) < 0.01) return '✅ Valores conferem perfeitamente!';
+            if (this.diferenca > 0) return '📈 Sobra no caixa';
+            return '📉 Falta no caixa';
+        },
+        
+        validateClosing(event) {
+            if (this.saldoReal === '') {
+                event.preventDefault();
+                Alpine.store('app').showAlert('Por favor, informe o saldo real contado.', 'error');
+                return false;
+            }
+            
+            // Alerta para diferenças grandes
+            if (Math.abs(this.diferenca) > 10.00) {
+                if (!confirm(`Diferença de ${this.formatDifference()} é significativa. Tem certeza que deseja continuar?`)) {
+                    event.preventDefault();
+                    return false;
+                }
+            }
+            
+            // Confirmação final
+            const message = `Confirma o fechamento do caixa?\n\n` +
+                          `Saldo Teórico: R$ ${this.saldoTeorico.toFixed(2)}\n` +
+                          `Saldo Real: R$ ${parseFloat(this.saldoReal).toFixed(2)}\n` +
+                          `Diferença: ${this.formatDifference()}`;
+            
+            if (!confirm(message)) {
+                event.preventDefault();
+                return false;
+            }
+            
+            return true;
+        }
+    }
+}
+</script>
+{% endblock %}
