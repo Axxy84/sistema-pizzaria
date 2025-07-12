@@ -375,3 +375,179 @@ window.PizzariaUtils = {
 
 // Export global functions
 window.handleProductClick = handleProductClick;
+
+// =================================
+// DARK MODE THEME SYSTEM
+// =================================
+
+document.addEventListener('alpine:init', () => {
+    // Theme Store
+    Alpine.store('theme', {
+        current: 'auto',
+        isDropdownOpen: false,
+        
+        init() {
+            // Load theme from localStorage or default to 'auto'
+            this.current = localStorage.getItem('theme') || 'auto';
+            this.applyTheme();
+            
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (this.current === 'auto') {
+                    this.applyTheme();
+                }
+            });
+        },
+        
+        setTheme(theme) {
+            this.current = theme;
+            localStorage.setItem('theme', theme);
+            this.applyTheme();
+            this.saveToServer();
+            this.isDropdownOpen = false;
+        },
+        
+        applyTheme() {
+            const html = document.documentElement;
+            
+            if (this.current === 'dark') {
+                html.setAttribute('data-theme', 'dark');
+            } else if (this.current === 'light') {
+                html.setAttribute('data-theme', 'light');
+            } else {
+                // Auto mode - follow system preference
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            }
+        },
+        
+        async saveToServer() {
+            // Save theme preference to server if user is authenticated
+            try {
+                const response = await fetch('/api/user/preferences/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        theme: this.current
+                    })
+                });
+                
+                if (!response.ok) {
+                    console.warn('Failed to save theme preference to server');
+                }
+            } catch (error) {
+                console.warn('Error saving theme preference:', error);
+            }
+        },
+        
+        toggleDropdown() {
+            this.isDropdownOpen = !this.isDropdownOpen;
+        },
+        
+        closeDropdown() {
+            this.isDropdownOpen = false;
+        },
+        
+        get effectiveTheme() {
+            if (this.current === 'auto') {
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            return this.current;
+        },
+        
+        get isDark() {
+            return this.effectiveTheme === 'dark';
+        },
+        
+        get themeIcon() {
+            switch (this.current) {
+                case 'light':
+                    return 'sun';
+                case 'dark':
+                    return 'moon';
+                case 'auto':
+                default:
+                    return 'computer-desktop';
+            }
+        },
+        
+        get themeName() {
+            switch (this.current) {
+                case 'light':
+                    return 'Claro';
+                case 'dark':
+                    return 'Escuro';
+                case 'auto':
+                default:
+                    return 'Automático';
+            }
+        }
+    });
+
+    // Theme Toggle Component
+    Alpine.data('themeToggle', () => ({
+        init() {
+            Alpine.store('theme').init();
+        },
+        
+        get store() {
+            return Alpine.store('theme');
+        },
+        
+        setTheme(theme) {
+            Alpine.store('theme').setTheme(theme);
+        },
+        
+        toggleDropdown() {
+            Alpine.store('theme').toggleDropdown();
+        },
+        
+        closeDropdown() {
+            Alpine.store('theme').closeDropdown();
+        }
+    }));
+});
+
+// Theme utilities
+window.ThemeUtils = {
+    // Get current theme
+    getCurrentTheme() {
+        return Alpine.store('theme').current;
+    },
+    
+    // Set theme programmatically
+    setTheme(theme) {
+        Alpine.store('theme').setTheme(theme);
+    },
+    
+    // Check if dark mode is active
+    isDarkMode() {
+        return Alpine.store('theme').isDark;
+    },
+    
+    // Toggle between light and dark (skip auto)
+    toggleLightDark() {
+        const current = Alpine.store('theme').effectiveTheme;
+        Alpine.store('theme').setTheme(current === 'light' ? 'dark' : 'light');
+    }
+};
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure theme store is initialized even if Alpine is delayed
+    if (window.Alpine && Alpine.store) {
+        Alpine.store('theme').init();
+    }
+});
+
+// Handle click outside to close dropdown
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.theme-toggle-container')) {
+        if (Alpine.store && Alpine.store('theme')) {
+            Alpine.store('theme').closeDropdown();
+        }
+    }
+});

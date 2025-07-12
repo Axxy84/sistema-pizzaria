@@ -40,6 +40,9 @@ urlpatterns = [
     path('api/estoque/', include('apps.estoque.urls')),
     path('api/financeiro/', include('apps.financeiro.api_urls')),
     path('api/dashboard/', include('apps.dashboard.urls')),
+    
+    # Settings/Preferences API
+    path('', include('settings.urls')),
 ]
 
 if settings.DEBUG:

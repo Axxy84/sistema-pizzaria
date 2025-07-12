@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.estoque',
     'apps.financeiro',
     'apps.dashboard',
+    'settings',
 ]
 
 MIDDLEWARE = [

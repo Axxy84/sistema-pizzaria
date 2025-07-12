@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full bg-gray-50">
+<html lang="pt-BR" class="h-full" data-theme="auto">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,20 +51,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        /* Remove custom scrollbar styles - using CSS variables from base.css */
         
         /* Transition utilities */
         .transition-slide {
@@ -85,7 +72,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 
-<body class="h-full" x-data="{ 
+<body class="h-full bg-primary" x-data="{ 
     sidebarOpen: false,
     userDropdownOpen: false,
     showAlert: false,
@@ -104,9 +91,9 @@
          x-show="loading" 
          class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
          style="display: none;">
-        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+        <div class="bg-card rounded-lg p-6 flex items-center space-x-3 shadow-lg-theme border border-card">
             <div class="loading-spinner w-6 h-6 border-2 border-pizza-600 border-t-transparent rounded-full"></div>
-            <span class="text-gray-700 font-medium">Carregando...</span>
+            <span class="text-primary font-medium">Carregando...</span>
         </div>
     </div>
 
