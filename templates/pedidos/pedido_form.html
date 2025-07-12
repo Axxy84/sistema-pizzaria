@@ -2423,7 +2423,62 @@ function pedidoForm() {
             };
         },
         
-        // Gerar HTML da comanda para impressão
+        // Mapear tamanhos para abreviações padrão da indústria
+        getTamanhoAbrev(tamanho) {
+            const mapeamento = {
+                'pequena': 'P',
+                'broto': 'B', 
+                'média': 'M',
+                'media': 'M',
+                'grande': 'G',
+                'família': 'F',
+                'familia': 'F'
+            };
+            return mapeamento[tamanho.toLowerCase()] || tamanho.charAt(0).toUpperCase();
+        },
+        
+        // Obter ingredientes principais da pizza (mockup - em produção viria do banco)
+        getIngredientesPizza(nomePizza) {
+            const ingredientes = {
+                'camarão premium': 'Molho branco, mussarela, camarões grandes, alho',
+                'calabresa': 'Molho, mussarela, calabresa',
+                'margherita': 'Molho, mussarela, tomate, manjericão',
+                'portuguesa': 'Molho, mussarela, presunto, ovos, cebola, azeitona',
+                'bacon': 'Molho, mussarela, bacon',
+                'frango': 'Molho, mussarela, frango desfiado',
+                'quatro queijos': 'Molho branco, mussarela, gorgonzola, parmesão, provolone'
+            };
+            
+            const nome = nomePizza.toLowerCase()
+                .replace('pizza ', '')
+                .replace(/\s+/g, ' ')
+                .trim();
+            
+            return ingredientes[nome] || '';
+        },
+        
+        // Quebrar texto em linhas para impressora térmica
+        quebrarTexto(texto, larguraMaxima = 32) {
+            if (!texto || texto.length <= larguraMaxima) return texto;
+            
+            const palavras = texto.split(' ');
+            const linhas = [];
+            let linhaAtual = '';
+            
+            palavras.forEach(palavra => {
+                if ((linhaAtual + palavra).length <= larguraMaxima) {
+                    linhaAtual += (linhaAtual ? ' ' : '') + palavra;
+                } else {
+                    if (linhaAtual) linhas.push(linhaAtual);
+                    linhaAtual = palavra;
+                }
+            });
+            
+            if (linhaAtual) linhas.push(linhaAtual);
+            return linhas.join('\n');
+        },
+        
+        // Gerar HTML da comanda para impressão (formato otimizado para pizzaiolo)
         gerarHTMLComanda(dados) {
             return `
                 <!DOCTYPE html>
@@ -2431,42 +2486,105 @@ function pedidoForm() {
                 <head>
                     <title>Comanda - ${dados.numero}</title>
                     <style>
-                        body { font-family: monospace; margin: 20px; background: white; }
-                        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-                        .info { margin-bottom: 15px; }
-                        .pizzas { margin-bottom: 15px; }
-                        .pizza-item { margin-bottom: 10px; padding: 5px; border-left: 3px solid #DC2626; }
-                        .footer { text-align: center; border-top: 1px solid #000; padding-top: 10px; margin-top: 20px; }
-                        @media print { body { margin: 0; } }
+                        body { 
+                            font-family: 'Courier New', monospace; 
+                            margin: 10px; 
+                            background: white; 
+                            font-size: 12px;
+                            line-height: 1.3;
+                        }
+                        .header { 
+                            text-align: center; 
+                            border-bottom: 1px solid #000; 
+                            padding-bottom: 8px; 
+                            margin-bottom: 12px; 
+                        }
+                        .separador {
+                            border-top: 1px solid #000;
+                            margin: 8px 0;
+                            line-height: 1px;
+                        }
+                        .separador-duplo {
+                            border-top: 2px solid #000;
+                            margin: 10px 0;
+                            line-height: 1px;
+                        }
+                        .info { margin-bottom: 12px; }
+                        .pizzas { margin-bottom: 12px; }
+                        .pizza-item { 
+                            margin-bottom: 8px; 
+                            padding: 4px 0; 
+                            border-left: 2px solid #DC2626; 
+                            padding-left: 6px;
+                        }
+                        .pizza-nome { 
+                            font-weight: bold; 
+                            font-size: 13px; 
+                            margin-bottom: 2px;
+                        }
+                        .pizza-ingredientes { 
+                            font-size: 10px; 
+                            color: #333; 
+                            white-space: pre-line;
+                            margin-bottom: 2px;
+                        }
+                        .pizza-obs { 
+                            font-size: 10px; 
+                            font-style: italic; 
+                            color: #666;
+                        }
+                        .footer { 
+                            text-align: center; 
+                            border-top: 2px solid #000; 
+                            padding-top: 8px; 
+                            margin-top: 15px; 
+                            font-weight: bold;
+                        }
+                        @media print { 
+                            body { margin: 0; font-size: 11px; } 
+                            .header h2 { font-size: 14px; margin: 5px 0; }
+                        }
                     </style>
                 </head>
                 <body>
                     <div class="header">
                         <h2>🍕 COMANDA COZINHA</h2>
-                        <p><strong>${dados.numero}</strong></p>
-                        <p>Horário: ${dados.horario}</p>
+                        <div>${dados.numero}</div>
+                        <div>${dados.horario}</div>
                     </div>
+                    <div class="separador-duplo"></div>
                     
                     <div class="info">
-                        <p><strong>Cliente:</strong> ${dados.cliente}</p>
-                        <p><strong>Tipo:</strong> ${dados.tipoPedido === 'delivery' ? 'Entrega' : dados.tipoPedido === 'mesa' ? 'Mesa ' + dados.mesa : 'Retirada'}</p>
-                        ${dados.tipoPedido === 'delivery' && dados.endereco ? '<p><strong>Endereço:</strong> ' + dados.endereco + '</p>' : ''}
+                        <div><strong>Cliente:</strong> ${dados.cliente}</div>
+                        <div><strong>Tipo:</strong> ${dados.tipoPedido === 'delivery' ? 'Entrega' : dados.tipoPedido === 'mesa' ? 'Mesa ' + dados.mesa : 'Retirada'}</div>
+                        ${dados.tipoPedido === 'delivery' && dados.endereco ? '<div><strong>Endereço:</strong> ' + this.quebrarTexto(dados.endereco, 25) + '</div>' : ''}
                     </div>
                     
                     <div class="pizzas">
                         <h3>🍕 PIZZAS (${dados.pizzas.length}):</h3>
-                        ${dados.pizzas.map(pizza => `
+                        <div class="separador"></div>
+                        ${dados.pizzas.map(pizza => {
+                            const tamanhoAbrev = this.getTamanhoAbrev(pizza.tamanho || '');
+                            const nomeFormatado = pizza.nome.toUpperCase()
+                                .replace('PIZZA ', '')
+                                .substring(0, 25); // Limitar nome para impressora
+                            const ingredientes = this.getIngredientesPizza(pizza.nome);
+                            const ingredientesQuebrados = ingredientes ? this.quebrarTexto(ingredientes, 30) : '';
+                            
+                            return `
                             <div class="pizza-item">
-                                <p><strong>${pizza.quantidade}x ${pizza.nome.toUpperCase()}</strong></p>
-                                ${pizza.tamanho ? '<p>Tamanho: ' + pizza.tamanho + '</p>' : ''}
-                                ${pizza.observacoes ? '<p>Obs: ' + pizza.observacoes + '</p>' : ''}
+                                <div class="pizza-nome">${tamanhoAbrev} ${nomeFormatado}</div>
+                                ${ingredientesQuebrados ? '<div class="pizza-ingredientes">' + ingredientesQuebrados + '</div>' : ''}
+                                ${pizza.observacoes ? '<div class="pizza-obs">OBS: ' + this.quebrarTexto(pizza.observacoes, 28) + '</div>' : ''}
                             </div>
-                        `).join('')}
+                        `;
+                        }).join('')}
                     </div>
+                    <div class="separador-duplo"></div>
                     
                     <div class="footer">
-                        <p>⚠️ ATENÇÃO: ${dados.pizzas.length} pizza${dados.pizzas.length > 1 ? 's' : ''} no total</p>
-                        <p>Horário do pedido: ${dados.horario}</p>
+                        <div>⚠️ TOTAL: ${dados.pizzas.length} PIZZA${dados.pizzas.length > 1 ? 'S' : ''}</div>
+                        <div>Horário: ${dados.horario}</div>
                     </div>
                 </body>
                 </html>
