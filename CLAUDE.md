@@ -99,7 +99,6 @@ USE_SUPABASE_DB=False
 
 **Tabelas Extras** (possivelmente de projetos anteriores):
 - `customers`, `orders`, `order_items`, `products`, `profiles`, `settings`
-- `pizza_borders`, `pizza_flavors`, `pizza_sizes`
 
 ### Comandos para Verificar Banco
 
@@ -322,6 +321,7 @@ pip freeze > requirements.txt
 - ✅ `estoque` - Controle de estoque
 - ✅ `financeiro` - Gestão financeira
 - ✅ `dashboard` - Dashboard principal
+- ✅ `pizzas` - Sistema completo de pizzas com cardápio e montador personalizado
 
 **Migrações:**
 - ✅ 34 tabelas criadas no Supabase
@@ -615,3 +615,4 @@ Durante os intervalos em que a IA está pensando ou processando:
 
 > 💡 **Como podemos usar melhor esse tempo juntos?**  
 > Podemos explorar ideias de produtos, validar hipóteses, desenhar estratégias ou até aprofundar em tecnologias que você queira dominar.
+

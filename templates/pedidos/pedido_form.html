@@ -5,727 +5,695 @@
 
 {% block extra_css %}
 <style>
-    .wizard-step {
-        @apply flex items-center;
-    }
-    .wizard-step-active .step-number {
-        @apply bg-pizza-600 text-white;
-    }
-    .wizard-step-completed .step-number {
-        @apply bg-green-600 text-white;
-    }
-    .wizard-step .step-number {
-        @apply w-10 h-10 rounded-full flex items-center justify-center font-semibold bg-gray-300 text-gray-600;
-    }
-    .wizard-line {
-        @apply flex-1 h-1 bg-gray-300 mx-3;
-    }
-    .wizard-step-completed .wizard-line {
-        @apply bg-green-600;
+    /* Estilos para campos inválidos */
+    .campo-invalido {
+        border-color: #DC2626 !important;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
     }
     
+    /* Estilos para mensagens de erro */
+    .mensagem-erro {
+        color: #DC2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Estilos para campos obrigatórios */
+    .campo-obrigatorio::after {
+        content: ' *';
+        color: #DC2626;
+    }
+    
+    /* Estilos para seções */
+    .secao-formulario {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .secao-header {
+        padding: 1rem 1.5rem;
+        background: #F9FAFB;
+        border-bottom: 1px solid #E5E7EB;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .secao-header:hover {
+        background: #F3F4F6;
+    }
+    
+    .secao-content {
+        padding: 1.5rem;
+    }
+    
+    /* Estilos para abas de produtos */
+    .aba-produto {
+        @apply px-4 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all;
+    }
+    
+    .aba-produto.active {
+        @apply bg-pizza-600 text-white;
+    }
+    
+    .aba-produto:not(.active) {
+        @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+    }
+    
+    /* Cards de produtos */
     .produto-card {
-        @apply border-2 border-gray-200 rounded-lg p-4 cursor-pointer transition-all;
+        @apply bg-white border border-gray-200 rounded-lg p-4 transition-all hover:shadow-md;
     }
-    .produto-card:hover {
-        @apply border-pizza-300 shadow-md;
+    
+    .produto-card.pizza {
+        @apply relative;
     }
-    .produto-card.selected {
-        @apply border-pizza-500 bg-pizza-50;
+    
+    /* Seletor de tamanho para pizzas */
+    .tamanho-selector {
+        @apply grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3;
+    }
+    
+    .tamanho-option {
+        @apply relative;
+    }
+    
+    .tamanho-option input[type="radio"] {
+        @apply sr-only peer;
+    }
+    
+    .tamanho-option label {
+        @apply block w-full px-3 py-2 text-center text-sm border rounded-md cursor-pointer transition-all;
+        @apply peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600;
+        @apply hover:bg-gray-50 peer-checked:hover:bg-pizza-700;
+    }
+    
+    /* Carrinho lateral */
+    .carrinho-lateral {
+        @apply sticky top-4 bg-white border border-gray-200 rounded-lg shadow-lg h-fit;
     }
     
     .carrinho-item {
-        @apply flex justify-between items-center py-2 border-b border-gray-100;
+        @apply flex justify-between items-start py-3 border-b border-gray-100 last:border-b-0;
+    }
+    
+    .carrinho-item-info {
+        @apply flex-1 mr-3;
+    }
+    
+    .carrinho-item-controls {
+        @apply flex items-center space-x-2;
+    }
+    
+    .quantidade-control {
+        @apply w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors;
+    }
+    
+    .quantidade-control:hover {
+        @apply border-pizza-500 text-pizza-600;
+    }
+    
+    .quantidade-control.disabled {
+        @apply opacity-50 cursor-not-allowed;
+    }
+    
+    /* Botão adicionar produto */
+    .btn-adicionar {
+        @apply w-full mt-3 px-4 py-2 bg-pizza-600 text-white rounded-lg hover:bg-pizza-700 transition-colors;
+        @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-pizza-600;
+    }
+    
+    /* Totais do carrinho */
+    .carrinho-totais {
+        @apply space-y-2 pt-4 border-t border-gray-200;
+    }
+    
+    .total-linha {
+        @apply flex justify-between text-sm;
+    }
+    
+    .total-linha.final {
+        @apply text-lg font-bold text-pizza-600 pt-2 border-t border-gray-200;
+    }
+    
+    /* Responsividade */
+    @media (max-width: 1024px) {
+        .layout-produtos {
+            @apply flex-col;
+        }
+        
+        .carrinho-lateral {
+            @apply static order-first mb-6;
+        }
+    }
+    
+    @media (max-width: 640px) {
+        .secao-content {
+            padding: 1rem;
+        }
+        
+        .tamanho-selector {
+            @apply grid-cols-2;
+        }
+        
+        .carrinho-lateral {
+            @apply mx-4;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div x-data="pedidoFormApp()" x-init="init()">
-    <form method="post" @submit.prevent="submitForm">
+<div x-data="pedidoForm()" x-init="init()">
+    <form method="post" @submit.prevent="submitForm" novalidate>
         {% csrf_token %}
         
-        <!-- Header -->
+        <!-- Cabeçalho -->
         <div class="mb-6">
             <h1 class="text-2xl font-bold text-gray-900">
                 {% if object %}Editar Pedido #{{ object.numero }}{% else %}Novo Pedido{% endif %}
             </h1>
+            <p class="mt-1 text-sm text-gray-600">Preencha os dados do cliente e selecione os produtos desejados</p>
         </div>
         
-        <!-- Wizard Steps -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <!-- Step 1: Cliente -->
-                <div class="wizard-step" :class="{ 'wizard-step-active': currentStep === 1, 'wizard-step-completed': currentStep > 1 }">
-                    <div class="step-number">1</div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium">Cliente</p>
-                    </div>
+        <!-- Mensagens de erro global -->
+        <div x-show="errosGlobais.length > 0" 
+             class="mb-4 p-4 bg-red-50 border border-red-200 rounded-md"
+             role="alert"
+             aria-live="polite">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
                 </div>
-                
-                <div class="wizard-line" :class="{ 'bg-green-600': currentStep > 1 }"></div>
-                
-                <!-- Step 2: Produtos -->
-                <div class="wizard-step" :class="{ 'wizard-step-active': currentStep === 2, 'wizard-step-completed': currentStep > 2 }">
-                    <div class="step-number">2</div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium">Produtos</p>
-                    </div>
-                </div>
-                
-                <div class="wizard-line" :class="{ 'bg-green-600': currentStep > 2 }"></div>
-                
-                <!-- Step 3: Finalização -->
-                <div class="wizard-step" :class="{ 'wizard-step-active': currentStep === 3 }">
-                    <div class="step-number">3</div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium">Finalização</p>
-                    </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Corrija os seguintes erros:</h3>
+                    <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                        <template x-for="erro in errosGlobais">
+                            <li x-text="erro"></li>
+                        </template>
+                    </ul>
                 </div>
             </div>
         </div>
         
-        <!-- Step 1: Cliente -->
-        <div x-show="currentStep === 1" class="space-y-6">
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Dados do Cliente
-                    </h3>
-                    
-                    <!-- Busca de Cliente -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Buscar Cliente Existente
-                        </label>
-                        <div class="relative">
-                            <input type="text"
-                                   x-model="buscarCliente"
-                                   @input="buscarClienteDebounced"
-                                   @focus="showClienteDropdown = true"
-                                   class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-pizza-500 focus:border-pizza-500 sm:text-sm"
-                                   placeholder="Digite o nome ou telefone...">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            
-                            <!-- Dropdown de resultados -->
-                            <div x-show="showClienteDropdown && clientesEncontrados.length > 0"
-                                 @click.away="showClienteDropdown = false"
-                                 class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-                                <template x-for="cliente in clientesEncontrados">
-                                    <div @click="selecionarCliente(cliente)"
-                                         class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-50">
-                                        <div>
-                                            <p class="font-medium" x-text="cliente.nome"></p>
-                                            <p class="text-sm text-gray-500" x-text="cliente.telefone"></p>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Ou cadastro rápido -->
-                    <div class="relative">
-                        <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-gray-300"></div>
-                        </div>
-                        <div class="relative flex justify-center text-sm">
-                            <span class="px-2 bg-white text-gray-500">ou cadastre um novo cliente</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Formulário de Cliente -->
-                    <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                        <div class="sm:col-span-3">
-                            <label for="cliente_nome" class="block text-sm font-medium text-gray-700">
-                                Nome *
-                            </label>
-                            <input type="text"
-                                   id="cliente_nome"
-                                   x-model="clienteData.nome"
-                                   class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                   required>
-                        </div>
-                        
-                        <div class="sm:col-span-3">
-                            <label for="cliente_telefone" class="block text-sm font-medium text-gray-700">
-                                Telefone *
-                            </label>
-                            <input type="tel"
-                                   id="cliente_telefone"
-                                   x-model="clienteData.telefone"
-                                   class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                   required>
-                        </div>
-                        
-                        <div class="sm:col-span-6">
-                            <label for="cliente_email" class="block text-sm font-medium text-gray-700">
-                                E-mail
-                            </label>
-                            <input type="email"
-                                   id="cliente_email"
-                                   x-model="clienteData.email"
-                                   class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                        </div>
-                    </div>
-                    
-                    <!-- Tipo de Pedido -->
-                    <div class="mt-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-3">
-                            Tipo de Pedido *
-                        </label>
-                        <div class="grid grid-cols-3 gap-3">
-                            <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
-                                   :class="{ 'border-pizza-500 ring-2 ring-pizza-500': tipoPedido === 'delivery' }">
-                                <input type="radio" 
-                                       name="tipo" 
-                                       value="delivery"
-                                       x-model="tipoPedido"
-                                       class="sr-only">
-                                <div class="flex flex-1">
-                                    <div class="flex flex-col">
-                                        <span class="block text-sm font-medium text-gray-900">
-                                            Delivery
-                                        </span>
-                                        <span class="mt-1 flex items-center text-sm text-gray-500">
-                                            Entrega no endereço
-                                        </span>
-                                    </div>
-                                </div>
-                            </label>
-                            
-                            <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
-                                   :class="{ 'border-pizza-500 ring-2 ring-pizza-500': tipoPedido === 'balcao' }">
-                                <input type="radio" 
-                                       name="tipo" 
-                                       value="balcao"
-                                       x-model="tipoPedido"
-                                       class="sr-only">
-                                <div class="flex flex-1">
-                                    <div class="flex flex-col">
-                                        <span class="block text-sm font-medium text-gray-900">
-                                            Balcão
-                                        </span>
-                                        <span class="mt-1 flex items-center text-sm text-gray-500">
-                                            Retirada no local
-                                        </span>
-                                    </div>
-                                </div>
-                            </label>
-                            
-                            <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
-                                   :class="{ 'border-pizza-500 ring-2 ring-pizza-500': tipoPedido === 'mesa' }">
-                                <input type="radio" 
-                                       name="tipo" 
-                                       value="mesa"
-                                       x-model="tipoPedido"
-                                       class="sr-only">
-                                <div class="flex flex-1">
-                                    <div class="flex flex-col">
-                                        <span class="block text-sm font-medium text-gray-900">
-                                            Mesa
-                                        </span>
-                                        <span class="mt-1 flex items-center text-sm text-gray-500">
-                                            Consumo no local
-                                        </span>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <!-- Endereço (se delivery) -->
-                    <div x-show="tipoPedido === 'delivery'" class="mt-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-3">
-                            Endereço de Entrega *
-                        </label>
-                        
-                        <!-- Lista de endereços do cliente -->
-                        <div x-show="clienteData.enderecos && clienteData.enderecos.length > 0" class="space-y-2 mb-4">
-                            <template x-for="endereco in clienteData.enderecos">
-                                <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
-                                       :class="{ 'border-pizza-500 ring-2 ring-pizza-500': enderecoSelecionado === endereco.id }">
-                                    <input type="radio" 
-                                           :value="endereco.id"
-                                           x-model="enderecoSelecionado"
-                                           class="sr-only">
-                                    <div class="flex flex-1">
-                                        <div class="flex flex-col">
-                                            <span class="block text-sm font-medium text-gray-900" x-text="endereco.tipo"></span>
-                                            <span class="mt-1 text-sm text-gray-500" x-text="endereco.completo"></span>
-                                        </div>
-                                    </div>
-                                </label>
-                            </template>
-                        </div>
-                        
-                        <!-- Botão para adicionar novo endereço -->
-                        <button type="button"
-                                @click="showNovoEndereco = !showNovoEndereco"
-                                class="text-sm text-pizza-600 hover:text-pizza-500">
-                            + Adicionar novo endereço
-                        </button>
-                        
-                        <!-- Formulário de novo endereço -->
-                        <div x-show="showNovoEndereco" class="mt-4 p-4 bg-gray-50 rounded-lg">
-                            <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                                <div class="sm:col-span-2">
-                                    <label for="cep" class="block text-sm font-medium text-gray-700">
-                                        CEP
-                                    </label>
-                                    <input type="text"
-                                           id="cep"
-                                           x-model="novoEndereco.cep"
-                                           @blur="buscarCep"
-                                           class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                           placeholder="00000-000">
-                                </div>
-                                
-                                <div class="sm:col-span-4">
-                                    <label for="logradouro" class="block text-sm font-medium text-gray-700">
-                                        Logradouro
-                                    </label>
-                                    <input type="text"
-                                           id="logradouro"
-                                           x-model="novoEndereco.logradouro"
-                                           class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                </div>
-                                
-                                <div class="sm:col-span-1">
-                                    <label for="numero" class="block text-sm font-medium text-gray-700">
-                                        Número
-                                    </label>
-                                    <input type="text"
-                                           id="numero"
-                                           x-model="novoEndereco.numero"
-                                           class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                </div>
-                                
-                                <div class="sm:col-span-2">
-                                    <label for="complemento" class="block text-sm font-medium text-gray-700">
-                                        Complemento
-                                    </label>
-                                    <input type="text"
-                                           id="complemento"
-                                           x-model="novoEndereco.complemento"
-                                           class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                </div>
-                                
-                                <div class="sm:col-span-3">
-                                    <label for="bairro" class="block text-sm font-medium text-gray-700">
-                                        Bairro
-                                    </label>
-                                    <input type="text"
-                                           id="bairro"
-                                           x-model="novoEndereco.bairro"
-                                           class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                </div>
-                                
-                                <div class="sm:col-span-6">
-                                    <label for="referencia" class="block text-sm font-medium text-gray-700">
-                                        Referência
-                                    </label>
-                                    <input type="text"
-                                           id="referencia"
-                                           x-model="novoEndereco.referencia"
-                                           class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                           placeholder="Próximo ao mercado...">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Mesa (se mesa) -->
-                    <div x-show="tipoPedido === 'mesa'" class="mt-6">
-                        <label for="mesa" class="block text-sm font-medium text-gray-700">
-                            Número da Mesa *
+        <!-- Seção: Dados do Cliente -->
+        <section class="secao-formulario">
+            <div class="secao-header" 
+                 @click="secaoClienteAberta = !secaoClienteAberta"
+                 role="button"
+                 :aria-expanded="secaoClienteAberta ? 'true' : 'false'"
+                 aria-controls="dados-cliente"
+                 tabindex="0"
+                 @keydown.enter="secaoClienteAberta = !secaoClienteAberta"
+                 @keydown.space.prevent="secaoClienteAberta = !secaoClienteAberta">
+                <h2 class="text-lg font-medium text-gray-900">Dados do Cliente</h2>
+                <svg class="w-5 h-5 text-gray-500 transition-transform"
+                     :class="{ 'transform rotate-180': secaoClienteAberta }"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+            
+            <div x-show="secaoClienteAberta" 
+                 x-transition
+                 id="dados-cliente"
+                 class="secao-content">
+                
+                <!-- Grid responsivo para campos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- Nome do Cliente -->
+                    <div>
+                        <label for="cliente-nome" class="block text-sm font-medium text-gray-700 campo-obrigatorio">
+                            Nome do Cliente
                         </label>
                         <input type="text"
-                               id="mesa"
-                               x-model="numeroMesa"
-                               class="mt-1 focus:ring-pizza-500 focus:border-pizza-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                               placeholder="Ex: 12">
+                               id="cliente-nome"
+                               name="cliente_nome"
+                               x-model="cliente.nome"
+                               @blur="validarCampo('nome')"
+                               :class="{ 'campo-invalido': erros.nome }"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                               aria-required="true"
+                               aria-invalid="erros.nome ? 'true' : 'false'"
+                               aria-describedby="erro-nome"
+                               autofocus
+                               required>
+                        <p x-show="erros.nome" 
+                           x-text="erros.nome"
+                           id="erro-nome"
+                           class="mensagem-erro"
+                           role="alert"></p>
+                    </div>
+                    
+                    <!-- Telefone -->
+                    <div>
+                        <label for="cliente-telefone" class="block text-sm font-medium text-gray-700 campo-obrigatorio">
+                            Telefone
+                        </label>
+                        <input type="tel"
+                               id="cliente-telefone"
+                               name="cliente_telefone"
+                               x-model="cliente.telefone"
+                               @blur="validarCampo('telefone')"
+                               @input="formatarTelefone"
+                               :class="{ 'campo-invalido': erros.telefone }"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                               placeholder="(00) 00000-0000"
+                               aria-required="true"
+                               aria-invalid="erros.telefone ? 'true' : 'false'"
+                               aria-describedby="erro-telefone"
+                               required>
+                        <p x-show="erros.telefone" 
+                           x-text="erros.telefone"
+                           id="erro-telefone"
+                           class="mensagem-erro"
+                           role="alert"></p>
                     </div>
                 </div>
+                
+                <!-- Tipo de Pedido -->
+                <div class="mb-4">
+                    <fieldset>
+                        <legend class="block text-sm font-medium text-gray-700 campo-obrigatorio mb-2">
+                            Tipo de Pedido
+                        </legend>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <input type="radio"
+                                       id="tipo-delivery"
+                                       name="tipo_pedido"
+                                       value="delivery"
+                                       x-model="tipoPedido"
+                                       @change="calcularTotais"
+                                       class="sr-only peer"
+                                       aria-required="true">
+                                <label for="tipo-delivery"
+                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-gray-50"
+                                       tabindex="0"
+                                       @keydown.enter="tipoPedido = 'delivery'; calcularTotais()"
+                                       @keydown.space.prevent="tipoPedido = 'delivery'; calcularTotais()">
+                                    🚚 Delivery
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <input type="radio"
+                                       id="tipo-balcao"
+                                       name="tipo_pedido"
+                                       value="balcao"
+                                       x-model="tipoPedido"
+                                       @change="calcularTotais"
+                                       class="sr-only peer"
+                                       aria-required="true">
+                                <label for="tipo-balcao"
+                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-gray-50"
+                                       tabindex="0"
+                                       @keydown.enter="tipoPedido = 'balcao'; calcularTotais()"
+                                       @keydown.space.prevent="tipoPedido = 'balcao'; calcularTotais()">
+                                    🏪 Balcão
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <input type="radio"
+                                       id="tipo-mesa"
+                                       name="tipo_pedido"
+                                       value="mesa"
+                                       x-model="tipoPedido"
+                                       @change="calcularTotais"
+                                       class="sr-only peer"
+                                       aria-required="true">
+                                <label for="tipo-mesa"
+                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-gray-50"
+                                       tabindex="0"
+                                       @keydown.enter="tipoPedido = 'mesa'; calcularTotais()"
+                                       @keydown.space.prevent="tipoPedido = 'mesa'; calcularTotais()">
+                                    🍽️ Mesa
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                
+                <!-- Endereço (apenas para Delivery) -->
+                <div x-show="tipoPedido === 'delivery'" 
+                     x-transition
+                     class="mb-4">
+                    <label for="endereco" class="block text-sm font-medium text-gray-700 campo-obrigatorio">
+                        Endereço de Entrega
+                    </label>
+                    <textarea id="endereco"
+                              name="endereco"
+                              x-model="endereco"
+                              @blur="validarCampo('endereco')"
+                              :class="{ 'campo-invalido': erros.endereco }"
+                              rows="3"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                              placeholder="Rua, número, bairro, referência..."
+                              :aria-required="tipoPedido === 'delivery' ? 'true' : 'false'"
+                              :aria-invalid="erros.endereco ? 'true' : 'false'"
+                              aria-describedby="erro-endereco"
+                              :required="tipoPedido === 'delivery'"></textarea>
+                    <p x-show="erros.endereco" 
+                       x-text="erros.endereco"
+                       id="erro-endereco"
+                       class="mensagem-erro"
+                       role="alert"></p>
+                </div>
+                
+                <!-- Número da Mesa (apenas para Mesa) -->
+                <div x-show="tipoPedido === 'mesa'" 
+                     x-transition
+                     class="mb-4">
+                    <label for="numero-mesa" class="block text-sm font-medium text-gray-700 campo-obrigatorio">
+                        Número da Mesa
+                    </label>
+                    <input type="text"
+                           id="numero-mesa"
+                           name="numero_mesa"
+                           x-model="numeroMesa"
+                           @blur="validarCampo('numeroMesa')"
+                           :class="{ 'campo-invalido': erros.numeroMesa }"
+                           class="mt-1 block w-32 rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                           placeholder="Ex: 12"
+                           :aria-required="tipoPedido === 'mesa' ? 'true' : 'false'"
+                           :aria-invalid="erros.numeroMesa ? 'true' : 'false'"
+                           aria-describedby="erro-mesa"
+                           :required="tipoPedido === 'mesa'">
+                    <p x-show="erros.numeroMesa" 
+                       x-text="erros.numeroMesa"
+                       id="erro-mesa"
+                       class="mensagem-erro"
+                       role="alert"></p>
+                </div>
             </div>
-            
-            <!-- Botões de navegação -->
-            <div class="flex justify-between">
-                <a href="{% url 'pedido_list' %}"
-                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                    Cancelar
-                </a>
-                <button type="button"
-                        @click="nextStep"
-                        class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
-                    Próximo
-                    <svg class="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+        </section>
         
-        <!-- Step 2: Produtos -->
-        <div x-show="currentStep === 2" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Lista de Produtos -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white shadow rounded-lg">
-                    <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                            Selecione os Produtos
-                        </h3>
-                        
-                        <!-- Filtro por categoria -->
-                        <div class="mb-4">
-                            <div class="flex space-x-2 overflow-x-auto pb-2">
-                                <button type="button"
-                                        @click="categoriaFiltro = ''"
-                                        :class="{ 'bg-pizza-600 text-white': categoriaFiltro === '', 'bg-gray-200 text-gray-700': categoriaFiltro !== '' }"
-                                        class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
-                                    Todos
-                                </button>
-                                <button type="button"
-                                        @click="categoriaFiltro = 'pizza'"
-                                        :class="{ 'bg-pizza-600 text-white': categoriaFiltro === 'pizza', 'bg-gray-200 text-gray-700': categoriaFiltro !== 'pizza' }"
-                                        class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
-                                    🍕 Pizzas
-                                </button>
-                                <button type="button"
-                                        @click="categoriaFiltro = 'bebida'"
-                                        :class="{ 'bg-pizza-600 text-white': categoriaFiltro === 'bebida', 'bg-gray-200 text-gray-700': categoriaFiltro !== 'bebida' }"
-                                        class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
-                                    🥤 Bebidas
-                                </button>
-                                <button type="button"
-                                        @click="categoriaFiltro = 'sobremesa'"
-                                        :class="{ 'bg-pizza-600 text-white': categoriaFiltro === 'sobremesa', 'bg-gray-200 text-gray-700': categoriaFiltro !== 'sobremesa' }"
-                                        class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
-                                    🍰 Sobremesas
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Grid de produtos -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {% for produto in produtos %}
-                            <div class="produto-card"
-                                 x-show="!categoriaFiltro || '{{ produto.categoria.slug|default:'' }}' === categoriaFiltro"
-                                 @click="adicionarProduto({{ produto.id }}, '{{ produto.nome }}', {{ produto.precos.first.preco_final|default:0 }})">
-                                <div class="flex items-center">
-                                    {% if produto.imagem %}
-                                    <img src="{{ produto.imagem.url }}" 
-                                         alt="{{ produto.nome }}"
-                                         class="w-16 h-16 object-cover rounded">
-                                    {% else %}
-                                    <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
-                                        <span class="text-2xl">
-                                            {% if produto.categoria.nome == 'Pizza' %}🍕
-                                            {% elif produto.categoria.nome == 'Bebida' %}🥤
-                                            {% elif produto.categoria.nome == 'Sobremesa' %}🍰
-                                            {% else %}🍴{% endif %}
-                                        </span>
-                                    </div>
-                                    {% endif %}
-                                    <div class="ml-4 flex-1">
-                                        <h4 class="text-sm font-medium text-gray-900">{{ produto.nome }}</h4>
-                                        <p class="text-xs text-gray-500">{{ produto.descricao|truncatewords:10 }}</p>
-                                        <p class="text-sm font-semibold text-pizza-600 mt-1">
-                                            {% if produto.precos.count > 1 %}
-                                                A partir de R$ {{ produto.precos.first.preco_final|floatformat:2 }}
-                                            {% else %}
-                                                R$ {{ produto.precos.first.preco_final|floatformat:2 }}
-                                            {% endif %}
-                                        </p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Opções de tamanho (se houver) -->
-                                {% if produto.precos.count > 1 %}
-                                <div class="mt-3 flex space-x-2">
-                                    {% for preco in produto.precos.all %}
-                                    <button type="button"
-                                            class="flex-1 py-1 px-2 text-xs border rounded hover:bg-gray-50">
-                                        {{ preco.tamanho.nome }}<br>
-                                        R$ {{ preco.preco_final|floatformat:2 }}
-                                    </button>
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
+        <!-- Seção: Produtos e Carrinho -->
+        <section class="secao-formulario">
+            <div class="secao-header" 
+                 @click="secaoProdutosAberta = !secaoProdutosAberta"
+                 role="button"
+                 :aria-expanded="secaoProdutosAberta ? 'true' : 'false'"
+                 aria-controls="produtos"
+                 tabindex="0"
+                 @keydown.enter="secaoProdutosAberta = !secaoProdutosAberta"
+                 @keydown.space.prevent="secaoProdutosAberta = !secaoProdutosAberta">
+                <h2 class="text-lg font-medium text-gray-900">
+                    Produtos
+                    <span x-show="carrinho.length > 0" 
+                          class="ml-2 px-2 py-1 text-xs bg-pizza-600 text-white rounded-full">
+                        <span x-text="carrinho.length"></span>
+                    </span>
+                </h2>
+                <svg class="w-5 h-5 text-gray-500 transition-transform"
+                     :class="{ 'transform rotate-180': secaoProdutosAberta }"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
             </div>
             
-            <!-- Carrinho -->
-            <div class="lg:col-span-1">
-                <div class="bg-white shadow rounded-lg sticky top-4">
-                    <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                            Carrinho
-                        </h3>
+            <div x-show="secaoProdutosAberta" 
+                 x-transition
+                 id="produtos"
+                 class="secao-content">
+                
+                <!-- Layout com produtos e carrinho -->
+                <div class="layout-produtos flex flex-col lg:flex-row gap-6">
+                    
+                    <!-- Área de Produtos -->
+                    <div class="flex-1">
+                        <!-- Abas de Categorias -->
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <button type="button"
+                                    @click="abaAtiva = 'pizzas'"
+                                    :class="abaAtiva === 'pizzas' ? 'aba-produto active' : 'aba-produto'"
+                                    class="aba-produto">
+                                🍕 Pizzas
+                            </button>
+                            <button type="button"
+                                    @click="abaAtiva = 'bebidas'"
+                                    :class="abaAtiva === 'bebidas' ? 'aba-produto active' : 'aba-produto'"
+                                    class="aba-produto">
+                                🥤 Bebidas
+                            </button>
+                            <button type="button"
+                                    @click="abaAtiva = 'sobremesas'"
+                                    :class="abaAtiva === 'sobremesas' ? 'aba-produto active' : 'aba-produto'"
+                                    class="aba-produto">
+                                🍰 Sobremesas
+                            </button>
+                            <button type="button"
+                                    @click="abaAtiva = 'acompanhamentos'"
+                                    :class="abaAtiva === 'acompanhamentos' ? 'aba-produto active' : 'aba-produto'"
+                                    class="aba-produto">
+                                🍟 Acompanhamentos
+                            </button>
+                        </div>
                         
-                        <!-- Itens do carrinho -->
-                        <div class="space-y-3">
-                            <template x-for="(item, index) in carrinho" :key="index">
-                                <div class="carrinho-item">
-                                    <div class="flex-1">
-                                        <p class="text-sm font-medium text-gray-900" x-text="item.nome"></p>
-                                        <div class="flex items-center mt-1">
+                        <!-- Conteúdo das Abas -->
+                        
+                        <!-- Aba Pizzas -->
+                        <div x-show="abaAtiva === 'pizzas'" class="space-y-4">
+                            <!-- Loading state -->
+                            <div x-show="carregandoProdutos" class="text-center py-8">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-pizza-600 mx-auto mb-4"></div>
+                                <p class="text-gray-600">Carregando pizzas...</p>
+                            </div>
+                            
+                            <!-- Erro ao carregar -->
+                            <div x-show="erroProdutos && !carregandoProdutos" class="bg-red-50 border border-red-200 rounded-md p-4 text-center">
+                                <p class="text-red-600" x-text="erroProdutos"></p>
+                                <button @click="carregarProdutos()" class="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                    Tentar Novamente
+                                </button>
+                            </div>
+                            
+                            <!-- Produtos carregados -->
+                            <template x-for="pizza in produtos.pizzas" :key="pizza.id">
+                                <div class="produto-card pizza">
+                                    <div class="flex items-start">
+                                        <div class="w-16 h-16 bg-pizza-100 rounded-lg flex items-center justify-center text-2xl mr-4">
+                                            🍕
+                                        </div>
+                                        <div class="flex-1">
+                                            <h3 class="text-lg font-semibold text-gray-900" x-text="pizza.nome"></h3>
+                                            <p class="text-sm text-gray-600 mb-3" x-text="pizza.ingredientes"></p>
+                                            
+                                            <!-- Seletor de Tamanho -->
+                                            <div class="tamanho-selector">
+                                                <template x-for="tamanho in pizza.tamanhos" :key="tamanho.size">
+                                                    <div class="tamanho-option">
+                                                        <input type="radio"
+                                                               :id="`pizza-${pizza.id}-${tamanho.size}`"
+                                                               :name="`pizza-${pizza.id}`"
+                                                               :value="tamanho.size"
+                                                               x-model="pizzaSelecionada[pizza.id]">
+                                                        <label :for="`pizza-${pizza.id}-${tamanho.size}`">
+                                                            <div class="font-medium" x-text="tamanho.size"></div>
+                                                            <div class="text-xs" x-text="`R$ ${tamanho.preco.toFixed(2)}`"></div>
+                                                        </label>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            
                                             <button type="button"
-                                                    @click="diminuirQuantidade(index)"
-                                                    class="text-gray-400 hover:text-gray-500">
-                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                                                </svg>
+                                                    @click="adicionarPizza(pizza)"
+                                                    :disabled="!pizzaSelecionada[pizza.id]"
+                                                    :class="{ 
+                                                        'btn-adicionar': true,
+                                                        'bg-green-600 hover:bg-green-700': pizzaAdicionada[pizza.id],
+                                                        'bg-pizza-600 hover:bg-pizza-700': !pizzaAdicionada[pizza.id]
+                                                    }">
+                                                <span x-show="!pizzaAdicionada[pizza.id] && !pizzaSelecionada[pizza.id]">
+                                                    Selecione um tamanho
+                                                </span>
+                                                <span x-show="!pizzaAdicionada[pizza.id] && pizzaSelecionada[pizza.id]">
+                                                    🛒 Adicionar 
+                                                    <span x-text="pizzaSelecionada[pizza.id]"></span> - 
+                                                    R$ <span x-text="obterPrecoTamanho(pizza, pizzaSelecionada[pizza.id])"></span>
+                                                </span>
+                                                <span x-show="pizzaAdicionada[pizza.id]">
+                                                    ✅ Adicionado!
+                                                </span>
                                             </button>
-                                            <span class="mx-2 text-sm" x-text="item.quantidade"></span>
-                                            <button type="button"
-                                                    @click="aumentarQuantidade(index)"
-                                                    class="text-gray-400 hover:text-gray-500">
-                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                                </svg>
-                                            </button>
-                                            <span class="ml-4 text-sm text-gray-500">
-                                                R$ <span x-text="(item.preco * item.quantidade).toFixed(2)"></span>
-                                            </span>
                                         </div>
                                     </div>
-                                    <button type="button"
-                                            @click="removerItem(index)"
-                                            class="ml-4 text-red-400 hover:text-red-500">
-                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
                                 </div>
                             </template>
-                            
-                            <div x-show="carrinho.length === 0" class="text-center py-8 text-gray-500">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                </svg>
-                                <p class="mt-2">Carrinho vazio</p>
-                            </div>
                         </div>
                         
-                        <!-- Totais -->
-                        <div x-show="carrinho.length > 0" class="mt-6 border-t pt-4">
-                            <div class="flex justify-between text-sm">
-                                <span>Subtotal</span>
-                                <span>R$ <span x-text="subtotal.toFixed(2)"></span></span>
-                            </div>
-                            <div x-show="tipoPedido === 'delivery'" class="flex justify-between text-sm mt-2">
-                                <span>Taxa de entrega</span>
-                                <span>R$ <span x-text="taxaEntrega.toFixed(2)"></span></span>
-                            </div>
-                            <div class="flex justify-between text-lg font-semibold mt-4 pt-4 border-t">
-                                <span>Total</span>
-                                <span class="text-pizza-600">R$ <span x-text="total.toFixed(2)"></span></span>
-                            </div>
+                        <!-- Aba Bebidas -->
+                        <div x-show="abaAtiva === 'bebidas'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <template x-for="bebida in produtos.bebidas" :key="bebida.id">
+                                <div class="produto-card">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-xl mr-3">
+                                            🥤
+                                        </div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-gray-900" x-text="bebida.nome"></h3>
+                                            <p class="text-pizza-600 font-medium" x-text="`R$ ${bebida.preco.toFixed(2)}`"></p>
+                                        </div>
+                                        <button type="button"
+                                                @click="adicionarItem(bebida, 'bebida')"
+                                                class="w-8 h-8 bg-pizza-600 text-white rounded-full hover:bg-pizza-700 transition-colors">
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Aba Sobremesas -->
+                        <div x-show="abaAtiva === 'sobremesas'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <template x-for="sobremesa in produtos.sobremesas" :key="sobremesa.id">
+                                <div class="produto-card">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center text-xl mr-3">
+                                            🍰
+                                        </div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-gray-900" x-text="sobremesa.nome"></h3>
+                                            <p class="text-pizza-600 font-medium" x-text="`R$ ${sobremesa.preco.toFixed(2)}`"></p>
+                                        </div>
+                                        <button type="button"
+                                                @click="adicionarItem(sobremesa, 'sobremesa')"
+                                                class="w-8 h-8 bg-pizza-600 text-white rounded-full hover:bg-pizza-700 transition-colors">
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        
+                        <!-- Aba Acompanhamentos -->
+                        <div x-show="abaAtiva === 'acompanhamentos'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <template x-for="acompanhamento in produtos.acompanhamentos" :key="acompanhamento.id">
+                                <div class="produto-card">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-xl mr-3">
+                                            🍟
+                                        </div>
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-gray-900" x-text="acompanhamento.nome"></h3>
+                                            <p class="text-pizza-600 font-medium" x-text="`R$ ${acompanhamento.preco.toFixed(2)}`"></p>
+                                        </div>
+                                        <button type="button"
+                                                @click="adicionarItem(acompanhamento, 'acompanhamento')"
+                                                class="w-8 h-8 bg-pizza-600 text-white rounded-full hover:bg-pizza-700 transition-colors">
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Botões de navegação Step 2 -->
-        <div x-show="currentStep === 2" class="mt-6 flex justify-between">
-            <button type="button"
-                    @click="prevStep"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                <svg class="mr-2 -ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Anterior
-            </button>
-            <button type="button"
-                    @click="nextStep"
-                    :disabled="carrinho.length === 0"
-                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                Próximo
-                <svg class="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-        </div>
-        
-        <!-- Step 3: Finalização -->
-        <div x-show="currentStep === 3" class="space-y-6">
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Finalizar Pedido
-                    </h3>
                     
-                    <!-- Resumo do pedido -->
-                    <div class="mb-6">
-                        <h4 class="text-sm font-medium text-gray-900 mb-3">Resumo do Pedido</h4>
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <div class="space-y-2">
-                                <template x-for="item in carrinho">
-                                    <div class="flex justify-between text-sm">
-                                        <span><span x-text="item.quantidade"></span>x <span x-text="item.nome"></span></span>
-                                        <span>R$ <span x-text="(item.preco * item.quantidade).toFixed(2)"></span></span>
-                                    </div>
-                                </template>
-                                <div class="border-t pt-2 mt-2">
-                                    <div class="flex justify-between text-sm">
-                                        <span>Subtotal</span>
+                    <!-- Carrinho Lateral -->
+                    <div class="w-full lg:w-80">
+                        <div class="carrinho-lateral">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    🛒 Carrinho
+                                    <span x-show="carrinho.length > 0" 
+                                          class="ml-2 px-2 py-1 text-xs bg-pizza-600 text-white rounded-full">
+                                        <span x-text="carrinho.length"></span>
+                                    </span>
+                                </h3>
+                            </div>
+                            
+                            <div class="p-4">
+                                <!-- Itens do Carrinho -->
+                                <div x-show="carrinho.length > 0" class="space-y-3 mb-4">
+                                    <template x-for="(item, index) in carrinho" :key="index">
+                                        <div class="carrinho-item">
+                                            <div class="carrinho-item-info">
+                                                <h4 class="font-medium text-gray-900" x-text="item.nome"></h4>
+                                                <p x-show="item.tamanho" class="text-xs text-gray-500">
+                                                    Tamanho: <span x-text="item.tamanho"></span>
+                                                </p>
+                                                <p class="text-sm text-pizza-600 font-medium">
+                                                    R$ <span x-text="(item.preco * item.quantidade).toFixed(2)"></span>
+                                                </p>
+                                            </div>
+                                            <div class="carrinho-item-controls">
+                                                <button type="button"
+                                                        @click="diminuirQuantidade(index)"
+                                                        :class="{ 'disabled': item.quantidade <= 1 }"
+                                                        class="quantidade-control">
+                                                    −
+                                                </button>
+                                                <span class="w-8 text-center text-sm font-medium" x-text="item.quantidade"></span>
+                                                <button type="button"
+                                                        @click="aumentarQuantidade(index)"
+                                                        class="quantidade-control">
+                                                    +
+                                                </button>
+                                                <button type="button"
+                                                        @click="removerItem(index)"
+                                                        class="ml-2 text-red-500 hover:text-red-700">
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                
+                                <!-- Carrinho Vazio -->
+                                <div x-show="carrinho.length === 0" class="text-center py-8 text-gray-500">
+                                    <div class="text-4xl mb-2">🛒</div>
+                                    <p>Carrinho vazio</p>
+                                    <p class="text-sm">Adicione produtos para continuar</p>
+                                </div>
+                                
+                                <!-- Totais -->
+                                <div x-show="carrinho.length > 0" class="carrinho-totais">
+                                    <div class="total-linha">
+                                        <span>Subtotal:</span>
                                         <span>R$ <span x-text="subtotal.toFixed(2)"></span></span>
                                     </div>
-                                    <div x-show="tipoPedido === 'delivery'" class="flex justify-between text-sm mt-1">
-                                        <span>Taxa de entrega</span>
+                                    <div x-show="tipoPedido === 'delivery'" class="total-linha">
+                                        <span>Taxa de Entrega:</span>
                                         <span>R$ <span x-text="taxaEntrega.toFixed(2)"></span></span>
                                     </div>
-                                    <div x-show="desconto > 0" class="flex justify-between text-sm mt-1 text-green-600">
-                                        <span>Desconto</span>
-                                        <span>-R$ <span x-text="desconto.toFixed(2)"></span></span>
+                                    <div x-show="subtotal < pedidoMinimo && tipoPedido === 'delivery'" class="total-linha text-amber-600">
+                                        <span class="text-xs">Pedido mínimo: R$ <span x-text="pedidoMinimo.toFixed(2)"></span></span>
                                     </div>
-                                    <div class="flex justify-between text-base font-semibold mt-2 pt-2 border-t">
-                                        <span>Total</span>
-                                        <span class="text-pizza-600">R$ <span x-text="total.toFixed(2)"></span></span>
+                                    <div class="total-linha final">
+                                        <span>Total:</span>
+                                        <span>R$ <span x-text="total.toFixed(2)"></span></span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Forma de Pagamento -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-3">
-                            Forma de Pagamento *
-                        </label>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
-                                   :class="{ 'border-pizza-500 ring-2 ring-pizza-500': formaPagamento === 'dinheiro' }">
-                                <input type="radio" 
-                                       name="forma_pagamento" 
-                                       value="dinheiro"
-                                       x-model="formaPagamento"
-                                       class="sr-only">
-                                <div class="flex flex-col">
-                                    <span class="block text-sm font-medium text-gray-900">
-                                        💵 Dinheiro
-                                    </span>
-                                </div>
-                            </label>
-                            
-                            <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
-                                   :class="{ 'border-pizza-500 ring-2 ring-pizza-500': formaPagamento === 'pix' }">
-                                <input type="radio" 
-                                       name="forma_pagamento" 
-                                       value="pix"
-                                       x-model="formaPagamento"
-                                       class="sr-only">
-                                <div class="flex flex-col">
-                                    <span class="block text-sm font-medium text-gray-900">
-                                        📱 PIX
-                                    </span>
-                                </div>
-                            </label>
-                            
-                            <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
-                                   :class="{ 'border-pizza-500 ring-2 ring-pizza-500': formaPagamento === 'cartao_credito' }">
-                                <input type="radio" 
-                                       name="forma_pagamento" 
-                                       value="cartao_credito"
-                                       x-model="formaPagamento"
-                                       class="sr-only">
-                                <div class="flex flex-col">
-                                    <span class="block text-sm font-medium text-gray-900">
-                                        💳 Crédito
-                                    </span>
-                                </div>
-                            </label>
-                            
-                            <label class="relative flex cursor-pointer rounded-lg border bg-white p-4 shadow-sm focus:outline-none"
-                                   :class="{ 'border-pizza-500 ring-2 ring-pizza-500': formaPagamento === 'cartao_debito' }">
-                                <input type="radio" 
-                                       name="forma_pagamento" 
-                                       value="cartao_debito"
-                                       x-model="formaPagamento"
-                                       class="sr-only">
-                                <div class="flex flex-col">
-                                    <span class="block text-sm font-medium text-gray-900">
-                                        💳 Débito
-                                    </span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <!-- Troco (se dinheiro) -->
-                    <div x-show="formaPagamento === 'dinheiro'" class="mb-6">
-                        <div class="flex items-center mb-3">
-                            <input type="checkbox"
-                                   id="precisa_troco"
-                                   x-model="precisaTroco"
-                                   class="h-4 w-4 text-pizza-600 focus:ring-pizza-500 border-gray-300 rounded">
-                            <label for="precisa_troco" class="ml-2 block text-sm text-gray-900">
-                                Precisa de troco?
-                            </label>
-                        </div>
-                        <div x-show="precisaTroco">
-                            <label for="troco_para" class="block text-sm font-medium text-gray-700">
-                                Troco para quanto?
-                            </label>
-                            <div class="mt-1 relative rounded-md shadow-sm">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-500 sm:text-sm">R$</span>
-                                </div>
-                                <input type="number"
-                                       id="troco_para"
-                                       x-model="trocoPara"
-                                       step="0.01"
-                                       class="focus:ring-pizza-500 focus:border-pizza-500 block w-full pl-12 pr-3 sm:text-sm border-gray-300 rounded-md"
-                                       placeholder="0,00">
-                            </div>
-                            <p x-show="trocoPara && (trocoPara - total) > 0" class="mt-1 text-sm text-gray-500">
-                                Troco: R$ <span x-text="(trocoPara - total).toFixed(2)"></span>
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <!-- Observações -->
-                    <div>
-                        <label for="observacoes" class="block text-sm font-medium text-gray-700">
-                            Observações
-                        </label>
-                        <textarea id="observacoes"
-                                  rows="3"
-                                  x-model="observacoes"
-                                  class="mt-1 shadow-sm focus:ring-pizza-500 focus:border-pizza-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                                  placeholder="Observações sobre o pedido..."></textarea>
                     </div>
                 </div>
             </div>
+        </section>
+        
+        <!-- Botões de Ação -->
+        <div class="flex justify-between mt-6">
+            <button type="button"
+                    @click="cancelar"
+                    class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                Cancelar
+            </button>
             
-            <!-- Botões de navegação -->
-            <div class="flex justify-between">
-                <button type="button"
-                        @click="prevStep"
-                        class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                    <svg class="mr-2 -ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Anterior
-                </button>
-                <button type="submit"
-                        class="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
-                    Finalizar Pedido
-                    <svg class="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                </button>
-            </div>
+            <button type="submit"
+                    :disabled="!formularioValido"
+                    :class="{ 'opacity-50 cursor-not-allowed': !formularioValido }"
+                    class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 disabled:hover:bg-pizza-600"
+                    aria-label="Confirmar pedido. Certifique-se de preencher todos os campos obrigatórios.">
+                <span x-show="!formularioValido">Preencha os dados</span>
+                <span x-show="formularioValido">Confirmar Pedido - R$ <span x-text="total.toFixed(2)"></span></span>
+            </button>
         </div>
     </form>
 </div>
@@ -733,53 +701,98 @@
 
 {% block extra_js %}
 <script>
-function pedidoFormApp() {
+function pedidoForm() {
     return {
-        currentStep: 1,
+        // Estado do formulário
+        secaoClienteAberta: true,
+        secaoProdutosAberta: true,
+        abaAtiva: 'pizzas',
         
-        // Dados do cliente
-        buscarCliente: '',
-        clientesEncontrados: [],
-        showClienteDropdown: false,
-        clienteData: {
-            id: null,
+        // Dados do formulário
+        cliente: {
             nome: '',
-            telefone: '',
-            email: '',
-            enderecos: []
+            telefone: ''
         },
-        
-        // Tipo de pedido
         tipoPedido: 'delivery',
+        endereco: '',
         numeroMesa: '',
         
-        // Endereço
-        enderecoSelecionado: null,
-        showNovoEndereco: false,
-        novoEndereco: {
-            cep: '',
-            logradouro: '',
-            numero: '',
-            complemento: '',
-            bairro: '',
-            cidade: '',
-            estado: '',
-            referencia: ''
+        // Carrinho e produtos
+        carrinho: [],
+        pizzaSelecionada: {},
+        pizzaAdicionada: {},
+        pedidoMinimo: 25.00,
+        taxaEntrega: 5.00,
+        
+        // Validação
+        erros: {},
+        errosGlobais: [],
+        
+        // Produtos carregados da API
+        produtos: {
+            pizzas: [],
+            bebidas: [],
+            sobremesas: [],
+            acompanhamentos: []
+        },
+        produtosCarregados: false,
+        carregandoProdutos: false,
+        erroProdutos: '',
+        
+        // Carregar produtos da API
+        async carregarProdutos() {
+            if (this.produtosCarregados || this.carregandoProdutos) {
+                return;
+            }
+            
+            this.carregandoProdutos = true;
+            this.erroProdutos = '';
+            
+            try {
+                console.log('🔄 Carregando produtos da API...');
+                
+                const response = await fetch('/api/produtos/produtos/para_pedido/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Produtos carregados:', data);
+                
+                // Atualizar dados
+                this.produtos = data;
+                this.produtosCarregados = true;
+                
+                // Log para debug
+                console.log(`📊 Produtos por categoria:
+  🍕 Pizzas: ${data.pizzas?.length || 0}
+  🥤 Bebidas: ${data.bebidas?.length || 0} 
+  🍰 Sobremesas: ${data.sobremesas?.length || 0}
+  🍟 Acompanhamentos: ${data.acompanhamentos?.length || 0}`);
+                
+            } catch (error) {
+                console.error('❌ Erro ao carregar produtos:', error);
+                this.erroProdutos = `Erro ao carregar produtos: ${error.message}`;
+                
+                // Fallback com dados vazios em caso de erro
+                this.produtos = {
+                    pizzas: [],
+                    bebidas: [],
+                    sobremesas: [],
+                    acompanhamentos: []
+                };
+            } finally {
+                this.carregandoProdutos = false;
+            }
         },
         
-        // Produtos
-        categoriaFiltro: '',
-        carrinho: [],
-        
-        // Pagamento
-        formaPagamento: '',
-        precisaTroco: false,
-        trocoPara: 0,
-        desconto: 0,
-        taxaEntrega: 5.00,
-        observacoes: '',
-        
-        // Computed
+        // Computed properties
         get subtotal() {
             return this.carrinho.reduce((total, item) => total + (item.preco * item.quantidade), 0);
         },
@@ -789,170 +802,246 @@ function pedidoFormApp() {
             if (this.tipoPedido === 'delivery') {
                 total += this.taxaEntrega;
             }
-            total -= this.desconto;
             return total;
         },
         
-        init() {
-            // Inicializar com dados existentes se for edição
-            {% if object %}
-            // Carregar dados do pedido existente
-            {% endif %}
-        },
-        
-        // Navegação
-        nextStep() {
-            if (this.validateStep()) {
-                this.currentStep++;
-            }
-        },
-        
-        prevStep() {
-            this.currentStep--;
-        },
-        
-        validateStep() {
-            if (this.currentStep === 1) {
-                if (!this.clienteData.nome || !this.clienteData.telefone) {
-                    alert('Preencha os dados do cliente');
-                    return false;
+        get formularioValido() {
+            const nomeValido = this.cliente.nome.trim().length >= 3;
+            const telefoneValido = this.cliente.telefone.replace(/\D/g, '').length >= 10;
+            const carrinhoValido = this.carrinho.length > 0;
+            
+            let tipoValido = true;
+            if (this.tipoPedido === 'delivery') {
+                tipoValido = this.endereco.trim().length > 0;
+                // Verificar pedido mínimo para delivery
+                if (this.subtotal < this.pedidoMinimo) {
+                    tipoValido = false;
                 }
-                if (this.tipoPedido === 'delivery' && !this.enderecoSelecionado && !this.showNovoEndereco) {
-                    alert('Selecione ou cadastre um endereço de entrega');
-                    return false;
-                }
-                if (this.tipoPedido === 'mesa' && !this.numeroMesa) {
-                    alert('Informe o número da mesa');
-                    return false;
-                }
+            } else if (this.tipoPedido === 'mesa') {
+                tipoValido = this.numeroMesa.trim().length > 0;
             }
             
-            if (this.currentStep === 2) {
-                if (this.carrinho.length === 0) {
-                    alert('Adicione pelo menos um produto ao carrinho');
-                    return false;
-                }
-            }
-            
-            return true;
+            return nomeValido && telefoneValido && tipoValido && carrinhoValido;
         },
         
-        // Busca de cliente
-        buscarClienteDebounced: debounce(function() {
-            if (this.buscarCliente.length >= 3) {
-                fetch(`/pedidos/ajax/buscar-cliente/?termo=${this.buscarCliente}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        this.clientesEncontrados = data.clientes;
-                    });
-            }
-        }, 300),
+        async init() {
+            this.$nextTick(() => {
+                document.getElementById('cliente-nome')?.focus();
+            });
+            
+            // Carregar produtos da API
+            await this.carregarProdutos();
+        },
         
-        selecionarCliente(cliente) {
-            this.clienteData = {
-                id: cliente.id,
-                nome: cliente.nome,
-                telefone: cliente.telefone,
-                email: cliente.email,
-                enderecos: cliente.enderecos
+        // Validação individual de campos
+        validarCampo(campo) {
+            this.erros[campo] = '';
+            
+            switch(campo) {
+                case 'nome':
+                    if (!this.cliente.nome.trim()) {
+                        this.erros.nome = 'Nome é obrigatório';
+                    } else if (this.cliente.nome.trim().length < 3) {
+                        this.erros.nome = 'Nome deve ter pelo menos 3 caracteres';
+                    }
+                    break;
+                    
+                case 'telefone':
+                    const telefoneNumeros = this.cliente.telefone.replace(/\D/g, '');
+                    if (!telefoneNumeros) {
+                        this.erros.telefone = 'Telefone é obrigatório';
+                    } else if (telefoneNumeros.length < 10) {
+                        this.erros.telefone = 'Telefone deve ter pelo menos 10 dígitos';
+                    }
+                    break;
+                    
+                case 'endereco':
+                    if (this.tipoPedido === 'delivery' && !this.endereco.trim()) {
+                        this.erros.endereco = 'Endereço é obrigatório para delivery';
+                    }
+                    break;
+                    
+                case 'numeroMesa':
+                    if (this.tipoPedido === 'mesa' && !this.numeroMesa.trim()) {
+                        this.erros.numeroMesa = 'Número da mesa é obrigatório';
+                    }
+                    break;
+            }
+        },
+        
+        // Formatação de telefone
+        formatarTelefone() {
+            let value = this.cliente.telefone.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value.length <= 10) {
+                    value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+                } else {
+                    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                }
+            }
+            this.cliente.telefone = value;
+        },
+        
+        // Gerenciamento do carrinho
+        adicionarPizza(pizza) {
+            const tamanhoSelecionado = this.pizzaSelecionada[pizza.id];
+            if (!tamanhoSelecionado) return;
+            
+            const tamanho = pizza.tamanhos.find(t => t.size === tamanhoSelecionado);
+            const item = {
+                id: `pizza-${pizza.id}-${tamanho.size}`, // ID único para pizza + tamanho
+                produto_id: pizza.id,
+                nome: `Pizza ${pizza.nome}`,
+                tipo: 'pizza',
+                tamanho: tamanho.size,
+                preco: tamanho.preco,
+                ingredientes: pizza.ingredientes,
+                quantidade: 1
             };
-            this.showClienteDropdown = false;
-            this.buscarCliente = '';
             
-            // Se tem endereço principal, selecionar
-            const enderecoPrincipal = cliente.enderecos.find(e => e.principal);
-            if (enderecoPrincipal) {
-                this.enderecoSelecionado = enderecoPrincipal.id;
-            }
-        },
-        
-        // Buscar CEP
-        buscarCep() {
-            const cep = this.novoEndereco.cep.replace(/\D/g, '');
-            if (cep.length === 8) {
-                fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.erro) {
-                            this.novoEndereco.logradouro = data.logradouro;
-                            this.novoEndereco.bairro = data.bairro;
-                            this.novoEndereco.cidade = data.localidade;
-                            this.novoEndereco.estado = data.uf;
-                        }
-                    });
-            }
-        },
-        
-        // Carrinho
-        adicionarProduto(id, nome, preco) {
-            const itemExistente = this.carrinho.find(item => item.id === id);
+            // Verificar se já existe no carrinho (mesma pizza e tamanho)
+            const itemExistente = this.carrinho.find(i => i.id === item.id);
+            
             if (itemExistente) {
                 itemExistente.quantidade++;
             } else {
-                this.carrinho.push({
-                    id: id,
-                    nome: nome,
-                    preco: preco,
-                    quantidade: 1
-                });
+                this.carrinho.push(item);
             }
+            
+            // Feedback visual
+            this.pizzaAdicionada[pizza.id] = true;
+            
+            // Limpar seleção após 2 segundos
+            setTimeout(() => {
+                this.pizzaSelecionada[pizza.id] = '';
+                this.pizzaAdicionada[pizza.id] = false;
+            }, 2000);
+            
+            this.calcularTotais();
+        },
+        
+        // Função auxiliar para obter preço do tamanho
+        obterPrecoTamanho(pizza, tamanho) {
+            if (!tamanho) return '0.00';
+            const tamanhoObj = pizza.tamanhos.find(t => t.size === tamanho);
+            return tamanhoObj ? tamanhoObj.preco.toFixed(2) : '0.00';
+        },
+        
+        adicionarItem(produto, tipo) {
+            const item = {
+                id: `${tipo}-${produto.id}`, // ID único para não-pizzas
+                produto_id: produto.id,
+                nome: produto.nome,
+                tipo: tipo,
+                preco: produto.preco,
+                quantidade: 1
+            };
+            
+            // Verificar se já existe no carrinho
+            const itemExistente = this.carrinho.find(i => i.id === item.id);
+            
+            if (itemExistente) {
+                itemExistente.quantidade++;
+            } else {
+                this.carrinho.push(item);
+            }
+            
+            this.calcularTotais();
         },
         
         aumentarQuantidade(index) {
             this.carrinho[index].quantidade++;
+            this.calcularTotais();
         },
         
         diminuirQuantidade(index) {
             if (this.carrinho[index].quantidade > 1) {
                 this.carrinho[index].quantidade--;
+                this.calcularTotais();
             }
         },
         
         removerItem(index) {
             this.carrinho.splice(index, 1);
+            this.calcularTotais();
         },
         
-        // Submit
-        submitForm() {
-            if (!this.validateStep()) {
-                return;
+        calcularTotais() {
+            // Forçar reatividade
+            this.$nextTick(() => {
+                // Os computed properties já fazem o cálculo
+            });
+        },
+        
+        // Validação completa do formulário
+        validarFormulario() {
+            this.errosGlobais = [];
+            
+            // Validar todos os campos
+            this.validarCampo('nome');
+            this.validarCampo('telefone');
+            
+            if (this.tipoPedido === 'delivery') {
+                this.validarCampo('endereco');
+                if (this.subtotal < this.pedidoMinimo) {
+                    this.errosGlobais.push(`Pedido mínimo para delivery: R$ ${this.pedidoMinimo.toFixed(2)}`);
+                }
+            } else if (this.tipoPedido === 'mesa') {
+                this.validarCampo('numeroMesa');
             }
             
-            // Preparar dados para envio
-            const formData = {
-                cliente: this.clienteData,
-                tipo: this.tipoPedido,
-                endereco_entrega: this.enderecoSelecionado,
-                mesa: this.numeroMesa,
-                itens: this.carrinho,
-                forma_pagamento: this.formaPagamento,
-                precisa_troco: this.precisaTroco,
-                troco_para: this.trocoPara,
-                taxa_entrega: this.taxaEntrega,
-                desconto: this.desconto,
-                observacoes: this.observacoes
-            };
+            // Verificar carrinho
+            if (this.carrinho.length === 0) {
+                this.errosGlobais.push('Adicione pelo menos um produto ao carrinho');
+            }
             
-            // Enviar via AJAX ou form submit
-            console.log('Enviando pedido:', formData);
+            // Coletar erros
+            Object.values(this.erros).forEach(erro => {
+                if (erro) this.errosGlobais.push(erro);
+            });
             
-            // Por enquanto, redirecionar para lista
-            window.location.href = "{% url 'pedido_list' %}";
+            return this.errosGlobais.length === 0;
+        },
+        
+        // Cancelar pedido
+        cancelar() {
+            if (confirm('Tem certeza que deseja cancelar o pedido?')) {
+                window.location.reload();
+            }
+        },
+        
+        // Submeter formulário
+        submitForm() {
+            if (this.validarFormulario()) {
+                // Preparar dados para envio
+                const dados = {
+                    cliente_nome: this.cliente.nome,
+                    cliente_telefone: this.cliente.telefone,
+                    tipo_pedido: this.tipoPedido,
+                    endereco: this.tipoPedido === 'delivery' ? this.endereco : '',
+                    numero_mesa: this.tipoPedido === 'mesa' ? this.numeroMesa : '',
+                    itens: this.carrinho,
+                    subtotal: this.subtotal,
+                    taxa_entrega: this.tipoPedido === 'delivery' ? this.taxaEntrega : 0,
+                    total: this.total
+                };
+                
+                console.log('Pedido confirmado:', dados);
+                
+                alert(`Pedido confirmado!\nTotal: R$ ${this.total.toFixed(2)}\nItens: ${this.carrinho.length}`);
+                
+                // Redirecionar para lista de pedidos
+                window.location.href = "{% url 'pedido_list' %}";
+            } else {
+                // Focar no primeiro erro
+                const primeiroErro = document.querySelector('.campo-invalido');
+                if (primeiroErro) {
+                    primeiroErro.focus();
+                    primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
         }
     }
-}
-
-// Função debounce
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
 }
 </script>
 {% endblock %}

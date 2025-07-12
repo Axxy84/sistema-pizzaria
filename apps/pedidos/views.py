@@ -1,12 +1,14 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Pedido, ItemPedido
 from .serializers import (
     PedidoListSerializer, PedidoDetailSerializer,
     PedidoCreateSerializer, PedidoStatusSerializer
 )
+from .utils import SupabaseHealthCheck, PedidoSupabaseManager
 
 class PedidoViewSet(viewsets.ModelViewSet):
     queryset = Pedido.objects.all()
@@ -48,3 +50,58 @@ class PedidoViewSet(viewsets.ModelViewSet):
         em_prep = self.queryset.filter(status__in=['confirmado', 'preparando'])
         serializer = PedidoListSerializer(em_prep, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def supabase_health(self, request):
+        """Endpoint para verificar saúde da integração com Supabase"""
+        try:
+            status_info = SupabaseHealthCheck.status_completo()
+            
+            # Determinar status HTTP baseado na conectividade
+            http_status = status.HTTP_200_OK if status_info['conectividade'] else status.HTTP_503_SERVICE_UNAVAILABLE
+            
+            return Response({
+                'status': 'ok' if status_info['conectividade'] else 'error',
+                'supabase': status_info,
+                'timestamp': request.build_absolute_uri().split('?')[0],
+                'message': 'Integração funcionando' if status_info['conectividade'] else 'Problemas na integração'
+            }, status=http_status)
+            
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': f'Erro ao verificar status: {str(e)}',
+                'timestamp': request.build_absolute_uri().split('?')[0]
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def criar_pedido_seguro(self, request):
+        """Endpoint para criar pedido com validações avançadas"""
+        try:
+            manager = PedidoSupabaseManager()
+            dados = getattr(request, 'data', request.POST.dict())
+            resultado, erros = manager.criar_pedido_seguro(dados)
+            
+            if erros:
+                return Response({
+                    'status': 'error',
+                    'erros': erros,
+                    'message': 'Falha na validação dos dados'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response({
+                'status': 'success',
+                'pedido': {
+                    'id': resultado['pedido'].id,
+                    'numero': resultado['pedido'].numero,
+                    'total': float(resultado['total']),
+                    'itens_count': len(resultado['itens'])
+                },
+                'message': 'Pedido criado com sucesso'
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': f'Erro interno: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
