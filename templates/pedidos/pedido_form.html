@@ -225,6 +225,119 @@
         box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
     }
     
+    /* Novo Sistema de Seleção Visual - Estados dos Cards */
+    .modo-selecao-segundo .pizza-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .modo-selecao-segundo .pizza-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(220, 38, 38, 0.2);
+        border-color: #DC2626;
+    }
+    
+    .modo-selecao-segundo .pizza-card.disponivel {
+        border: 2px solid #10B981;
+        background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+    }
+    
+    .modo-selecao-segundo .pizza-card.selecionado-primeiro {
+        border: 2px solid #94A3B8;
+        background: #F1F5F9;
+        opacity: 0.6;
+        cursor: not-allowed;
+        position: relative;
+    }
+    
+    .modo-selecao-segundo .pizza-card.selecionado-primeiro::before {
+        content: '🍕 1º SABOR SELECIONADO';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #64748B;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        z-index: 10;
+    }
+    
+    .selecao-cta {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        pointer-events: none;
+    }
+    
+    .header-selecao-segundo {
+        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+    
+    .primeiro-sabor-info {
+        background: white;
+        border: 2px solid #DC2626;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .acoes-selecao {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .btn-cancelar {
+        background: #6B7280;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-cancelar:hover {
+        background: #4B5563;
+        transform: translateY(-1px);
+    }
+    
+    .btn-trocar {
+        background: #F59E0B;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-trocar:hover {
+        background: #D97706;
+        transform: translateY(-1px);
+    }
+    
     /* Responsividade */
     @media (max-width: 1024px) {
         .layout-produtos {
@@ -247,6 +360,39 @@
         
         .carrinho-lateral {
             @apply mx-4;
+        }
+        
+        /* Responsive do novo sistema */
+        .header-selecao-segundo {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .acoes-selecao {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .btn-cancelar, .btn-trocar {
+            width: 100%;
+            text-align: center;
+        }
+        
+        .selecao-cta {
+            position: static;
+            transform: none;
+            margin-top: 1rem;
+            width: 100%;
+            text-align: center;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+        }
+        
+        .modo-selecao-segundo .pizza-card.selecionado-primeiro::before {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            top: 5px;
+            right: 5px;
         }
         
         .pizza-card {
@@ -618,13 +764,58 @@
                                 </div>
                             </div>
 
+                            <!-- NOVA INTERFACE: Header de Seleção do Segundo Sabor -->
+                            <div x-show="estadoSelecao.modo === 'selecionando_segundo'" class="header-selecao-segundo">
+                                <h3 class="text-xl font-bold mb-3">
+                                    🍕 Selecionando 2º Sabor para Pizza Meio a Meio
+                                </h3>
+                                
+                                <div class="primeiro-sabor-info">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl">🍕</span>
+                                        <div class="flex-1">
+                                            <div class="font-bold text-gray-900">
+                                                1º SABOR: <span x-text="estadoSelecao.primeiroSabor?.pizza?.nome"></span>
+                                            </div>
+                                            <div class="text-sm text-gray-600">
+                                                Tamanho: <span x-text="estadoSelecao.tamanhoSelecionado"></span> - 
+                                                R$ <span x-text="estadoSelecao.primeiroSabor?.preco?.toFixed(2)"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-center text-white/90 mb-4">
+                                    <strong>SELECIONE O SEGUNDO SABOR:</strong> Clique direto na pizza desejada abaixo
+                                </p>
+                                
+                                <div class="acoes-selecao">
+                                    <button type="button" @click="cancelarMeioAMeio()" class="btn-cancelar">
+                                        ❌ Cancelar Meio a Meio
+                                    </button>
+                                    <button type="button" @click="trocarPrimeiroSabor()" class="btn-trocar">
+                                        🔄 Trocar 1º Sabor
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Interface Simples e Robusta de Pizzas -->
-                            <div x-show="!carregandoProdutos && !erroProdutos" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                                <!-- Header sempre visível -->
-                                <div class="px-6 py-3 bg-gradient-to-r from-pizza-600 to-pizza-700 text-white font-bold">
+                            <div x-show="!carregandoProdutos && !erroProdutos" 
+                                 :class="{ 'modo-selecao-segundo': estadoSelecao.modo === 'selecionando_segundo' }"
+                                 class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                                <!-- Header condicional -->
+                                <div x-show="estadoSelecao.modo === 'normal'" class="px-6 py-3 bg-gradient-to-r from-pizza-600 to-pizza-700 text-white font-bold">
                                     <span class="text-xl">🍕 Pizzas Disponíveis</span>
                                     <span x-show="pizzasFiltradas && pizzasFiltradas.length > 0">
                                         (<span x-text="pizzasFiltradas.length"></span>)
+                                    </span>
+                                </div>
+                                
+                                <!-- Header para modo seleção -->
+                                <div x-show="estadoSelecao.modo === 'selecionando_segundo'" class="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold">
+                                    <span class="text-xl">✅ Escolha o Segundo Sabor</span>
+                                    <span x-show="pizzasFiltradas && pizzasFiltradas.length > 0">
+                                        (<span x-text="pizzasFiltradas.length"></span> opções)
                                     </span>
                                 </div>
                                 
@@ -633,17 +824,40 @@
                                     <!-- Se há pizzas -->
                                     <div x-show="pizzasFiltradas && pizzasFiltradas.length > 0" class="space-y-4">
                                         <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
-                                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                            <!-- Card Normal ou Modo Seleção -->
+                                            <div class="pizza-card border border-gray-200 rounded-lg p-4 transition-all"
+                                                 :class="{
+                                                     'hover:bg-gray-50': estadoSelecao.modo === 'normal',
+                                                     'disponivel cursor-pointer': estadoSelecao.modo === 'selecionando_segundo' && pizza.id !== estadoSelecao.primeiroSabor?.pizza?.id,
+                                                     'selecionado-primeiro': estadoSelecao.modo === 'selecionando_segundo' && pizza.id === estadoSelecao.primeiroSabor?.pizza?.id
+                                                 }"
+                                                 @click="estadoSelecao.modo === 'selecionando_segundo' && pizza.id !== estadoSelecao.primeiroSabor?.pizza?.id ? selecionarSegundoSabor(pizza) : null">
+                                                
                                                 <div class="flex items-start gap-3 mb-3">
                                                     <span class="text-2xl">🍕</span>
                                                     <div class="flex-1">
                                                         <h3 class="font-bold text-gray-900 uppercase" x-text="pizza.nome"></h3>
                                                         <p class="text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></p>
+                                                        
+                                                        <!-- Preço no modo seleção -->
+                                                        <div x-show="estadoSelecao.modo === 'selecionando_segundo' && pizza.id !== estadoSelecao.primeiroSabor?.pizza?.id" 
+                                                             class="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                                                            <strong>Preço Final:</strong> R$ 
+                                                            <span x-text="Math.max(estadoSelecao.primeiroSabor?.preco || 0, obterPrecoTamanhoNumerico(pizza, estadoSelecao.tamanhoSelecionado) || 0).toFixed(2)"></span>
+                                                            <br>
+                                                            <span class="text-green-700 text-xs">(valor do sabor mais caro)</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 
-                                                <!-- Grid de Preços -->
-                                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                <!-- CTA para seleção de segundo sabor -->
+                                                <div x-show="estadoSelecao.modo === 'selecionando_segundo' && pizza.id !== estadoSelecao.primeiroSabor?.pizza?.id" 
+                                                     class="selecao-cta">
+                                                    ✅ CLIQUE PARA COMPLETAR MEIO A MEIO
+                                                </div>
+                                                
+                                                <!-- Grid de Preços (modo normal) -->
+                                                <div x-show="estadoSelecao.modo === 'normal'" class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                     <template x-for="tamanho in ['Pequena', 'Média', 'Grande', 'Família']" :key="tamanho">
                                                         <div x-show="obterPrecoTamanho(pizza, tamanho)" 
                                                              class="text-center p-3 bg-gray-100 rounded-lg">
@@ -1140,79 +1354,66 @@
                 </div>
                 
                 <div class="mt-5">
-                    <!-- Tipo de Pizza -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Pizza</label>
-                        <div class="space-y-3">
-                            <label class="flex items-center">
-                                <input type="radio" 
-                                       x-model="modalPizza.tipo" 
-                                       value="inteira"
-                                       class="focus:ring-pizza-500 h-4 w-4 text-pizza-600 border-gray-300">
-                                <span class="ml-2 text-sm text-gray-900">
-                                    Pizza Inteira - R$ <span x-text="modalPizza.preco?.toFixed(2)"></span>
-                                </span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" 
-                                       x-model="modalPizza.tipo" 
-                                       value="meio_a_meio"
-                                       class="focus:ring-pizza-500 h-4 w-4 text-pizza-600 border-gray-300">
-                                <span class="ml-2 text-sm text-gray-900">
-                                    Meio a Meio - R$ <span x-text="modalPizza.preco?.toFixed(2)"></span> + R$ <span x-text="modalPizza.precoSegundoSabor?.toFixed(2) || 'XX,XX'"></span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <!-- Segundo Sabor (apenas para meio a meio) -->
-                    <div x-show="modalPizza.tipo === 'meio_a_meio'" 
-                         x-transition
-                         class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Segundo Sabor</label>
-                        <select x-model="modalPizza.segundoSabor" 
-                                @change="calcularPrecoMeioAMeio"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm">
-                            <option value="">Selecionar outro sabor</option>
-                            <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
-                                <template x-if="pizza.id !== modalPizza.pizza?.id && obterPrecoTamanho(pizza, modalPizza.tamanho)">
-                                    <option :value="pizza.id" x-text="`${pizza.nome} - R$ ${obterPrecoTamanho(pizza, modalPizza.tamanho)}`"></option>
-                                </template>
-                            </template>
-                        </select>
+                    <!-- NOVO MODAL SIMPLES: Pizza Inteira vs Meio a Meio -->
+                    <div class="mb-6">
+                        <p class="text-sm text-gray-600 mb-4">Como você quer sua pizza?</p>
                         
-                        <div x-show="modalPizza.segundoSabor" class="mt-2 p-3 bg-gray-50 rounded-md">
-                            <p class="text-sm text-gray-600">
-                                <strong>Preço Total:</strong> R$ <span x-text="modalPizza.precoTotal?.toFixed(2)"></span>
-                            </p>
-                            <p class="text-xs text-gray-500 mt-1">
-                                O preço da pizza meio a meio é baseado no sabor mais caro
-                            </p>
+                        <div class="space-y-3">
+                            <!-- Pizza Inteira -->
+                            <button type="button"
+                                    @click="selecionarPizzaInteira()"
+                                    class="w-full p-4 border-2 border-gray-300 rounded-lg hover:border-pizza-500 hover:bg-pizza-50 transition-all text-left group">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-semibold text-gray-900 group-hover:text-pizza-700">
+                                            ○ Pizza Inteira
+                                        </div>
+                                        <div class="text-sm text-gray-600">
+                                            Apenas o sabor <span class="font-medium" x-text="modalPizza.pizza?.nome"></span>
+                                        </div>
+                                    </div>
+                                    <div class="text-lg font-bold text-green-600">
+                                        R$ <span x-text="modalPizza.preco?.toFixed(2)"></span>
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <!-- Meio a Meio -->
+                            <button type="button"
+                                    @click="iniciarSelecaoMeioAMeio()"
+                                    class="w-full p-4 border-2 border-gray-300 rounded-lg hover:border-pizza-500 hover:bg-pizza-50 transition-all text-left group">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-semibold text-gray-900 group-hover:text-pizza-700">
+                                            ● Meio a Meio
+                                        </div>
+                                        <div class="text-sm text-gray-600">
+                                            <span class="font-medium" x-text="modalPizza.pizza?.nome"></span> + outro sabor à sua escolha
+                                        </div>
+                                    </div>
+                                    <div class="text-lg font-bold text-green-600">
+                                        R$ <span x-text="modalPizza.preco?.toFixed(2)"></span> + outro
+                                    </div>
+                                </div>
+                            </button>
                         </div>
                     </div>
                     
                     <!-- Observações -->
-                    <div class="mb-4">
+                    <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Observações (opcional)</label>
                         <textarea x-model="modalPizza.observacoes"
-                                  rows="3"
+                                  rows="2"
                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
                                   placeholder="Ex: sem cebola, borda recheada..."></textarea>
                     </div>
                 </div>
                 
-                <!-- Botões -->
-                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-                    <button type="button"
-                            @click="adicionarPizzaAoCarrinho"
-                            :disabled="modalPizza.tipo === 'meio_a_meio' && !modalPizza.segundoSabor"
-                            :class="{ 'opacity-50 cursor-not-allowed': modalPizza.tipo === 'meio_a_meio' && !modalPizza.segundoSabor }"
-                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pizza-600 text-base font-medium text-white hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        ✅ Adicionar ao Carrinho
-                    </button>
+                <!-- Footer Simples -->
+                <div class="mt-4 flex justify-end">
                     <button type="button"
                             @click="fecharModalPizza"
-                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:w-auto sm:text-sm">
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                         ❌ Cancelar
                     </button>
                 </div>
@@ -1276,6 +1477,15 @@ function pedidoForm() {
             segundoSabor: '',
             precoSegundoSabor: 0,
             precoTotal: 0,
+            observacoes: ''
+        },
+        
+        // Estados do novo sistema de seleção visual
+        estadoSelecao: {
+            modo: 'normal', // 'normal' ou 'selecionando_segundo'
+            primeiroSabor: null,
+            tamanhoSelecionado: null,
+            precoFinal: 0,
             observacoes: ''
         },
         
@@ -1443,20 +1653,94 @@ function pedidoForm() {
             });
         },
         
-        // Métodos do modal de pizza
+        // Métodos do modal de pizza (NOVO SISTEMA VISUAL)
         abrirModalPizza(pizza, tamanho) {
             const preco = this.obterPrecoTamanhoNumerico(pizza, tamanho);
             if (!preco) return;
             
+            // Modal simples: Pizza Inteira vs Meio a Meio
             this.modalPizza = {
                 aberto: true,
                 pizza: pizza,
                 tamanho: tamanho,
                 preco: preco,
-                tipo: 'inteira',
+                tipo: 'inteira', // padrão
                 segundoSabor: '',
                 precoSegundoSabor: 0,
                 precoTotal: preco,
+                observacoes: ''
+            };
+        },
+        
+        // NOVO: Selecionar pizza inteira direto
+        selecionarPizzaInteira() {
+            this.adicionarPizzaAoCarrinho();
+            this.fecharModalPizza();
+        },
+        
+        // NOVO: Iniciar seleção do meio a meio
+        iniciarSelecaoMeioAMeio() {
+            this.estadoSelecao = {
+                modo: 'selecionando_segundo',
+                primeiroSabor: {
+                    pizza: this.modalPizza.pizza,
+                    tamanho: this.modalPizza.tamanho,
+                    preco: this.modalPizza.preco
+                },
+                tamanhoSelecionado: this.modalPizza.tamanho,
+                precoFinal: this.modalPizza.preco,
+                observacoes: this.modalPizza.observacoes
+            };
+            
+            this.fecharModalPizza();
+        },
+        
+        // NOVO: Selecionar segundo sabor
+        selecionarSegundoSabor(pizza) {
+            if (this.estadoSelecao.modo !== 'selecionando_segundo') return;
+            
+            const precoSegundo = this.obterPrecoTamanhoNumerico(pizza, this.estadoSelecao.tamanhoSelecionado);
+            if (!precoSegundo) return;
+            
+            // Pizza meio a meio tem preço do sabor mais caro
+            const precoFinal = Math.max(this.estadoSelecao.primeiroSabor.preco, precoSegundo);
+            
+            // Adicionar ao carrinho
+            const itemCarrinho = {
+                id: `pizza-meio-${this.estadoSelecao.primeiroSabor.pizza.id}-${pizza.id}-${this.estadoSelecao.tamanhoSelecionado}`,
+                nome: `Pizza Meio a Meio: ${this.estadoSelecao.primeiroSabor.pizza.nome} / ${pizza.nome}`,
+                tipo: 'pizza',
+                subtipo: 'meio_a_meio',
+                tamanho: this.estadoSelecao.tamanhoSelecionado,
+                preco: precoFinal,
+                quantidade: 1,
+                observacoes: this.estadoSelecao.observacoes,
+                primeiroSabor: this.estadoSelecao.primeiroSabor.pizza,
+                segundoSabor: pizza
+            };
+            
+            this.carrinho.push(itemCarrinho);
+            this.voltarInterfaceNormal();
+        },
+        
+        // NOVO: Cancelar meio a meio
+        cancelarMeioAMeio() {
+            this.voltarInterfaceNormal();
+        },
+        
+        // NOVO: Trocar primeiro sabor
+        trocarPrimeiroSabor() {
+            // Volta ao modo normal para selecionar outro primeiro sabor
+            this.voltarInterfaceNormal();
+        },
+        
+        // NOVO: Voltar à interface normal
+        voltarInterfaceNormal() {
+            this.estadoSelecao = {
+                modo: 'normal',
+                primeiroSabor: null,
+                tamanhoSelecionado: null,
+                precoFinal: 0,
                 observacoes: ''
             };
         },
