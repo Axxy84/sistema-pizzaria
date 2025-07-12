@@ -2395,7 +2395,7 @@ function pedidoForm() {
                         
                         // Aguardar um pouco antes de redirecionar
                         setTimeout(() => {
-                            window.location.href = "{% url 'pedido_list' %}";
+                            window.location.href = "{% url 'pedidos:pedido_list' %}";
                         }, 1500);
                     } else {
                         console.error('Erro ao criar pedido:', data);

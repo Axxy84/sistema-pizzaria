@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views_html
 
+app_name = 'pedidos'
+
 urlpatterns = [
     # Lista de pedidos
     path('', views_html.PedidoListView.as_view(), name='pedido_list'),

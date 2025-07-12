@@ -158,7 +158,7 @@ class CaixaDashboardView(View):
         # Busca pedidos do dia para calcular vendas
         from apps.pedidos.models import Pedido
         pedidos_hoje = Pedido.objects.filter(
-            data_pedido__date=hoje,
+            criado_em__date=hoje,
             status='entregue'
         )
         
@@ -236,8 +236,8 @@ class AbrirCaixaView(View):
         try:
             caixa = Caixa.objects.create(
                 usuario=request.user,
-                saldo_inicial=float(saldo_inicial),
-                observacoes=observacoes
+                valor_abertura=float(saldo_inicial),
+                observacoes_abertura=observacoes
             )
             messages.success(request, f'Caixa aberto com sucesso! Saldo inicial: R$ {saldo_inicial}')
             return redirect('financeiro:dashboard')
@@ -265,7 +265,7 @@ class FecharCaixaView(View):
             total=Sum('valor')
         )['total'] or 0
         
-        saldo_teorico = caixa.saldo_inicial + total_entradas - total_saidas
+        saldo_teorico = caixa.valor_abertura + total_entradas - total_saidas
         
         # Agrupa movimentos por categoria
         movimentos_por_categoria = movimentos.values('categoria', 'tipo').annotate(
@@ -299,7 +299,7 @@ class FecharCaixaView(View):
             total_saidas = movimentos.filter(tipo='saida').aggregate(
                 total=Sum('valor')
             )['total'] or 0
-            saldo_teorico = caixa.saldo_inicial + total_entradas - total_saidas
+            saldo_teorico = caixa.valor_abertura + total_entradas - total_saidas
             
             # Calcula diferença
             diferenca = float(saldo_final) - saldo_teorico

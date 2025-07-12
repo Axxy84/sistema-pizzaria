@@ -62,7 +62,7 @@
 
             <!-- Pedidos Section -->
             <div x-data="{ open: {% if 'pedidos' in request.path %}true{% else %}false{% endif %} }">
-                <a href="{% url 'pedido_list' %}" 
+                <a href="{% url 'pedidos:pedido_list' %}" 
                    class="{% if 'pedidos' in request.path %}bg-pizza-50 border-r-2 border-pizza-500 text-pizza-700{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex w-full items-center px-3 py-2 text-left text-sm font-medium rounded-l-md transition-colors duration-200 cursor-pointer">
                     <!-- Heroicon: shopping-bag -->
                     <svg class="{% if 'pedidos' in request.path %}text-pizza-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} mr-3 h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -87,26 +87,26 @@
                      x-transition:enter-start="opacity-0 -translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0"
                      class="space-y-1 mt-1">
-                    <a href="{% url 'pedido_list' %}" 
+                    <a href="{% url 'pedidos:pedido_list' %}" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_list' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Todos os Pedidos
                     </a>
-                    <a href="{% url 'pedido_create' %}" 
+                    <a href="{% url 'pedidos:pedido_create' %}" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_create' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Novo Pedido
                     </a>
-                    <a href="{% url 'pedido_kanban' %}" 
+                    <a href="{% url 'pedidos:pedido_kanban' %}" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_kanban' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Kanban
                     </a>
-                    <a href="{% url 'pedido_list' %}?status=preparando" 
+                    <a href="{% url 'pedidos:pedido_list' %}?status=preparando" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md transition-colors">
                         Em Preparo
                         <span class="ml-auto inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
                             3
                         </span>
                     </a>
-                    <a href="{% url 'pedido_list' %}?status=saiu_entrega" 
+                    <a href="{% url 'pedidos:pedido_list' %}?status=saiu_entrega" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md transition-colors">
                         Para Entrega
                         <span class="ml-auto inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">

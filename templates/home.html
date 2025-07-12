@@ -265,7 +265,7 @@
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-medium text-gray-900">Pedidos Recentes</h3>
-                    <a href="{% url 'pedido_list' %}" class="text-pizza-600 hover:text-pizza-700 text-sm font-medium">Ver todos</a>
+                    <a href="{% url 'pedidos:pedido_list' %}" class="text-pizza-600 hover:text-pizza-700 text-sm font-medium">Ver todos</a>
                 </div>
             </div>
             <div class="px-6 py-4">
@@ -312,7 +312,7 @@
                         </svg>
                         <p>Nenhum pedido encontrado. Que tal criar o primeiro?</p>
                         <div class="mt-4">
-                            <a href="{% url 'pedido_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700">
+                            <a href="{% url 'pedidos:pedido_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700">
                                 Criar Novo Pedido
                             </a>
                         </div>
