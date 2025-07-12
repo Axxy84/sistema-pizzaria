@@ -46,8 +46,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos_por_categoria = {
             'pizzas': [],
             'bebidas': [],
-            'sobremesas': [],
-            'acompanhamentos': []
+            'bordas': []
         }
         
         # Buscar produtos ativos com seus preços
@@ -58,7 +57,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         for produto in produtos:
             categoria_key = self._mapear_categoria_para_aba(produto.categoria.nome if produto.categoria else '')
             
-            if categoria_key not in produtos_por_categoria:
+            if categoria_key is None or categoria_key not in produtos_por_categoria:
                 continue
                 
             if produto.tipo_produto == 'pizza' or 'pizza' in produto.categoria.nome.lower():
@@ -107,12 +106,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return 'pizzas'
         elif any(palavra in categoria_lower for palavra in ['bebida', 'refrigerante', 'suco', 'água', 'cerveja']):
             return 'bebidas'
-        elif any(palavra in categoria_lower for palavra in ['sobremesa', 'doce', 'sorvete']):
-            return 'sobremesas'
-        elif any(palavra in categoria_lower for palavra in ['acompanhamento', 'porção', 'borda']):
-            return 'acompanhamentos'
+        elif any(palavra in categoria_lower for palavra in ['borda', 'recheada']):
+            return 'bordas'
         else:
-            return 'acompanhamentos'  # Categoria padrão
+            return None  # Não incluir produtos não mapeados
 
 class ProdutoPrecoViewSet(viewsets.ModelViewSet):
     queryset = ProdutoPreco.objects.all()

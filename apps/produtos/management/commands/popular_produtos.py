@@ -193,9 +193,12 @@ class Command(BaseCommand):
         self.stdout.write('Criando bordas recheadas...')
         
         bordas_data = [
-            ('Borda de Catupiry', 'Borda recheada com catupiry original', 8.00),
-            ('Borda de Cheddar', 'Borda recheada com cheddar cremoso', 8.00),
-            ('Borda de Chocolate', 'Borda doce recheada com chocolate', 10.00),
+            ('Borda de Catupiry', 'Borda recheada com catupiry original cremoso', 8.00),
+            ('Borda de Cheddar', 'Borda recheada com cheddar derretido', 8.00),
+            ('Borda de Chocolate', 'Borda doce recheada com chocolate ao leite', 10.00),
+            ('Borda de Cream Cheese', 'Borda recheada com cream cheese temperado', 9.00),
+            ('Borda de Alho', 'Borda temperada com alho e ervas finas', 6.00),
+            ('Borda de Doce de Leite', 'Borda doce recheada com doce de leite', 11.00),
         ]
         
         for nome, descricao, preco in bordas_data:

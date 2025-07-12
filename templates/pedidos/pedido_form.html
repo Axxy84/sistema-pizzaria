@@ -450,7 +450,7 @@
 
 {% block content %}
 <div x-data="pedidoForm()" x-init="init()">
-    <form method="post" @submit.prevent="submitForm" novalidate>
+    <form method="post" @submit.prevent="finalizarPedido" novalidate>
         {% csrf_token %}
         
         <!-- Cabeçalho -->
@@ -725,16 +725,10 @@
                                 🥤 Bebidas
                             </button>
                             <button type="button"
-                                    @click="abaAtiva = 'sobremesas'"
-                                    :class="abaAtiva === 'sobremesas' ? 'aba-produto active' : 'aba-produto'"
+                                    @click="abaAtiva = 'bordas'"
+                                    :class="abaAtiva === 'bordas' ? 'aba-produto active' : 'aba-produto'"
                                     class="aba-produto">
-                                🍰 Sobremesas
-                            </button>
-                            <button type="button"
-                                    @click="abaAtiva = 'acompanhamentos'"
-                                    :class="abaAtiva === 'acompanhamentos' ? 'aba-produto active' : 'aba-produto'"
-                                    class="aba-produto">
-                                🍟 Acompanhamentos
+                                ⭕ Bordas
                             </button>
                         </div>
                         
@@ -1163,48 +1157,34 @@
                             </template>
                         </div>
                         
-                        <!-- Aba Sobremesas -->
-                        <div x-show="abaAtiva === 'sobremesas'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <template x-for="sobremesa in produtos.sobremesas" :key="sobremesa.id">
+                        <!-- Aba Bordas -->
+                        <div x-show="abaAtiva === 'bordas'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <template x-for="borda in produtos.bordas" :key="borda.id">
                                 <div class="produto-card">
                                     <div class="flex items-center">
                                         <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center text-xl mr-3">
-                                            🍰
+                                            ⭕
                                         </div>
                                         <div class="flex-1">
-                                            <h3 class="font-semibold text-gray-900" x-text="sobremesa.nome"></h3>
-                                            <p class="text-pizza-600 font-medium" x-text="`R$ ${sobremesa.preco.toFixed(2)}`"></p>
+                                            <h3 class="font-semibold text-gray-900" x-text="borda.nome"></h3>
+                                            <p class="text-xs text-gray-500 mb-1" x-text="borda.descricao"></p>
+                                            <p class="text-pizza-600 font-medium" x-text="`R$ ${borda.preco.toFixed(2)}`"></p>
                                         </div>
                                         <button type="button"
-                                                @click="adicionarItem(sobremesa, 'sobremesa')"
+                                                @click="adicionarItem(borda, 'borda')"
                                                 class="w-8 h-8 bg-pizza-600 text-white rounded-full hover:bg-pizza-700 transition-colors">
                                             +
                                         </button>
                                     </div>
                                 </div>
                             </template>
-                        </div>
-                        
-                        <!-- Aba Acompanhamentos -->
-                        <div x-show="abaAtiva === 'acompanhamentos'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <template x-for="acompanhamento in produtos.acompanhamentos" :key="acompanhamento.id">
-                                <div class="produto-card">
-                                    <div class="flex items-center">
-                                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-xl mr-3">
-                                            🍟
-                                        </div>
-                                        <div class="flex-1">
-                                            <h3 class="font-semibold text-gray-900" x-text="acompanhamento.nome"></h3>
-                                            <p class="text-pizza-600 font-medium" x-text="`R$ ${acompanhamento.preco.toFixed(2)}`"></p>
-                                        </div>
-                                        <button type="button"
-                                                @click="adicionarItem(acompanhamento, 'acompanhamento')"
-                                                class="w-8 h-8 bg-pizza-600 text-white rounded-full hover:bg-pizza-700 transition-colors">
-                                            +
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
+                            
+                            <!-- Mensagem quando não há bordas -->
+                            <div x-show="produtos.bordas.length === 0" class="col-span-full text-center py-8 text-gray-500">
+                                <div class="text-4xl mb-2">⭕</div>
+                                <p>Nenhuma borda disponível</p>
+                                <p class="text-sm">Bordas recheadas em breve!</p>
+                            </div>
                         </div>
                     </div>
                     
@@ -1236,21 +1216,31 @@
                                                 </p>
                                             </div>
                                             <div class="carrinho-item-controls">
-                                                <button type="button"
-                                                        @click="diminuirQuantidade(index)"
-                                                        :class="{ 'disabled': item.quantidade <= 1 }"
-                                                        class="quantidade-control">
-                                                    −
-                                                </button>
-                                                <span class="w-8 text-center text-sm font-medium" x-text="item.quantidade"></span>
-                                                <button type="button"
-                                                        @click="aumentarQuantidade(index)"
-                                                        class="quantidade-control">
-                                                    +
-                                                </button>
+                                                <!-- Controles de Quantidade -->
+                                                <div class="flex items-center bg-gray-50 rounded-lg">
+                                                    <button type="button"
+                                                            @click="diminuirQuantidade(index)"
+                                                            :disabled="item.quantidade <= 1"
+                                                            :class="{ 'opacity-50 cursor-not-allowed': item.quantidade <= 1 }"
+                                                            class="w-8 h-8 flex items-center justify-center text-pizza-600 hover:bg-pizza-100 rounded-l-lg transition-colors"
+                                                            title="Diminuir quantidade">
+                                                        −
+                                                    </button>
+                                                    <span class="w-10 h-8 flex items-center justify-center text-sm font-semibold bg-white border-t border-b border-gray-200" 
+                                                          x-text="item.quantidade"></span>
+                                                    <button type="button"
+                                                            @click="aumentarQuantidade(index)"
+                                                            class="w-8 h-8 flex items-center justify-center text-pizza-600 hover:bg-pizza-100 rounded-r-lg transition-colors"
+                                                            title="Aumentar quantidade">
+                                                        +
+                                                    </button>
+                                                </div>
+                                                
+                                                <!-- Botão Remover -->
                                                 <button type="button"
                                                         @click="removerItem(index)"
-                                                        class="ml-2 text-red-500 hover:text-red-700">
+                                                        class="w-8 h-8 flex items-center justify-center text-red-500 hover:text-white hover:bg-red-500 rounded-lg transition-colors ml-2"
+                                                        title="Remover item do carrinho">
                                                     🗑️
                                                 </button>
                                             </div>
@@ -1273,7 +1263,15 @@
                                     </div>
                                     <div x-show="tipoPedido === 'delivery'" class="total-linha">
                                         <span>Taxa de Entrega:</span>
-                                        <span>R$ <span x-text="taxaEntrega.toFixed(2)"></span></span>
+                                        <div class="flex items-center space-x-2">
+                                            <span>R$ <span x-text="taxaEntrega.toFixed(2)"></span></span>
+                                            <button type="button" 
+                                                    @click="abrirEdicaoTaxa()"
+                                                    class="text-xs text-pizza-600 hover:text-pizza-700 transition-colors"
+                                                    title="Editar taxa">
+                                                ✏️
+                                            </button>
+                                        </div>
                                     </div>
                                     <div x-show="subtotal < pedidoMinimo && tipoPedido === 'delivery'" class="total-linha text-amber-600">
                                         <span class="text-xs">Pedido mínimo: R$ <span x-text="pedidoMinimo.toFixed(2)"></span></span>
@@ -1281,6 +1279,33 @@
                                     <div class="total-linha final">
                                         <span>Total:</span>
                                         <span>R$ <span x-text="total.toFixed(2)"></span></span>
+                                    </div>
+                                    
+                                    <!-- Botões de Ação do Carrinho -->
+                                    <div class="mt-4 space-y-2">
+                                        <!-- Botão Imprimir Comanda -->
+                                        <button type="button"
+                                                @click="imprimirComanda()"
+                                                :disabled="carrinho.filter(item => item.tipo === 'pizza').length === 0"
+                                                :class="{ 'opacity-50 cursor-not-allowed': carrinho.filter(item => item.tipo === 'pizza').length === 0 }"
+                                                class="w-full px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors disabled:hover:bg-green-600 flex items-center justify-center">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                            </svg>
+                                            🖨️ Imprimir Comanda
+                                        </button>
+                                        
+                                        <!-- Botão Finalizar Pedido (movido para dentro do carrinho) -->
+                                        <button type="button"
+                                                @click="finalizarPedido()"
+                                                :disabled="!formularioValido"
+                                                :class="{ 'opacity-50 cursor-not-allowed': !formularioValido }"
+                                                class="w-full px-4 py-2 bg-pizza-600 text-white text-sm font-medium rounded-md hover:bg-pizza-700 transition-colors disabled:hover:bg-pizza-600 flex items-center justify-center">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            📋 Finalizar Pedido
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1290,6 +1315,96 @@
             </div>
         </section>
         
+        <!-- Modal de Edição da Taxa de Entrega -->
+        <div x-show="editandoTaxa" 
+             x-transition:enter="transition ease-out duration-200" 
+             x-transition:enter-start="opacity-0" 
+             x-transition:enter-end="opacity-100" 
+             x-transition:leave="transition ease-in duration-150" 
+             x-transition:leave-start="opacity-100" 
+             x-transition:leave-end="opacity-0" 
+             class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            
+            <div x-show="editandoTaxa" 
+                 x-transition:enter="transition ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 scale-95" 
+                 x-transition:enter-end="opacity-100 scale-100" 
+                 x-transition:leave="transition ease-in duration-200" 
+                 x-transition:leave-start="opacity-100 scale-100" 
+                 x-transition:leave-end="opacity-0 scale-95"
+                 @click.away="fecharEdicaoTaxa()"
+                 class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-96 overflow-y-auto">
+                
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Taxa de Entrega</h3>
+                        <button type="button" @click="fecharEdicaoTaxa()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Opções Pré-definidas -->
+                    <div class="space-y-2 mb-4">
+                        <template x-for="taxa in taxasPreDefinidas" :key="taxa.valor">
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                   :class="{ 'border-pizza-500 bg-pizza-50': taxaEntrega === taxa.valor && !taxaPersonalizada }">
+                                <input type="radio" 
+                                       :value="taxa.valor" 
+                                       :checked="taxaEntrega === taxa.valor && !taxaPersonalizada"
+                                       @change="selecionarTaxaPreDefinida(taxa)"
+                                       class="text-pizza-600 focus:ring-pizza-500">
+                                <div class="ml-3 flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-900" x-text="taxa.nome"></span>
+                                        <span class="text-sm font-semibold text-pizza-600" x-text="`R$ ${taxa.valor.toFixed(2)}`"></span>
+                                    </div>
+                                </div>
+                            </label>
+                        </template>
+                        
+                        <!-- Opção Personalizada -->
+                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                               :class="{ 'border-pizza-500 bg-pizza-50': taxaPersonalizada }">
+                            <input type="radio" 
+                                   :checked="taxaPersonalizada"
+                                   @change="habilitarTaxaPersonalizada()"
+                                   class="text-pizza-600 focus:ring-pizza-500">
+                            <div class="ml-3 flex-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-900">Personalizado</span>
+                                    <div x-show="taxaPersonalizada" class="flex items-center space-x-2">
+                                        <span class="text-sm text-gray-500">R$</span>
+                                        <input type="number" 
+                                               x-model="taxaCustomizada"
+                                               step="0.01" 
+                                               min="0"
+                                               class="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-pizza-500 focus:border-pizza-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Botões de Ação -->
+                    <div class="flex justify-end space-x-3 pt-4 border-t">
+                        <button type="button" 
+                                @click="fecharEdicaoTaxa()"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="button" 
+                                x-show="taxaPersonalizada"
+                                @click="aplicarTaxaPersonalizada()"
+                                class="px-4 py-2 text-sm font-medium text-white bg-pizza-600 rounded-md hover:bg-pizza-700 transition-colors">
+                            Aplicar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Botões de Ação -->
         <div class="flex justify-between mt-6">
             <button type="button"
@@ -1298,7 +1413,8 @@
                 Cancelar
             </button>
             
-            <button type="submit"
+            <button type="button"
+                    @click="finalizarPedido()"
                     :disabled="!formularioValido"
                     :class="{ 'opacity-50 cursor-not-allowed': !formularioValido }"
                     class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 disabled:hover:bg-pizza-600"
@@ -1447,6 +1563,16 @@ function pedidoForm() {
         pizzaAdicionada: {},
         pedidoMinimo: 25.00,
         taxaEntrega: 5.00,
+        taxasPreDefinidas: [
+            {nome: 'Retirada', valor: 0.00},
+            {nome: 'Próximo (até 2km)', valor: 3.00},
+            {nome: 'Padrão (2-5km)', valor: 5.00},
+            {nome: 'Distante (5-8km)', valor: 8.00},
+            {nome: 'Muito Distante (8km+)', valor: 12.00}
+        ],
+        editandoTaxa: false,
+        taxaPersonalizada: false,
+        taxaCustomizada: 0.00,
         
         // Validação
         erros: {},
@@ -1456,8 +1582,7 @@ function pedidoForm() {
         produtos: {
             pizzas: [],
             bebidas: [],
-            sobremesas: [],
-            acompanhamentos: []
+            bordas: []
         },
         produtosCarregados: false,
         carregandoProdutos: false,
@@ -1530,8 +1655,7 @@ function pedidoForm() {
                 this.produtos = {
                     pizzas: [],
                     bebidas: [],
-                    sobremesas: [],
-                    acompanhamentos: []
+                    bordas: []
                 };
             } finally {
                 this.carregandoProdutos = false;
@@ -1873,6 +1997,35 @@ function pedidoForm() {
             this.cliente.telefone = value;
         },
         
+        // Gerenciamento da taxa de entrega
+        abrirEdicaoTaxa() {
+            this.editandoTaxa = true;
+        },
+        
+        fecharEdicaoTaxa() {
+            this.editandoTaxa = false;
+            this.taxaPersonalizada = false;
+        },
+        
+        selecionarTaxaPreDefinida(taxa) {
+            this.taxaEntrega = taxa.valor;
+            this.taxaPersonalizada = false;
+            this.taxaCustomizada = 0.00;
+            this.fecharEdicaoTaxa();
+        },
+        
+        habilitarTaxaPersonalizada() {
+            this.taxaPersonalizada = true;
+            this.taxaCustomizada = this.taxaEntrega;
+        },
+        
+        aplicarTaxaPersonalizada() {
+            if (this.taxaCustomizada >= 0) {
+                this.taxaEntrega = parseFloat(this.taxaCustomizada);
+                this.fecharEdicaoTaxa();
+            }
+        },
+        
         // Gerenciamento do carrinho
         adicionarPizza(pizza) {
             const tamanhoSelecionado = this.pizzaSelecionada[pizza.id];
@@ -2008,8 +2161,90 @@ function pedidoForm() {
             }
         },
         
-        // Submeter formulário
-        submitForm() {
+        // Imprimir comanda para cozinha
+        imprimirComanda() {
+            // Filtrar apenas pizzas para impressão
+            const pizzasParaImprimir = this.carrinho.filter(item => item.tipo === 'pizza');
+            
+            if (pizzasParaImprimir.length === 0) {
+                alert('Nenhuma pizza no carrinho para imprimir comanda.');
+                return;
+            }
+            
+            // Preparar dados da comanda
+            const dadosComanda = {
+                numero: `COMANDA-${Date.now()}`,
+                horario: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                cliente: this.cliente.nome || 'Cliente não informado',
+                tipoPedido: this.tipoPedido,
+                mesa: this.numeroMesa,
+                endereco: this.endereco,
+                pizzas: pizzasParaImprimir
+            };
+            
+            // Abrir nova janela para impressão
+            const janelaImpressao = window.open('', '_blank', 'width=800,height=600');
+            janelaImpressao.document.write(this.gerarHTMLComanda(dadosComanda));
+            janelaImpressao.document.close();
+            
+            // Aguardar carregamento e imprimir
+            janelaImpressao.onload = function() {
+                janelaImpressao.print();
+            };
+        },
+        
+        // Gerar HTML da comanda para impressão
+        gerarHTMLComanda(dados) {
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Comanda - ${dados.numero}</title>
+                    <style>
+                        body { font-family: monospace; margin: 20px; background: white; }
+                        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+                        .info { margin-bottom: 15px; }
+                        .pizzas { margin-bottom: 15px; }
+                        .pizza-item { margin-bottom: 10px; padding: 5px; border-left: 3px solid #DC2626; }
+                        .footer { text-align: center; border-top: 1px solid #000; padding-top: 10px; margin-top: 20px; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>🍕 COMANDA COZINHA</h2>
+                        <p><strong>${dados.numero}</strong></p>
+                        <p>Horário: ${dados.horario}</p>
+                    </div>
+                    
+                    <div class="info">
+                        <p><strong>Cliente:</strong> ${dados.cliente}</p>
+                        <p><strong>Tipo:</strong> ${dados.tipoPedido === 'delivery' ? 'Entrega' : dados.tipoPedido === 'mesa' ? 'Mesa ' + dados.mesa : 'Retirada'}</p>
+                        ${dados.tipoPedido === 'delivery' && dados.endereco ? '<p><strong>Endereço:</strong> ' + dados.endereco + '</p>' : ''}
+                    </div>
+                    
+                    <div class="pizzas">
+                        <h3>🍕 PIZZAS (${dados.pizzas.length}):</h3>
+                        ${dados.pizzas.map(pizza => `
+                            <div class="pizza-item">
+                                <p><strong>${pizza.quantidade}x ${pizza.nome.toUpperCase()}</strong></p>
+                                ${pizza.tamanho ? '<p>Tamanho: ' + pizza.tamanho + '</p>' : ''}
+                                ${pizza.observacoes ? '<p>Obs: ' + pizza.observacoes + '</p>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="footer">
+                        <p>⚠️ ATENÇÃO: ${dados.pizzas.length} pizza${dados.pizzas.length > 1 ? 's' : ''} no total</p>
+                        <p>Horário do pedido: ${dados.horario}</p>
+                    </div>
+                </body>
+                </html>
+            `;
+        },
+        
+        // Finalizar pedido
+        finalizarPedido() {
             if (this.validarFormulario()) {
                 // Preparar dados para envio
                 const dados = {
