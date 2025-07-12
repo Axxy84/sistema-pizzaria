@@ -242,7 +242,11 @@ class PedidoSupabaseManager:
             return None, [str(e)]
         except Exception as e:
             logger.error(f"Erro ao criar pedido: {e}")
-            return None, [SupabaseErrorHandler.tratar_erro_supabase(e)]
+            logger.error(f"Tipo do erro: {type(e)}")
+            logger.error(f"Dados que causaram erro: {dados_pedido}")
+            import traceback
+            logger.error(f"Traceback completo: {traceback.format_exc()}")
+            return None, [f"Erro interno detalhado: {str(e)}"]
 
 class SupabaseHealthCheck:
     """Classe para monitorar saúde da integração"""

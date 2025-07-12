@@ -1407,11 +1407,19 @@
         
         <!-- Botões de Ação -->
         <div class="flex justify-between mt-6">
-            <button type="button"
-                    @click="cancelar"
-                    class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                Cancelar
-            </button>
+            <div class="flex space-x-3">
+                <button type="button"
+                        @click="testeClick()"
+                        class="px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100">
+                    🧪 Teste Alpine.js
+                </button>
+                
+                <button type="button"
+                        @click="cancelar"
+                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    Cancelar
+                </button>
+            </div>
             
             <button type="button"
                     @click="finalizarPedido()"
@@ -1542,6 +1550,7 @@
 {% block extra_js %}
 <script>
 function pedidoForm() {
+    console.log('🎛️ Iniciando pedidoForm...');
     return {
         // Estado do formulário
         secaoClienteAberta: true,
@@ -1616,7 +1625,9 @@ function pedidoForm() {
         
         // Carregar produtos da API
         async carregarProdutos() {
+            console.log('📦 carregarProdutos() chamado');
             if (this.produtosCarregados || this.carregandoProdutos) {
+                console.log('⏭️ Produtos já carregados ou carregando...');
                 return;
             }
             
@@ -1748,12 +1759,19 @@ function pedidoForm() {
         },
         
         async init() {
-            this.$nextTick(() => {
-                document.getElementById('cliente-nome')?.focus();
-            });
-            
-            // Carregar produtos da API
-            await this.carregarProdutos();
+            console.log('🚀 Init executado!');
+            try {
+                this.$nextTick(() => {
+                    document.getElementById('cliente-nome')?.focus();
+                });
+                
+                // Carregar produtos da API
+                console.log('📦 Carregando produtos...');
+                await this.carregarProdutos();
+                console.log('✅ Produtos carregados!');
+            } catch (error) {
+                console.error('❌ Erro no init:', error);
+            }
         },
         
         // Métodos para busca e filtros
@@ -2243,33 +2261,178 @@ function pedidoForm() {
             `;
         },
         
+        // Teste simples
+        testeClick() {
+            console.log('🧪 Teste de click executado');
+            console.log('🔍 Verificação do estado:', {
+                cliente: this.cliente,
+                carrinho: this.carrinho,
+                formularioValido: this.formularioValido,
+                tipoPedido: this.tipoPedido
+            });
+            alert('🎯 Botão funcionando! Alpine.js OK!\nVerifique o console para mais detalhes.');
+        },
+        
         // Finalizar pedido
         finalizarPedido() {
+            console.log('🚀 finalizarPedido() chamado');
+            console.log('📋 Estado atual:', {
+                cliente: this.cliente,
+                tipoPedido: this.tipoPedido,
+                carrinho: this.carrinho,
+                formularioValido: this.formularioValido
+            });
+            
             if (this.validarFormulario()) {
+                console.log('✅ Formulário válido, prosseguindo...');
+                
+                // Verificar se carrinho não está vazio
+                if (!this.carrinho || this.carrinho.length === 0) {
+                    alert('❌ Carrinho está vazio! Adicione pelo menos um produto.');
+                    return;
+                }
+                
+                console.log('🛒 Carrinho atual:', this.carrinho);
+                
                 // Preparar dados para envio
-                const dados = {
-                    cliente_nome: this.cliente.nome,
-                    cliente_telefone: this.cliente.telefone,
-                    tipo_pedido: this.tipoPedido,
+                let dados;
+                try {
+                    dados = {
+                    cliente: {
+                        nome: this.cliente.nome,
+                        telefone: this.cliente.telefone.replace(/\D/g, '')  // Remove caracteres não-numéricos
+                    },
+                    tipo: this.tipoPedido,
                     endereco: this.tipoPedido === 'delivery' ? this.endereco : '',
                     numero_mesa: this.tipoPedido === 'mesa' ? this.numeroMesa : '',
-                    itens: this.carrinho,
-                    subtotal: this.subtotal,
-                    taxa_entrega: this.tipoPedido === 'delivery' ? this.taxaEntrega : 0,
-                    total: this.total
-                };
+                    itens: this.carrinho.map(item => {
+                        console.log('🔍 Processando item do carrinho:', item);
+                        
+                        // Verificar se item tem estrutura válida
+                        if (!item) {
+                            console.error('❌ Item do carrinho é null/undefined:', item);
+                            throw new Error('Item do carrinho inválido');
+                        }
+                        
+                        // Extrair ID do produto com fallbacks (ordem corrigida)
+                        let produtoId = null;
+                        if (item.produto_id) {
+                            produtoId = item.produto_id;
+                        } else if (item.produto && item.produto.id) {
+                            produtoId = item.produto.id;
+                        } else if (item.id) {
+                            produtoId = item.id;
+                        }
+                        
+                        console.log('🔍 Tentativas de extração:', {
+                            'item.produto_id': item.produto_id,
+                            'item.produto?.id': item.produto?.id,
+                            'item.id': item.id,
+                            'produtoId final': produtoId
+                        });
+                        
+                        if (!produtoId || produtoId === null || produtoId === undefined) {
+                            console.error('❌ Não foi possível encontrar ID do produto:', item);
+                            throw new Error(`ID do produto não encontrado para item: ${item.nome || 'sem nome'}`);
+                        }
+                        
+                        // Garantir que seja um número válido
+                        const produtoIdNum = parseInt(produtoId);
+                        if (isNaN(produtoIdNum) || produtoIdNum <= 0) {
+                            console.error('❌ ID do produto inválido:', produtoId);
+                            throw new Error(`ID do produto inválido: ${produtoId}`);
+                        }
+                        
+                        const itemPedido = {
+                            produto_id: produtoIdNum,
+                            quantidade: parseInt(item.quantidade || 1),
+                            preco_unitario: parseFloat(item.preco_unitario || item.preco || 0),
+                            observacoes: String(item.observacoes || '')
+                        };
+                        
+                        console.log('✅ Item processado:', itemPedido);
+                        return itemPedido;
+                    }),
+                    subtotal: parseFloat(this.subtotal || 0),
+                    taxa_entrega: this.tipoPedido === 'delivery' ? parseFloat(this.taxaEntrega || 0) : 0,
+                    total: parseFloat(this.total || 0),
+                    forma_pagamento: 'dinheiro'  // Valor padrão por enquanto
+                    };
+                    
+                    // Verificação final dos dados
+                    console.log('🔍 Verificação final dos itens:');
+                    dados.itens.forEach((item, index) => {
+                        console.log(`Item ${index + 1}:`, item);
+                        if (!item.produto_id || item.produto_id === null) {
+                            throw new Error(`Item ${index + 1} sem produto_id válido`);
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao preparar dados do pedido:', error);
+                    alert(`❌ Erro ao processar dados do carrinho: ${error.message}`);
+                    return;
+                }
                 
+                // Mostrar loading
+                console.log('Iniciando criação do pedido...', dados);
+                console.log('📦 Dados JSON que serão enviados:', JSON.stringify(dados, null, 2));
                 
-                alert(`Pedido confirmado!\nTotal: R$ ${this.total.toFixed(2)}\nItens: ${this.carrinho.length}`);
-                
-                // Redirecionar para lista de pedidos
-                window.location.href = "{% url 'pedido_list' %}";
+                // Enviar para API
+                fetch('/api/pedidos/pedidos/criar_pedido_seguro/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify(dados)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Resposta da API:', data);
+                    if (data.status === 'success') {
+                        alert(`✅ Pedido #${data.pedido.numero} criado com sucesso!\nTotal: R$ ${data.pedido.total.toFixed(2)}`);
+                        
+                        // Aguardar um pouco antes de redirecionar
+                        setTimeout(() => {
+                            window.location.href = "{% url 'pedido_list' %}";
+                        }, 1500);
+                    } else {
+                        console.error('Erro ao criar pedido:', data);
+                        console.log('📋 Dados enviados que causaram erro:', dados);
+                        
+                        // Mostrar erros específicos
+                        if (data.erros && data.erros.length > 0) {
+                            console.error('❌ Erros de validação:', data.erros);
+                            const errosTexto = data.erros.join('\n');
+                            alert('❌ Erros de validação encontrados:\n\n' + errosTexto);
+                        } else {
+                            alert(data.message || 'Erro ao criar pedido. Tente novamente.');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro na requisição:', error);
+                    alert('Erro de conexão. Verifique sua internet e tente novamente.');
+                });
             } else {
+                console.log('❌ Formulário inválido!');
+                console.log('Erros encontrados:');
+                
+                // Verificar campos vazios
+                if (!this.cliente.nome) console.log('- Nome do cliente vazio');
+                if (!this.cliente.telefone) console.log('- Telefone do cliente vazio');
+                if (this.carrinho.length === 0) console.log('- Carrinho vazio');
+                if (this.tipoPedido === 'delivery' && !this.endereco) console.log('- Endereço de entrega vazio');
+                if (this.tipoPedido === 'mesa' && !this.numeroMesa) console.log('- Número da mesa vazio');
+                
                 // Focar no primeiro erro
                 const primeiroErro = document.querySelector('.campo-invalido');
                 if (primeiroErro) {
                     primeiroErro.focus();
                     primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    alert('Por favor, preencha todos os campos obrigatórios antes de finalizar o pedido.');
                 }
             }
         }

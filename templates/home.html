@@ -69,7 +69,7 @@
                         <div class="ml-5 w-0 flex-1">
                             <dl>
                                 <dt class="text-sm font-medium text-gray-500 truncate">Faturamento Hoje</dt>
-                                <dd class="text-2xl font-semibold text-gray-900" id="faturamento-hoje">R$ 1.240,00</dd>
+                                <dd class="text-2xl font-semibold text-gray-900" id="faturamento-hoje">R$ {{ faturamento_hoje|floatformat:2|default:"0,00" }}</dd>
                             </dl>
                         </div>
                     </div>
@@ -263,15 +263,61 @@
         <!-- Recent orders section -->
         <div class="bg-white shadow-soft rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">Pedidos Recentes</h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900">Pedidos Recentes</h3>
+                    <a href="{% url 'pedido_list' %}" class="text-pizza-600 hover:text-pizza-700 text-sm font-medium">Ver todos</a>
+                </div>
             </div>
             <div class="px-6 py-4">
-                <div class="text-sm text-gray-500 text-center py-8">
-                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    Nenhum pedido encontrado. Que tal criar o primeiro?
-                </div>
+                {% if pedidos_recentes %}
+                    <div class="space-y-4">
+                        {% for pedido in pedidos_recentes %}
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-pizza-100 rounded-full flex items-center justify-center">
+                                        <span class="text-pizza-600 font-semibold text-sm">#{{ pedido.numero|slice:"-3:" }}</span>
+                                    </div>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {% if pedido.cliente %}{{ pedido.cliente.nome }}{% else %}Cliente não informado{% endif %}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        {{ pedido.get_tipo_display }} • {{ pedido.get_status_display }}
+                                    </p>
+                                    <p class="text-xs text-gray-400">
+                                        {{ pedido.criado_em|date:"d/m/Y H:i" }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 text-right">
+                                <p class="text-sm font-semibold text-gray-900">R$ {{ pedido.total|floatformat:2 }}</p>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if pedido.status == 'pendente' %}bg-yellow-100 text-yellow-800
+                                    {% elif pedido.status == 'confirmado' %}bg-blue-100 text-blue-800
+                                    {% elif pedido.status == 'preparando' %}bg-orange-100 text-orange-800
+                                    {% elif pedido.status == 'entregue' %}bg-green-100 text-green-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ pedido.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-sm text-gray-500 text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <p>Nenhum pedido encontrado. Que tal criar o primeiro?</p>
+                        <div class="mt-4">
+                            <a href="{% url 'pedido_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700">
+                                Criar Novo Pedido
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
@@ -483,6 +529,9 @@
                     document.getElementById('pedidos-hoje').textContent = data.stats.pedidos_hoje;
                     document.getElementById('total-clientes').textContent = data.stats.total_clientes;
                     document.getElementById('total-produtos').textContent = data.stats.total_produtos;
+                    document.getElementById('faturamento-hoje').textContent = 'R$ ' + data.stats.faturamento_hoje.toFixed(2).replace('.', ',');
+                    
+                    console.log('Dashboard atualizado com sucesso');
                 })
                 .catch(error => console.error('Erro ao atualizar dashboard:', error));
             }

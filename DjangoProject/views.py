@@ -29,14 +29,27 @@ def home_view(request):
     # Se usuário estiver logado, adiciona dados do dashboard
     if request.user.is_authenticated:
         # Estatísticas básicas
+        pedidos_hoje_count = Pedido.objects.filter(
+            criado_em__date=timezone.now().date()
+        ).count()
+        
+        # Calcular faturamento hoje
+        faturamento_hoje = Pedido.objects.filter(
+            criado_em__date=timezone.now().date(),
+            status__in=['confirmado', 'entregue', 'finalizado']
+        ).aggregate(total=Sum('total'))['total'] or 0
+        
         context.update({
             'total_produtos': Produto.objects.count(),
             'total_clientes': Cliente.objects.count(),
             'total_pedidos': Pedido.objects.count(),
-            'pedidos_hoje': Pedido.objects.filter(
-                criado_em__date=timezone.now().date()
-            ).count(),
+            'pedidos_hoje': pedidos_hoje_count,
+            'faturamento_hoje': faturamento_hoje,
         })
+        
+        # Pedidos recentes (últimos 5)
+        pedidos_recentes = Pedido.objects.select_related('cliente').order_by('-criado_em')[:5]
+        context['pedidos_recentes'] = pedidos_recentes
         
         # Dados para gráficos
         context.update({
@@ -110,6 +123,27 @@ def get_receita_chart_data():
 @login_required
 def dashboard_data_api(request):
     """API para atualizar dados do dashboard via AJAX"""
+    
+    # Calcular faturamento hoje
+    faturamento_hoje = Pedido.objects.filter(
+        criado_em__date=timezone.now().date(),
+        status__in=['confirmado', 'entregue', 'finalizado']
+    ).aggregate(total=Sum('total'))['total'] or 0
+    
+    # Pedidos recentes
+    pedidos_recentes = Pedido.objects.select_related('cliente').order_by('-criado_em')[:5]
+    pedidos_data = []
+    for pedido in pedidos_recentes:
+        pedidos_data.append({
+            'id': pedido.id,
+            'numero': pedido.numero,
+            'cliente_nome': pedido.cliente.nome if pedido.cliente else 'Cliente não informado',
+            'tipo': pedido.get_tipo_display(),
+            'status': pedido.get_status_display(),
+            'total': float(pedido.total),
+            'criado_em': pedido.criado_em.strftime('%d/%m/%Y %H:%M'),
+        })
+    
     data = {
         'vendas': json.loads(get_vendas_chart_data()),
         'produtos': json.loads(get_produtos_chart_data()),
@@ -122,7 +156,9 @@ def dashboard_data_api(request):
             'pedidos_hoje': Pedido.objects.filter(
                 criado_em__date=timezone.now().date()
             ).count(),
-        }
+            'faturamento_hoje': float(faturamento_hoje),
+        },
+        'pedidos_recentes': pedidos_data
     }
     
     return JsonResponse(data)
