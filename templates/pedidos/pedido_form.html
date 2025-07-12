@@ -1576,22 +1576,8 @@
             </div>
         </div>
         
-        <!-- Botões de Ação -->
-        <div class="flex justify-between mt-6">
-            <div class="flex space-x-3">
-                <button type="button"
-                        @click="testeClick()"
-                        class="px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100">
-                    🧪 Teste Alpine.js
-                </button>
-                
-                <button type="button"
-                        @click="cancelar"
-                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                    Cancelar
-                </button>
-            </div>
-            
+        <!-- Botão de Ação -->
+        <div class="flex justify-end mt-6">
             <button type="button"
                     @click="finalizarPedido()"
                     :disabled="!formularioValido"
@@ -2404,12 +2390,6 @@ function pedidoForm() {
             return this.errosGlobais.length === 0;
         },
         
-        // Cancelar pedido
-        cancelar() {
-            if (confirm('Tem certeza que deseja cancelar o pedido?')) {
-                window.location.reload();
-            }
-        },
         
         // Imprimir comanda para cozinha
         imprimirComanda() {
@@ -2493,17 +2473,6 @@ function pedidoForm() {
             `;
         },
         
-        // Teste simples
-        testeClick() {
-            console.log('🧪 Teste de click executado');
-            console.log('🔍 Verificação do estado:', {
-                cliente: this.cliente,
-                carrinho: this.carrinho,
-                formularioValido: this.formularioValido,
-                tipoPedido: this.tipoPedido
-            });
-            alert('🎯 Botão funcionando! Alpine.js OK!\nVerifique o console para mais detalhes.');
-        },
         
         // Finalizar pedido
         finalizarPedido() {
