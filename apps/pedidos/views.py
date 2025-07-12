@@ -41,7 +41,7 @@ class PedidoViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['patch'], url_path='status')
     def status(self, request, pk=None):
-        """Atualizar apenas o status do pedido (para kanban)"""
+        """Atualizar apenas o status do pedido"""
         pedido = self.get_object()
         new_status = request.data.get('status')
         
@@ -70,28 +70,6 @@ class PedidoViewSet(viewsets.ModelViewSet):
         serializer = PedidoListSerializer(em_prep, many=True)
         return Response(serializer.data)
     
-    @action(detail=False, methods=['get'])
-    def kanban(self, request):
-        """Retorna pedidos organizados por status para o kanban"""
-        pedidos_por_status = {}
-        
-        status_choices = [
-            ('pendente', 'Pendente'),
-            ('confirmado', 'Confirmado'),
-            ('preparando', 'Preparando'),
-            ('pronto', 'Pronto'),
-            ('saiu_entrega', 'Saiu para Entrega'),
-            ('entregue', 'Entregue')
-        ]
-        
-        for status_code, status_label in status_choices:
-            pedidos = self.queryset.filter(status=status_code).select_related('cliente').prefetch_related('itens__produto')[:20]
-            pedidos_por_status[status_code] = {
-                'label': status_label,
-                'pedidos': PedidoListSerializer(pedidos, many=True).data
-            }
-        
-        return Response({'pedidos_por_status': pedidos_por_status})
     
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def supabase_health(self, request):

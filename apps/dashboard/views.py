@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime, timedelta
 from django.db.models import Sum, Count, Avg, F
+from django.core.cache import cache
 from apps.pedidos.models import Pedido, ItemPedido
 from apps.produtos.models import Produto
 from apps.estoque.models import Ingrediente
@@ -14,16 +15,25 @@ from .serializers import (
 
 class DashboardView(APIView):
     def get(self, request):
-        serializer = DashboardSerializer(data={})
-        data = {
-            'vendas_hoje': serializer.get_vendas_hoje(None),
-            'vendas_mes': serializer.get_vendas_mes(None),
-            'pedidos_hoje': serializer.get_pedidos_hoje(None),
-            'ticket_medio': serializer.get_ticket_medio(None),
-            'produtos_em_falta': serializer.get_produtos_em_falta(None),
-            'pedidos_por_status': serializer.get_pedidos_por_status(None),
-            'formas_pagamento': serializer.get_formas_pagamento(None),
-        }
+        # Tenta pegar dados do cache
+        cache_key = 'dashboard:stats:main'
+        data = cache.get(cache_key)
+        
+        if data is None:
+            # Se não estiver no cache, calcula os dados
+            serializer = DashboardSerializer(data={})
+            data = {
+                'vendas_hoje': serializer.get_vendas_hoje(None),
+                'vendas_mes': serializer.get_vendas_mes(None),
+                'pedidos_hoje': serializer.get_pedidos_hoje(None),
+                'ticket_medio': serializer.get_ticket_medio(None),
+                'produtos_em_falta': serializer.get_produtos_em_falta(None),
+                'pedidos_por_status': serializer.get_pedidos_por_status(None),
+                'formas_pagamento': serializer.get_formas_pagamento(None),
+            }
+            # Cache por 5 minutos
+            cache.set(cache_key, data, 300)
+        
         return Response(data)
 
 class VendasPeriodoView(APIView):

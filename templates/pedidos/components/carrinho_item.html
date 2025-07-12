@@ -1,0 +1,44 @@
+<!-- Componente: Item do Carrinho -->
+<div class="carrinho-item bg-secondary rounded-lg p-3 mb-2"
+     data-item-id="{{ item.id }}"
+     data-preco-unitario="{{ item.preco }}">
+    
+    <div class="flex justify-between items-start mb-2">
+        <div class="flex-1">
+            <h5 class="font-medium text-primary">{{ item.nome }}</h5>
+            {% if item.observacao %}
+                <p class="text-xs text-secondary mt-1">{{ item.observacao }}</p>
+            {% endif %}
+        </div>
+        <button type="button"
+                onclick="removerItem({{ item.id }})"
+                class="text-red-500 hover:text-red-700 ml-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+    
+    <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <button type="button"
+                    onclick="alterarQuantidade({{ item.id }}, -1)"
+                    class="w-6 h-6 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                </svg>
+            </button>
+            <span class="quantidade font-medium">{{ item.quantidade }}</span>
+            <button type="button"
+                    onclick="alterarQuantidade({{ item.id }}, 1)"
+                    class="w-6 h-6 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </button>
+        </div>
+        <span class="subtotal font-semibold text-pizza-600">
+            R$ {{ item.subtotal|floatformat:2 }}
+        </span>
+    </div>
+</div>

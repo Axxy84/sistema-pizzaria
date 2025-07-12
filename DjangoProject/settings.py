@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_filters',
+    'debug_toolbar',
     'apps.authentication',
     'apps.produtos',
     'apps.pedidos',
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,6 +66,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     # 'apps.authentication.middleware.SupabaseSessionMiddleware',  # TEMPORARIAMENTE REMOVIDO
     # 'apps.authentication.debug_middleware.AuthenticationDebugMiddleware',  # Descomente para debug
 ]
@@ -175,7 +179,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Session configuration
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# SESSION_ENGINE está definido mais abaixo após a configuração de cache
 SESSION_COOKIE_NAME = 'pizzaria_sessionid'
 SESSION_COOKIE_AGE = 1209600  # 2 semanas
 SESSION_COOKIE_SECURE = False  # True apenas em HTTPS
@@ -216,3 +220,56 @@ if DEBUG:
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cache Configuration
+# Temporariamente usando cache local em memória até Redis estar disponível
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# Use database for session storage (mais confiável sem Redis)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Django Cachalot settings (Query caching) - Desabilitado temporariamente por conflito de versão
+# CACHALOT_ENABLED = True
+# CACHALOT_CACHE = 'default'
+# CACHALOT_TIMEOUT = 300  # 5 minutos
+
+# Django Debug Toolbar
+INTERNAL_IPS = ['127.0.0.1', 'localhost']
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
+    'SHOW_TEMPLATE_CONTEXT': True,
+    'ENABLE_STACKTRACES': True,
+}
+
+# Database optimization
+if USE_SUPABASE_DB:
+    DATABASES['default']['CONN_MAX_AGE'] = 600  # Persistent connections for 10 minutes
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,
+        'options': '-c statement_timeout=30000'  # 30 seconds
+    }
+
+# Django Compressor settings - Desabilitado temporariamente
+# COMPRESS_ENABLED = not DEBUG
+# COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
+#                         'compressor.filters.cssmin.CSSMinFilter']
+# COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # 'compressor.finders.CompressorFinder',
+)
+
+# Whitenoise settings for static files
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_USE_FINDERS = True
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Performance settings
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Para formulários grandes
+CONN_MAX_AGE = 0 if DEBUG else 600  # Persistent connections em produção

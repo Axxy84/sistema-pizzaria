@@ -1,0 +1,257 @@
+/* Estilos Otimizados para Pedidos */
+
+/* Variáveis CSS para performance */
+:root {
+    --pizza-50: #FEF2F2;
+    --pizza-100: #FEE2E2;
+    --pizza-200: #FECACA;
+    --pizza-300: #FCA5A5;
+    --pizza-400: #F87171;
+    --pizza-500: #EF4444;
+    --pizza-600: #DC2626;
+    --pizza-700: #B91C1C;
+    --pizza-800: #991B1B;
+    --pizza-900: #7F1D1D;
+}
+
+/* Transições globais otimizadas */
+* {
+    transition-property: none;
+}
+
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+}
+
+/* Layout otimizado */
+.layout-produtos {
+    display: flex;
+    gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .layout-produtos {
+        flex-direction: column;
+    }
+}
+
+/* Cards otimizados */
+.produto-card,
+.pizza-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    will-change: transform;
+}
+
+.produto-card:hover,
+.pizza-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Abas otimizadas */
+.aba-produto {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.aba-produto.active {
+    background-color: var(--pizza-600);
+    color: white;
+}
+
+.aba-produto:not(.active) {
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.aba-produto:not(.active):hover {
+    background-color: var(--bg-secondary);
+}
+
+/* Tamanho selector otimizado */
+.tamanho-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.tamanho-option {
+    border: 2px solid var(--border-secondary);
+    background: transparent;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.tamanho-option:hover {
+    border-color: var(--pizza-400);
+    background-color: var(--pizza-50);
+}
+
+.tamanho-option.selected {
+    border-color: var(--pizza-600);
+    background-color: var(--pizza-100);
+    font-weight: 600;
+}
+
+/* Carrinho otimizado */
+.carrinho-lateral {
+    position: sticky;
+    top: 1rem;
+    background: var(--bg-card);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+}
+
+.carrinho-item {
+    background: var(--bg-secondary);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Formulários otimizados */
+.secao-formulario {
+    background: var(--bg-card);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border: 1px solid var(--border-card);
+}
+
+.secao-header {
+    padding: 1rem 1.5rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.secao-header:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.secao-content {
+    padding: 1.5rem;
+}
+
+/* Inputs otimizados */
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-secondary);
+    border-radius: 0.5rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--pizza-500);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* Botões otimizados */
+.btn-primary {
+    background-color: var(--pizza-600);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+    background-color: var(--pizza-700);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary:disabled {
+    background-color: #9CA3AF;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Validação otimizada */
+.campo-invalido {
+    border-color: var(--pizza-600) !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.mensagem-erro {
+    color: var(--pizza-600);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: none;
+}
+
+.campo-obrigatorio::after {
+    content: ' *';
+    color: var(--pizza-600);
+}
+
+/* Performance: Desabilitar animações complexas em dispositivos móveis */
+@media (max-width: 768px) {
+    * {
+        animation-duration: 0.1s !important;
+    }
+    
+    .produto-card:hover,
+    .pizza-card:hover {
+        transform: none;
+    }
+}
+
+/* Lazy loading placeholder */
+.loading-placeholder {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}

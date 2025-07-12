@@ -189,26 +189,6 @@ class PedidoUpdateView(LoginRequiredMixin, UpdateView):
             return self.form_invalid(form)
 
 
-class PedidoKanbanView(LoginRequiredMixin, TemplateView):
-    """Visão kanban dos pedidos por status"""
-    template_name = 'pedidos/pedido_kanban.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Agrupar pedidos por status
-        context['pedidos_por_status'] = {}
-        for status_code, status_label in Pedido.STATUS_CHOICES:
-            if status_code != 'cancelado':  # Não mostrar cancelados no kanban
-                context['pedidos_por_status'][status_code] = {
-                    'label': status_label,
-                    'pedidos': Pedido.objects.filter(
-                        status=status_code
-                    ).select_related('cliente').prefetch_related('itens')[:20]
-                }
-        
-        return context
-
 
 @login_required
 def pedido_atualizar_status(request, pk):

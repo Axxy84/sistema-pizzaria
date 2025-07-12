@@ -17,7 +17,6 @@ urlpatterns = [
     path('<int:pk>/status/', views_html.pedido_atualizar_status, name='pedido_update_status'),
     
     # Views especiais
-    path('kanban/', views_html.PedidoKanbanView.as_view(), name='pedido_kanban'),
     path('<int:pk>/imprimir/', views_html.pedido_imprimir, name='pedido_print'),
     
     # AJAX endpoints

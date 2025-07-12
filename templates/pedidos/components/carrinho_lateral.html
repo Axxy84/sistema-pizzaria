@@ -1,0 +1,61 @@
+<!-- Componente: Carrinho Lateral -->
+<div class="carrinho-lateral bg-card rounded-lg shadow-lg p-4 sticky top-4">
+    <h3 class="text-xl font-bold text-primary mb-4 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+            </path>
+        </svg>
+        Carrinho
+    </h3>
+    
+    <!-- Itens do Carrinho -->
+    <div id="carrinho-itens" class="mb-4 max-h-96 overflow-y-auto">
+        {% if carrinho_vazio %}
+            <p class="text-center text-secondary py-8">
+                Carrinho vazio
+            </p>
+        {% else %}
+            <!-- Os itens serão inseridos dinamicamente -->
+        {% endif %}
+    </div>
+    
+    <!-- Resumo do Carrinho -->
+    <div class="border-t border-secondary pt-4">
+        <div class="flex justify-between mb-2">
+            <span class="text-secondary">Subtotal:</span>
+            <span id="carrinho-subtotal" class="font-medium">R$ 0,00</span>
+        </div>
+        
+        <div id="taxa-entrega-container" class="flex justify-between mb-2" style="display: none;">
+            <span class="text-secondary">Taxa de Entrega:</span>
+            <span id="taxa-entrega-valor" class="font-medium">R$ 0,00</span>
+        </div>
+        
+        <div id="desconto-container" class="flex justify-between mb-2" style="display: none;">
+            <span class="text-secondary">Desconto:</span>
+            <span id="desconto-valor" class="font-medium text-green-600">- R$ 0,00</span>
+        </div>
+        
+        <div class="flex justify-between text-lg font-bold text-primary pt-2 border-t border-secondary">
+            <span>Total:</span>
+            <span id="carrinho-total" class="text-pizza-600">R$ 0,00</span>
+        </div>
+    </div>
+    
+    <!-- Ações do Carrinho -->
+    <div class="mt-4 space-y-2">
+        <button type="button"
+                id="btn-limpar-carrinho"
+                class="w-full bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition">
+            Limpar Carrinho
+        </button>
+        
+        <button type="button"
+                id="btn-finalizar-pedido"
+                class="w-full bg-pizza-600 text-white py-3 rounded-lg hover:bg-pizza-700 transition font-semibold"
+                disabled>
+            Finalizar Pedido
+        </button>
+    </div>
+</div>

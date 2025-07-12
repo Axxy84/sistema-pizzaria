@@ -95,10 +95,6 @@
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_create' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Novo Pedido
                     </a>
-                    <a href="{% url 'pedidos:pedido_kanban' %}" 
-                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_kanban' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
-                        Kanban
-                    </a>
                     <a href="{% url 'pedidos:pedido_list' %}?status=preparando" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md transition-colors">
                         Em Preparo

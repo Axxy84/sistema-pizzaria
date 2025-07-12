@@ -13,87 +13,6 @@
     --pizza-700: #b91c1c;
     --pizza-800: #991b1b;
     --pizza-900: #7f1d1d;
-    
-    /* Light Theme Variables */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
-    --bg-card: #ffffff;
-    --bg-sidebar: #ffffff;
-    --bg-navbar: #ffffff;
-    
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --text-tertiary: #9ca3af;
-    --text-muted: #d1d5db;
-    
-    --border-primary: #e5e7eb;
-    --border-secondary: #d1d5db;
-    --border-card: #e5e7eb;
-    
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    
-    --scrollbar-track: #f1f5f9;
-    --scrollbar-thumb: #cbd5e1;
-    --scrollbar-thumb-hover: #94a3b8;
-}
-
-/* Dark Theme Variables */
-[data-theme="dark"] {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --bg-card: #1e293b;
-    --bg-sidebar: #0f172a;
-    --bg-navbar: #1e293b;
-    
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-tertiary: #94a3b8;
-    --text-muted: #64748b;
-    
-    --border-primary: #334155;
-    --border-secondary: #475569;
-    --border-card: #334155;
-    
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
-    
-    --scrollbar-track: #334155;
-    --scrollbar-thumb: #475569;
-    --scrollbar-thumb-hover: #64748b;
-}
-
-/* Auto Theme (System Preference) */
-@media (prefers-color-scheme: dark) {
-    [data-theme="auto"] {
-        --bg-primary: #0f172a;
-        --bg-secondary: #1e293b;
-        --bg-tertiary: #334155;
-        --bg-card: #1e293b;
-        --bg-sidebar: #0f172a;
-        --bg-navbar: #1e293b;
-        
-        --text-primary: #f1f5f9;
-        --text-secondary: #cbd5e1;
-        --text-tertiary: #94a3b8;
-        --text-muted: #64748b;
-        
-        --border-primary: #334155;
-        --border-secondary: #475569;
-        --border-card: #334155;
-        
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
-        
-        --scrollbar-track: #334155;
-        --scrollbar-thumb: #475569;
-        --scrollbar-thumb-hover: #64748b;
-    }
 }
 
 /* Custom scrollbar for webkit browsers */
@@ -103,23 +22,23 @@
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
+    background: #f1f5f9;
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
+    background: #cbd5e1;
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--scrollbar-thumb-hover);
+    background: #94a3b8;
 }
 
 /* Firefox scrollbar */
 * {
     scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 /* Focus styles for accessibility */
@@ -420,12 +339,6 @@
     }
 }
 
-/* Dark mode support (future enhancement) */
-@media (prefers-color-scheme: dark) {
-    .dark-mode {
-        /* Dark mode styles would go here */
-    }
-}
 
 /* Custom utilities */
 .text-truncate {
@@ -542,247 +455,3 @@
     @apply inline-block w-2 h-2 bg-red-400 rounded-full;
 }
 
-/* =================================
-   DARK MODE UTILITIES
-   ================================= */
-
-/* Base theme classes using CSS variables */
-.bg-primary {
-    background-color: var(--bg-primary);
-}
-
-.bg-secondary {
-    background-color: var(--bg-secondary);
-}
-
-.bg-tertiary {
-    background-color: var(--bg-tertiary);
-}
-
-.bg-card {
-    background-color: var(--bg-card);
-}
-
-.bg-sidebar {
-    background-color: var(--bg-sidebar);
-}
-
-.bg-navbar {
-    background-color: var(--bg-navbar);
-}
-
-.text-primary {
-    color: var(--text-primary);
-}
-
-.text-secondary {
-    color: var(--text-secondary);
-}
-
-.text-tertiary {
-    color: var(--text-tertiary);
-}
-
-.text-muted {
-    color: var(--text-muted);
-}
-
-.border-primary {
-    border-color: var(--border-primary);
-}
-
-.border-secondary {
-    border-color: var(--border-secondary);
-}
-
-.border-card {
-    border-color: var(--border-card);
-}
-
-.shadow-sm-theme {
-    box-shadow: var(--shadow-sm);
-}
-
-.shadow-md-theme {
-    box-shadow: var(--shadow-md);
-}
-
-.shadow-lg-theme {
-    box-shadow: var(--shadow-lg);
-}
-
-/* Theme toggle button styles */
-.theme-toggle {
-    @apply relative inline-flex items-center justify-center w-10 h-10 rounded-lg transition-all-300 focus:outline-none focus:ring-2 focus:ring-pizza-500 focus:ring-offset-2;
-    background-color: var(--bg-tertiary);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-primary);
-}
-
-.theme-toggle:hover {
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    border-color: var(--border-secondary);
-}
-
-.theme-toggle.active {
-    background-color: var(--pizza-600);
-    color: white;
-    border-color: var(--pizza-600);
-}
-
-/* Dark mode transition effect */
-.theme-transition {
-    transition: background-color 0.3s ease, 
-                color 0.3s ease, 
-                border-color 0.3s ease, 
-                box-shadow 0.3s ease;
-}
-
-/* Apply transition to all elements */
-* {
-    @apply theme-transition;
-}
-
-/* Override Tailwind classes to use CSS variables */
-.card {
-    background-color: var(--bg-card) !important;
-    border-color: var(--border-card) !important;
-    box-shadow: var(--shadow-sm) !important;
-}
-
-.card-header {
-    background-color: var(--bg-secondary) !important;
-    border-color: var(--border-primary) !important;
-}
-
-.card-footer {
-    background-color: var(--bg-secondary) !important;
-    border-color: var(--border-primary) !important;
-}
-
-/* Table dark mode support */
-.table-auto th {
-    color: var(--text-secondary) !important;
-}
-
-.table-auto td {
-    color: var(--text-primary) !important;
-}
-
-.table-auto tbody tr:hover {
-    background-color: var(--bg-tertiary) !important;
-}
-
-/* Form elements dark mode support */
-.form-input {
-    background-color: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
-    border-color: var(--border-primary) !important;
-}
-
-.form-input:focus {
-    border-color: var(--pizza-500) !important;
-    box-shadow: 0 0 0 1px var(--pizza-500) !important;
-}
-
-.form-label {
-    color: var(--text-primary) !important;
-}
-
-.form-help {
-    color: var(--text-secondary) !important;
-}
-
-/* Glass morphism effect for dark mode */
-[data-theme="dark"] .glass {
-    background: rgba(30, 41, 59, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(100, 116, 139, 0.18);
-}
-
-/* Sidebar active indicator dark mode */
-[data-theme="dark"] .sidebar-item-active {
-    background-color: rgba(220, 38, 38, 0.1) !important;
-    border-color: var(--pizza-500) !important;
-    color: var(--pizza-400) !important;
-}
-
-/* Dark mode specific improvements */
-[data-theme="dark"] {
-    /* Improve text contrast in dark mode */
-    .text-gray-900 {
-        color: var(--text-primary) !important;
-    }
-    
-    .text-gray-700 {
-        color: var(--text-secondary) !important;
-    }
-    
-    .text-gray-500 {
-        color: var(--text-tertiary) !important;
-    }
-    
-    /* Background overrides */
-    .bg-white {
-        background-color: var(--bg-card) !important;
-    }
-    
-    .bg-gray-50 {
-        background-color: var(--bg-secondary) !important;
-    }
-    
-    .bg-gray-100 {
-        background-color: var(--bg-tertiary) !important;
-    }
-    
-    /* Border overrides */
-    .border-gray-200 {
-        border-color: var(--border-primary) !important;
-    }
-    
-    .border-gray-300 {
-        border-color: var(--border-secondary) !important;
-    }
-}
-
-/* Theme toggle dropdown styles */
-.theme-dropdown {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    box-shadow: var(--shadow-lg);
-}
-
-.theme-dropdown-item {
-    color: var(--text-primary);
-    @apply px-4 py-2 text-sm cursor-pointer transition-colors-200;
-}
-
-.theme-dropdown-item:hover {
-    background-color: var(--bg-secondary);
-}
-
-.theme-dropdown-item.active {
-    background-color: var(--pizza-600);
-    color: white;
-}
-
-/* Loading spinner dark mode */
-[data-theme="dark"] .btn-loading::after {
-    border-color: rgba(241, 245, 249, 0.3);
-    border-top-color: var(--text-primary);
-}
-
-/* Skeleton loading dark mode */
-[data-theme="dark"] .skeleton {
-    background-color: var(--bg-tertiary) !important;
-}
-
-[data-theme="dark"] .skeleton-text {
-    background-color: var(--bg-tertiary) !important;
-}
-
-[data-theme="dark"] .skeleton-avatar {
-    background-color: var(--bg-tertiary) !important;
-}

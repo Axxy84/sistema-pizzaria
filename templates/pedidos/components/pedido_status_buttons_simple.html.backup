@@ -1,0 +1,150 @@
+{% load static %}
+
+<!-- Status Action Buttons Component - Pure JavaScript Version -->
+<!-- Usage: {% include 'pedidos/components/pedido_status_buttons_simple.html' with pedido=pedido %} -->
+
+<div class="mt-4 border-t border-gray-200 pt-4" id="status-buttons-{{ pedido.pk }}">
+    <div class="flex flex-wrap gap-2 items-center justify-between">
+        <!-- Status Buttons -->
+        <div class="flex flex-wrap gap-2">
+            
+            <!-- Recebido -->
+            <button onclick="changeStatusSimple({{ pedido.pk }}, 'recebido', this)"
+                    {% if pedido.status == 'recebido' %}disabled{% endif %}
+                    class="inline-flex items-center px-3 py-1.5 border text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+                           {% if pedido.status == 'recebido' %}bg-blue-100 text-blue-800 border-blue-300 cursor-default
+                           {% else %}bg-white text-blue-700 border-blue-300 hover:bg-blue-50{% endif %}">
+                <span class="mr-1">📋</span>
+                <span class="hidden md:inline">Recebido</span>
+            </button>
+            
+            <!-- Preparando -->
+            <button onclick="changeStatusSimple({{ pedido.pk }}, 'preparando', this)"
+                    {% if pedido.status == 'preparando' %}disabled{% endif %}
+                    class="inline-flex items-center px-3 py-1.5 border text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500
+                           {% if pedido.status == 'preparando' %}bg-yellow-100 text-yellow-800 border-yellow-300 cursor-default
+                           {% else %}bg-white text-yellow-700 border-yellow-300 hover:bg-yellow-50{% endif %}">
+                <span class="mr-1">🟡</span>
+                <span class="hidden md:inline">Preparando</span>
+            </button>
+            
+            <!-- Saindo -->
+            <button onclick="changeStatusSimple({{ pedido.pk }}, 'saindo', this)"
+                    {% if pedido.status == 'saindo' %}disabled{% endif %}
+                    class="inline-flex items-center px-3 py-1.5 border text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500
+                           {% if pedido.status == 'saindo' %}bg-orange-100 text-orange-800 border-orange-300 cursor-default
+                           {% else %}bg-white text-orange-700 border-orange-300 hover:bg-orange-50{% endif %}">
+                <span class="mr-1">🟠</span>
+                <span class="hidden md:inline">Saindo</span>
+            </button>
+            
+            <!-- Entregue -->
+            <button onclick="changeStatusSimple({{ pedido.pk }}, 'entregue', this)"
+                    {% if pedido.status == 'entregue' %}disabled{% endif %}
+                    class="inline-flex items-center px-3 py-1.5 border text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+                           {% if pedido.status == 'entregue' %}bg-green-100 text-green-800 border-green-300 cursor-default
+                           {% else %}bg-white text-green-700 border-green-300 hover:bg-green-50{% endif %}">
+                <span class="mr-1">✅</span>
+                <span class="hidden md:inline">Entregue</span>
+            </button>
+            
+            <!-- Cancelar -->
+            {% if pedido.status not in 'entregue,cancelado' %}
+            <button onclick="changeStatusSimple({{ pedido.pk }}, 'cancelado', this)"
+                    {% if pedido.status == 'cancelado' %}disabled{% endif %}
+                    class="inline-flex items-center px-3 py-1.5 border text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500
+                           {% if pedido.status == 'cancelado' %}bg-red-100 text-red-800 border-red-300 cursor-default
+                           {% else %}bg-white text-red-700 border-red-300 hover:bg-red-50{% endif %}">
+                <span class="mr-1">❌</span>
+                <span class="hidden md:inline">Cancelar</span>
+            </button>
+            {% endif %}
+        </div>
+        
+        <!-- Ver Detalhes -->
+        <div>
+            <a href="{% url 'pedidos:pedido_detail' pedido.pk %}"
+               class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <span class="mr-1">👁️</span>
+                Ver
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function changeStatusSimple(pedidoId, newStatus, buttonElement) {
+    // Verificar se o botão está desabilitado
+    if (buttonElement && buttonElement.disabled) {
+        return;
+    }
+    
+    // Confirmar alteração
+    const statusName = getStatusName(newStatus);
+    if (!confirm(`Deseja alterar o status do pedido para "${statusName}"?`)) {
+        return;
+    }
+    
+    // Desabilitar botão temporariamente
+    if (buttonElement) {
+        buttonElement.disabled = true;
+        buttonElement.textContent = 'Alterando...';
+    }
+    
+    // Criar formulário e submeter
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/pedidos/${pedidoId}/status/`;
+    form.style.display = 'none';
+    
+    // CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken.value;
+        form.appendChild(csrfInput);
+    }
+    
+    // Status input
+    const statusInput = document.createElement('input');
+    statusInput.type = 'hidden';
+    statusInput.name = 'status';
+    statusInput.value = newStatus;
+    form.appendChild(statusInput);
+    
+    // Adicionar ao DOM e submeter
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function getStatusName(status) {
+    const statusNames = {
+        'recebido': 'Recebido',
+        'preparando': 'Preparando', 
+        'saindo': 'Saindo',
+        'entregue': 'Entregue',
+        'cancelado': 'Cancelado'
+    };
+    return statusNames[status] || status;
+}
+
+// Função para mostrar feedback visual temporário
+function showStatusFeedback(message, type = 'success') {
+    const feedback = document.createElement('div');
+    feedback.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-md text-white text-sm font-medium ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    feedback.textContent = message;
+    
+    document.body.appendChild(feedback);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.parentNode.removeChild(feedback);
+        }
+    }, 3000);
+}
+</script>

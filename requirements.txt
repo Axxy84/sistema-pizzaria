@@ -36,3 +36,10 @@ supafunc==0.10.1
 typing-inspection==0.4.1
 typing_extensions==4.14.1
 websockets==15.0.1
+redis==5.2.1
+django-redis==5.4.0
+django-debug-toolbar==5.1.0
+django-cachalot==2.6.3
+whitenoise==6.9.0
+django-compressor==4.5.1
+hiredis==3.0.0

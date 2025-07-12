@@ -5,6 +5,7 @@ from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator
+from django.core.cache import cache
 from .models import Produto, Categoria, ProdutoPreco, Tamanho
 from .forms import ProdutoForm, PizzaForm
 
@@ -44,16 +45,26 @@ class ProductListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Contadores por tipo
-        context['tipo_counts'] = {
-            'todos': Produto.objects.filter(ativo=True).count(),
-            'pizza': Produto.objects.filter(tipo_produto='pizza', ativo=True).count(),
-            'bebida': Produto.objects.filter(tipo_produto='bebida', ativo=True).count(),
-            'borda': Produto.objects.filter(tipo_produto='borda', ativo=True).count(),
-            'sobremesa': Produto.objects.filter(tipo_produto='sobremesa', ativo=True).count(),
-            'acompanhamento': Produto.objects.filter(tipo_produto='acompanhamento', ativo=True).count(),
-            'outro': Produto.objects.filter(tipo_produto='outro', ativo=True).count(),
-        }
+        # Contadores otimizados com cache
+        cache_key = 'produtos:tipo_counts'
+        tipo_counts = cache.get(cache_key)
+        
+        if tipo_counts is None:
+            from django.db.models import Count, Case, When, IntegerField
+            
+            tipo_counts = Produto.objects.filter(ativo=True).aggregate(
+                todos=Count('id'),
+                pizza=Count(Case(When(tipo_produto='pizza', then=1), output_field=IntegerField())),
+                bebida=Count(Case(When(tipo_produto='bebida', then=1), output_field=IntegerField())),
+                borda=Count(Case(When(tipo_produto='borda', then=1), output_field=IntegerField())),
+                sobremesa=Count(Case(When(tipo_produto='sobremesa', then=1), output_field=IntegerField())),
+                acompanhamento=Count(Case(When(tipo_produto='acompanhamento', then=1), output_field=IntegerField())),
+                outro=Count(Case(When(tipo_produto='outro', then=1), output_field=IntegerField())),
+            )
+            # Cache por 5 minutos
+            cache.set(cache_key, tipo_counts, 300)
+        
+        context['tipo_counts'] = tipo_counts
         
         # Parâmetros da URL para manter filtros
         context['search_query'] = self.request.GET.get('q', '')
@@ -109,16 +120,26 @@ class ProductFilterView(LoginRequiredMixin, TemplateView):
         context['is_paginated'] = page_obj.has_other_pages()
         context['current_tipo'] = tipo
         
-        # Contadores
-        context['tipo_counts'] = {
-            'todos': Produto.objects.filter(ativo=True).count(),
-            'pizza': Produto.objects.filter(tipo_produto='pizza', ativo=True).count(),
-            'bebida': Produto.objects.filter(tipo_produto='bebida', ativo=True).count(),
-            'borda': Produto.objects.filter(tipo_produto='borda', ativo=True).count(),
-            'sobremesa': Produto.objects.filter(tipo_produto='sobremesa', ativo=True).count(),
-            'acompanhamento': Produto.objects.filter(tipo_produto='acompanhamento', ativo=True).count(),
-            'outro': Produto.objects.filter(tipo_produto='outro', ativo=True).count(),
-        }
+        # Contadores otimizados com cache
+        cache_key = 'produtos:tipo_counts'
+        tipo_counts = cache.get(cache_key)
+        
+        if tipo_counts is None:
+            from django.db.models import Count, Case, When, IntegerField
+            
+            tipo_counts = Produto.objects.filter(ativo=True).aggregate(
+                todos=Count('id'),
+                pizza=Count(Case(When(tipo_produto='pizza', then=1), output_field=IntegerField())),
+                bebida=Count(Case(When(tipo_produto='bebida', then=1), output_field=IntegerField())),
+                borda=Count(Case(When(tipo_produto='borda', then=1), output_field=IntegerField())),
+                sobremesa=Count(Case(When(tipo_produto='sobremesa', then=1), output_field=IntegerField())),
+                acompanhamento=Count(Case(When(tipo_produto='acompanhamento', then=1), output_field=IntegerField())),
+                outro=Count(Case(When(tipo_produto='outro', then=1), output_field=IntegerField())),
+            )
+            # Cache por 5 minutos
+            cache.set(cache_key, tipo_counts, 300)
+        
+        context['tipo_counts'] = tipo_counts
         
         # Parâmetros da URL
         context['search_query'] = search

@@ -1,0 +1,269 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Novo Pedido - Pizzaria{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pedidos.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6" x-data="pedidoForm()">
+    
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-primary">Novo Pedido</h1>
+        <p class="text-secondary mt-1">Adicione produtos e finalize o pedido</p>
+    </div>
+    
+    <!-- Layout Principal -->
+    <div class="layout-produtos flex flex-col lg:flex-row gap-6">
+        
+        <!-- Área de Produtos -->
+        <div class="flex-1">
+            
+            <!-- Tipo de Pedido -->
+            <div class="bg-card rounded-lg shadow-sm p-4 mb-6">
+                <h3 class="text-lg font-semibold mb-3">Tipo de Pedido</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <label class="tipo-pedido-card">
+                        <input type="radio" name="tipo_pedido" value="delivery" x-model="tipoPedido" class="hidden">
+                        <div class="p-4 border-2 rounded-lg cursor-pointer transition-all text-center"
+                             :class="tipoPedido === 'delivery' ? 'border-pizza-600 bg-pizza-50' : 'border-secondary'">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                            </svg>
+                            <span class="font-medium">Delivery</span>
+                        </div>
+                    </label>
+                    
+                    <label class="tipo-pedido-card">
+                        <input type="radio" name="tipo_pedido" value="balcao" x-model="tipoPedido" class="hidden">
+                        <div class="p-4 border-2 rounded-lg cursor-pointer transition-all text-center"
+                             :class="tipoPedido === 'balcao' ? 'border-pizza-600 bg-pizza-50' : 'border-secondary'">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span class="font-medium">Balcão</span>
+                        </div>
+                    </label>
+                    
+                    <label class="tipo-pedido-card">
+                        <input type="radio" name="tipo_pedido" value="mesa" x-model="tipoPedido" class="hidden">
+                        <div class="p-4 border-2 rounded-lg cursor-pointer transition-all text-center"
+                             :class="tipoPedido === 'mesa' ? 'border-pizza-600 bg-pizza-50' : 'border-secondary'">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            <span class="font-medium">Mesa</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Abas de Produtos -->
+            <div class="bg-card rounded-lg shadow-sm p-4 mb-6">
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <template x-for="(produtos, categoria) in produtosPorCategoria" :key="categoria">
+                        <button type="button"
+                                @click="categoriaAtiva = categoria"
+                                class="aba-produto"
+                                :class="{ 'active': categoriaAtiva === categoria }"
+                                x-text="categoria.charAt(0).toUpperCase() + categoria.slice(1)">
+                        </button>
+                    </template>
+                </div>
+                
+                <!-- Busca -->
+                <div class="mb-4">
+                    <input type="text" 
+                           x-model="buscaProduto"
+                           placeholder="Buscar produto..."
+                           class="w-full px-4 py-2 border border-secondary rounded-lg focus:ring-2 focus:ring-pizza-500">
+                </div>
+                
+                <!-- Grid de Produtos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <template x-for="produto in produtosFiltrados" :key="produto.id">
+                        <div x-show="!buscaProduto || produto.nome.toLowerCase().includes(buscaProduto.toLowerCase())">
+                            <!-- Pizza Card -->
+                            <template x-if="categoriaAtiva === 'pizzas'">
+                                {% include 'pedidos/components/pizza_card.html' %}
+                            </template>
+                            
+                            <!-- Produto Simples Card -->
+                            <template x-if="categoriaAtiva !== 'pizzas'">
+                                {% include 'pedidos/components/produto_card.html' %}
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- Formulários de Cliente e Endereço -->
+            {% include 'pedidos/components/form_cliente.html' %}
+            {% include 'pedidos/components/form_endereco.html' %}
+            
+            <!-- Forma de Pagamento -->
+            <div class="secao-formulario" x-data="{ aberto: false }">
+                <div class="secao-header" @click="aberto = !aberto">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                        Forma de Pagamento
+                    </h3>
+                    <svg class="w-5 h-5 transform transition-transform" 
+                         :class="{ 'rotate-180': aberto }"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                
+                <div class="secao-content" x-show="aberto" x-transition>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <label class="forma-pagamento">
+                            <input type="radio" name="forma_pagamento" value="dinheiro" x-model="formaPagamento" class="hidden">
+                            <div :class="formaPagamento === 'dinheiro' ? 'border-pizza-600 bg-pizza-50' : ''">
+                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span>Dinheiro</span>
+                            </div>
+                        </label>
+                        
+                        <label class="forma-pagamento">
+                            <input type="radio" name="forma_pagamento" value="pix" x-model="formaPagamento" class="hidden">
+                            <div :class="formaPagamento === 'pix' ? 'border-pizza-600 bg-pizza-50' : ''">
+                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                                </svg>
+                                <span>PIX</span>
+                            </div>
+                        </label>
+                        
+                        <label class="forma-pagamento">
+                            <input type="radio" name="forma_pagamento" value="cartao_credito" x-model="formaPagamento" class="hidden">
+                            <div :class="formaPagamento === 'cartao_credito' ? 'border-pizza-600 bg-pizza-50' : ''">
+                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                                <span>Crédito</span>
+                            </div>
+                        </label>
+                        
+                        <label class="forma-pagamento">
+                            <input type="radio" name="forma_pagamento" value="cartao_debito" x-model="formaPagamento" class="hidden">
+                            <div :class="formaPagamento === 'cartao_debito' ? 'border-pizza-600 bg-pizza-50' : ''">
+                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                                <span>Débito</span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Troco -->
+                    <div x-show="formaPagamento === 'dinheiro'" class="mt-4">
+                        <label for="troco_para" class="block text-sm font-medium text-primary mb-1">
+                            Troco para
+                        </label>
+                        <input type="number" 
+                               id="troco_para" 
+                               name="troco_para"
+                               x-model="trocoPara"
+                               step="0.01"
+                               class="w-full px-3 py-2 border border-secondary rounded-lg focus:ring-2 focus:ring-pizza-500">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Observações -->
+            <div class="secao-formulario" x-data="{ aberto: false }">
+                <div class="secao-header" @click="aberto = !aberto">
+                    <h3 class="text-lg font-semibold">Observações</h3>
+                    <svg class="w-5 h-5 transform transition-transform" 
+                         :class="{ 'rotate-180': aberto }"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                
+                <div class="secao-content" x-show="aberto" x-transition>
+                    <textarea id="observacoes" 
+                              name="observacoes"
+                              rows="3"
+                              x-model="observacoes"
+                              class="w-full px-3 py-2 border border-secondary rounded-lg focus:ring-2 focus:ring-pizza-500"
+                              placeholder="Observações gerais do pedido..."></textarea>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Carrinho Lateral -->
+        <div class="lg:w-96">
+            {% include 'pedidos/components/carrinho_lateral.html' %}
+        </div>
+        
+    </div>
+    
+</div>
+
+<!-- Modal de Confirmação -->
+<div x-show="mostrarModalConfirmacao" 
+     x-cloak
+     class="fixed inset-0 z-50 overflow-y-auto"
+     @keydown.escape.window="mostrarModalConfirmacao = false">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-black opacity-50" @click="mostrarModalConfirmacao = false"></div>
+        
+        <!-- Modal -->
+        <div class="relative bg-white rounded-lg max-w-lg w-full p-6 shadow-xl">
+            <h3 class="text-lg font-semibold mb-4">Confirmar Pedido</h3>
+            
+            <div class="mb-4">
+                <p class="text-secondary mb-2">Revise os dados do pedido antes de confirmar:</p>
+                
+                <!-- Resumo do Pedido -->
+                <div class="bg-gray-50 rounded p-3 space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Tipo:</span>
+                        <span class="font-medium" x-text="tipoPedido"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Itens:</span>
+                        <span class="font-medium" x-text="carrinho.length"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Total:</span>
+                        <span class="font-bold text-pizza-600" x-text="'R$ ' + total.toFixed(2).replace('.', ',')"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Pagamento:</span>
+                        <span class="font-medium" x-text="formaPagamento"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        @click="mostrarModalConfirmacao = false"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                    Voltar
+                </button>
+                <button type="button"
+                        @click="finalizarPedido()"
+                        class="px-4 py-2 bg-pizza-600 text-white rounded-lg hover:bg-pizza-700 transition">
+                    Confirmar Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pedidos-otimizado.js' %}" defer></script>
+{% endblock %}

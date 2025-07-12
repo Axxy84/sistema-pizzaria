@@ -1,0 +1,30 @@
+<!-- Componente: Card de Produto -->
+<div class="produto-card" 
+     data-produto-id="{{ produto.id }}"
+     data-produto-nome="{{ produto.nome }}"
+     data-produto-preco="{{ produto.preco|default:0 }}">
+    
+    <div class="flex justify-between items-start mb-2">
+        <h4 class="text-lg font-semibold text-primary">{{ produto.nome }}</h4>
+        {% if produto.preco %}
+            <span class="text-lg font-bold text-pizza-600">
+                R$ {{ produto.preco|floatformat:2 }}
+            </span>
+        {% endif %}
+    </div>
+    
+    {% if produto.ingredientes %}
+        <p class="text-sm text-secondary mb-3">{{ produto.ingredientes }}</p>
+    {% endif %}
+    
+    <div class="flex justify-end">
+        <button type="button"
+                onclick="adicionarProdutoSimples({{ produto.id }}, '{{ produto.nome }}', {{ produto.preco|default:0 }})"
+                class="bg-pizza-600 text-white px-4 py-2 rounded-lg hover:bg-pizza-700 transition">
+            <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Adicionar
+        </button>
+    </div>
+</div>
