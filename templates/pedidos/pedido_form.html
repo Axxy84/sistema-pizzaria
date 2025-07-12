@@ -24,31 +24,56 @@
         color: #DC2626;
     }
     
+    /* Estilos para inputs com dark mode */
+    input[type="text"], 
+    input[type="tel"], 
+    input[type="email"], 
+    input[type="number"], 
+    select, 
+    textarea {
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-primary) !important;
+    }
+    
+    input[type="text"]:focus, 
+    input[type="tel"]:focus, 
+    input[type="email"]:focus, 
+    input[type="number"]:focus, 
+    select:focus, 
+    textarea:focus {
+        border-color: var(--pizza-500) !important;
+        box-shadow: 0 0 0 1px var(--pizza-500) !important;
+    }
+    
     /* Estilos para seções */
     .secao-formulario {
-        background: white;
+        background-color: var(--bg-card);
         border-radius: 0.5rem;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-sm);
         margin-bottom: 1.5rem;
         overflow: hidden;
+        border: 1px solid var(--border-card);
     }
     
     .secao-header {
         padding: 1rem 1.5rem;
-        background: #F9FAFB;
-        border-bottom: 1px solid #E5E7EB;
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-primary);
         cursor: pointer;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        transition: background-color 0.2s ease;
     }
     
     .secao-header:hover {
-        background: #F3F4F6;
+        background-color: var(--bg-tertiary);
     }
     
     .secao-content {
         padding: 1.5rem;
+        background-color: var(--bg-card);
     }
     
     /* Estilos para abas de produtos */
@@ -61,17 +86,17 @@
     }
     
     .aba-produto:not(.active) {
-        @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+        @apply bg-tertiary text-secondary hover:bg-secondary;
     }
     
     /* Cards de produtos */
     .produto-card {
-        @apply bg-white border border-gray-200 rounded-lg p-4 transition-all hover:shadow-md;
+        @apply bg-card border border-card rounded-lg p-4 transition-all hover:shadow-md;
     }
     
     /* Estilos para forma de pagamento */
     .forma-pagamento {
-        @apply flex flex-col items-center justify-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer transition-all hover:border-pizza-400 hover:bg-gray-50;
+        @apply flex flex-col items-center justify-center p-4 border-2 border-secondary rounded-lg cursor-pointer transition-all hover:border-pizza-400 hover:bg-secondary;
     }
     
     .forma-pagamento-ativa {
@@ -98,12 +123,12 @@
     .tamanho-option label {
         @apply block w-full px-3 py-2 text-center text-sm border rounded-md cursor-pointer transition-all;
         @apply peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600;
-        @apply hover:bg-gray-50 peer-checked:hover:bg-pizza-700;
+        @apply hover:bg-secondary peer-checked:hover:bg-pizza-700;
     }
     
     /* Carrinho lateral */
     .carrinho-lateral {
-        @apply sticky top-4 bg-white border border-gray-200 rounded-lg shadow-lg h-fit;
+        @apply sticky top-4 bg-card border border-card rounded-lg shadow-lg h-fit;
     }
     
     .carrinho-item {
@@ -464,7 +489,7 @@
         
         <!-- Cabeçalho -->
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-900">
+            <h1 class="text-2xl font-bold text-primary">
                 {% if object %}Editar Pedido #{{ object.numero }}{% else %}Novo Pedido{% endif %}
             </h1>
             <p class="mt-1 text-sm text-gray-600">Preencha os dados do cliente e selecione os produtos desejados</p>
@@ -502,7 +527,7 @@
                  tabindex="0"
                  @keydown.enter="secaoClienteAberta = !secaoClienteAberta"
                  @keydown.space.prevent="secaoClienteAberta = !secaoClienteAberta">
-                <h2 class="text-lg font-medium text-gray-900">Dados do Cliente</h2>
+                <h2 class="text-lg font-medium text-primary">Dados do Cliente</h2>
                 <svg class="w-5 h-5 text-gray-500 transition-transform"
                      :class="{ 'transform rotate-180': secaoClienteAberta }"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -584,7 +609,7 @@
                                        class="sr-only peer"
                                        aria-required="true">
                                 <label for="tipo-delivery"
-                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-gray-50"
+                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-secondary"
                                        tabindex="0"
                                        @keydown.enter="tipoPedido = 'delivery'; calcularTotais()"
                                        @keydown.space.prevent="tipoPedido = 'delivery'; calcularTotais()">
@@ -602,7 +627,7 @@
                                        class="sr-only peer"
                                        aria-required="true">
                                 <label for="tipo-balcao"
-                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-gray-50"
+                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-secondary"
                                        tabindex="0"
                                        @keydown.enter="tipoPedido = 'balcao'; calcularTotais()"
                                        @keydown.space.prevent="tipoPedido = 'balcao'; calcularTotais()">
@@ -620,7 +645,7 @@
                                        class="sr-only peer"
                                        aria-required="true">
                                 <label for="tipo-mesa"
-                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-gray-50"
+                                       class="block w-full px-3 py-2 text-center border rounded-md cursor-pointer peer-checked:bg-pizza-600 peer-checked:text-white peer-checked:border-pizza-600 hover:bg-secondary"
                                        tabindex="0"
                                        @keydown.enter="tipoPedido = 'mesa'; calcularTotais()"
                                        @keydown.space.prevent="tipoPedido = 'mesa'; calcularTotais()">
@@ -737,8 +762,8 @@
                     <!-- Campo de troco (apenas para dinheiro) -->
                     <div x-show="formaPagamento === 'dinheiro'" 
                          x-transition
-                         class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <h4 class="font-medium text-gray-900 mb-3">💵 Precisa de Troco?</h4>
+                         class="mt-4 p-4 bg-secondary rounded-lg border border-primary">
+                        <h4 class="font-medium text-primary mb-3">💵 Precisa de Troco?</h4>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                             <div>
@@ -768,7 +793,7 @@
                             
                             <div class="text-center">
                                 <span class="text-sm text-gray-600">Total do Pedido:</span>
-                                <div class="text-xl font-bold text-gray-900">
+                                <div class="text-xl font-bold text-primary">
                                     R$ <span x-text="total.toFixed(2)"></span>
                                 </div>
                             </div>
@@ -822,7 +847,7 @@
                  tabindex="0"
                  @keydown.enter="secaoProdutosAberta = !secaoProdutosAberta"
                  @keydown.space.prevent="secaoProdutosAberta = !secaoProdutosAberta">
-                <h2 class="text-lg font-medium text-gray-900">
+                <h2 class="text-lg font-medium text-primary">
                     Produtos
                     <span x-show="carrinho.length > 0" 
                           class="ml-2 px-2 py-1 text-xs bg-pizza-600 text-white rounded-full">
@@ -874,7 +899,7 @@
                         <div x-show="abaAtiva === 'pizzas'" class="space-y-4">
 
                             <!-- Busca de Pizzas -->
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div class="bg-card rounded-lg shadow-sm border border-card p-4">
                                 <div class="relative">
                                     <input type="text" 
                                            x-model="buscaPizza"
@@ -904,7 +929,7 @@
                                     <div class="flex items-center gap-3">
                                         <span class="text-2xl">🍕</span>
                                         <div class="flex-1">
-                                            <div class="font-bold text-gray-900">
+                                            <div class="font-bold text-primary">
                                                 1º SABOR: <span x-text="estadoSelecao.primeiroSabor?.pizza?.nome"></span>
                                             </div>
                                             <div class="text-sm text-gray-600">
@@ -932,7 +957,7 @@
                             <!-- Interface Simples e Robusta de Pizzas -->
                             <div x-show="!carregandoProdutos && !erroProdutos" 
                                  :class="{ 'modo-selecao-segundo': estadoSelecao.modo === 'selecionando_segundo' }"
-                                 class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                                 class="bg-card rounded-lg shadow-sm border border-card overflow-hidden">
                                 <!-- Header condicional -->
                                 <div x-show="estadoSelecao.modo === 'normal'" class="px-6 py-3 bg-gradient-to-r from-pizza-600 to-pizza-700 text-white font-bold">
                                     <span class="text-xl">🍕 Pizzas Disponíveis</span>
@@ -966,7 +991,7 @@
                                                 <div class="flex items-start gap-3 mb-3">
                                                     <span class="text-2xl">🍕</span>
                                                     <div class="flex-1">
-                                                        <h3 class="font-bold text-gray-900 uppercase" x-text="pizza.nome"></h3>
+                                                        <h3 class="font-bold text-primary uppercase" x-text="pizza.nome"></h3>
                                                         <p class="text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></p>
                                                         
                                                         <!-- Preço no modo seleção -->
@@ -990,7 +1015,7 @@
                                                 <div x-show="estadoSelecao.modo === 'normal'" class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                     <template x-for="tamanho in ['Pequena', 'Média', 'Grande', 'Família']" :key="tamanho">
                                                         <div x-show="obterPrecoTamanho(pizza, tamanho)" 
-                                                             class="text-center p-3 bg-gray-100 rounded-lg">
+                                                             class="text-center p-3 bg-tertiary rounded-lg">
                                                             <div class="text-xs text-gray-600 font-medium uppercase" x-text="tamanho"></div>
                                                             <div class="text-lg font-bold text-green-600 mt-1">
                                                                 R$ <span x-text="obterPrecoTamanho(pizza, tamanho)"></span>
@@ -1010,7 +1035,7 @@
                                     <!-- Se não há pizzas -->
                                     <div x-show="!pizzasFiltradas || pizzasFiltradas.length === 0" class="text-center py-8">
                                         <span class="text-6xl mb-4 block">🍕</span>
-                                        <h3 class="text-lg font-medium text-gray-900 mb-2">Aguardando pizzas...</h3>
+                                        <h3 class="text-lg font-medium text-primary mb-2">Aguardando pizzas...</h3>
                                         <p class="text-sm text-gray-600">Os dados estão sendo carregados</p>
                                     </div>
                                     
@@ -1032,7 +1057,7 @@
                             </div>
                             
                             <!-- Tabela de Pizzas (Desktop) -->
-                            <div x-show="!carregandoProdutos && !erroProdutos" class="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                            <div x-show="!carregandoProdutos && !erroProdutos" class="hidden md:block bg-card rounded-lg shadow-sm border border-card overflow-hidden">
                                 <div class="overflow-x-auto">
                                     <table class="w-full pizza-table">
                                         <thead>
@@ -1057,7 +1082,7 @@
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
+                                        <tbody class="bg-card divide-y divide-primary">
                                             <!-- Pizzas por categoria -->
                                             <template x-for="categoria in categoriasOrdenadas" :key="categoria">
                                                 <template x-if="obterPizzasPorCategoria(categoria).length > 0">
@@ -1076,7 +1101,7 @@
                                                                     <div class="flex items-start gap-3">
                                                                         <span class="text-2xl flex-shrink-0">🍕</span>
                                                                         <div class="flex-1">
-                                                                            <div class="pizza-name font-bold text-gray-900 uppercase" x-text="pizza.nome"></div>
+                                                                            <div class="pizza-name font-bold text-primary uppercase" x-text="pizza.nome"></div>
                                                                             <div class="pizza-ingredients text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></div>
                                                                         </div>
                                                                     </div>
@@ -1185,11 +1210,11 @@
                                             
                                             <!-- Pizzas da Categoria -->
                                             <template x-for="pizza in obterPizzasPorCategoria(categoria)" :key="pizza.id">
-                                                <div class="pizza-card bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                                <div class="pizza-card bg-card border border-card rounded-lg p-4 shadow-sm">
                                                     <div class="flex items-start gap-3 mb-4">
                                                         <span class="text-2xl">🍕</span>
                                                         <div class="flex-1">
-                                                            <h3 class="font-bold text-gray-900 uppercase" x-text="pizza.nome"></h3>
+                                                            <h3 class="font-bold text-primary uppercase" x-text="pizza.nome"></h3>
                                                             <p class="text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></p>
                                                         </div>
                                                     </div>
@@ -1198,7 +1223,7 @@
                                                     <div class="grid grid-cols-2 gap-3">
                                                         <template x-for="tamanho in ['Pequena', 'Média', 'Grande', 'Família']" :key="tamanho">
                                                             <template x-if="obterPrecoTamanho(pizza, tamanho)">
-                                                                <div class="price-item bg-gray-50 border border-gray-200 rounded-lg p-3 text-center transition-all hover:bg-gray-100">
+                                                                <div class="price-item bg-secondary border border-primary rounded-lg p-3 text-center transition-all hover:bg-tertiary">
                                                                     <div class="text-xs text-gray-600 font-medium uppercase" x-text="tamanho"></div>
                                                                     <div class="text-lg font-bold text-green-600 mt-1">
                                                                         R$ <span x-text="obterPrecoTamanho(pizza, tamanho)"></span>
@@ -1228,11 +1253,11 @@
                                         
                                         <!-- Todas as pizzas -->
                                         <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
-                                            <div class="pizza-card bg-white border border-gray-200 rounded-lg p-4 shadow-sm mb-4">
+                                            <div class="pizza-card bg-card border border-card rounded-lg p-4 shadow-sm mb-4">
                                                 <div class="flex items-start gap-3 mb-4">
                                                     <span class="text-2xl">🍕</span>
                                                     <div class="flex-1">
-                                                        <h3 class="font-bold text-gray-900 uppercase" x-text="pizza.nome"></h3>
+                                                        <h3 class="font-bold text-primary uppercase" x-text="pizza.nome"></h3>
                                                         <p class="text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></p>
                                                     </div>
                                                 </div>
@@ -1280,7 +1305,7 @@
                                             🥤
                                         </div>
                                         <div class="flex-1">
-                                            <h3 class="font-semibold text-gray-900" x-text="bebida.nome"></h3>
+                                            <h3 class="font-semibold text-primary" x-text="bebida.nome"></h3>
                                             <p class="text-pizza-600 font-medium" x-text="`R$ ${bebida.preco.toFixed(2)}`"></p>
                                         </div>
                                         <button type="button"
@@ -1302,7 +1327,7 @@
                                             ⭕
                                         </div>
                                         <div class="flex-1">
-                                            <h3 class="font-semibold text-gray-900" x-text="borda.nome"></h3>
+                                            <h3 class="font-semibold text-primary" x-text="borda.nome"></h3>
                                             <p class="text-xs text-gray-500 mb-1" x-text="borda.descricao"></p>
                                             <p class="text-pizza-600 font-medium" x-text="`R$ ${borda.preco.toFixed(2)}`"></p>
                                         </div>
@@ -1328,7 +1353,7 @@
                     <div class="w-full lg:w-80">
                         <div class="carrinho-lateral">
                             <div class="p-4 border-b border-gray-200">
-                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                <h3 class="text-lg font-semibold text-primary flex items-center">
                                     🛒 Carrinho
                                     <span x-show="carrinho.length > 0" 
                                           class="ml-2 px-2 py-1 text-xs bg-pizza-600 text-white rounded-full">
@@ -1343,7 +1368,7 @@
                                     <template x-for="(item, index) in carrinho" :key="index">
                                         <div class="carrinho-item">
                                             <div class="carrinho-item-info">
-                                                <h4 class="font-medium text-gray-900" x-text="item.nome"></h4>
+                                                <h4 class="font-medium text-primary" x-text="item.nome"></h4>
                                                 <p x-show="item.tamanho" class="text-xs text-gray-500">
                                                     Tamanho: <span x-text="item.tamanho"></span>
                                                 </p>
@@ -1426,7 +1451,7 @@
                                                 <span x-show="formaPagamento === 'cartao_credito'" class="text-lg mr-2">💳</span>
                                                 <span x-show="formaPagamento === 'cartao_debito'" class="text-lg mr-2">💳</span>
                                                 <span x-show="formaPagamento === 'pix'" class="text-lg mr-2">📱</span>
-                                                <span class="font-medium text-gray-900" x-text="
+                                                <span class="font-medium text-primary" x-text="
                                                     formaPagamento === 'dinheiro' ? 'Dinheiro' :
                                                     formaPagamento === 'cartao_credito' ? 'Cartão Crédito' :
                                                     formaPagamento === 'cartao_debito' ? 'Cartão Débito' :
@@ -1504,11 +1529,11 @@
                  x-transition:leave-start="opacity-100 scale-100" 
                  x-transition:leave-end="opacity-0 scale-95"
                  @click.away="fecharEdicaoTaxa()"
-                 class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-96 overflow-y-auto">
+                 class="bg-card rounded-lg shadow-xl max-w-md w-full max-h-96 overflow-y-auto">
                 
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Taxa de Entrega</h3>
+                        <h3 class="text-lg font-semibold text-primary">Taxa de Entrega</h3>
                         <button type="button" @click="fecharEdicaoTaxa()" class="text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -1519,7 +1544,7 @@
                     <!-- Opções Pré-definidas -->
                     <div class="space-y-2 mb-4">
                         <template x-for="taxa in taxasPreDefinidas" :key="taxa.valor">
-                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                            <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-secondary transition-colors"
                                    :class="{ 'border-pizza-500 bg-pizza-50': taxaEntrega === taxa.valor && !taxaPersonalizada }">
                                 <input type="radio" 
                                        :value="taxa.valor" 
@@ -1615,7 +1640,7 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                 class="inline-block align-bottom bg-card rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-pizza-100 sm:mx-0 sm:h-10 sm:w-10">

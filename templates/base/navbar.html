@@ -110,13 +110,13 @@
                         x-transition:leave="transition ease-in duration-75"
                         x-transition:leave-start="transform opacity-100 scale-100"
                         x-transition:leave-end="transform opacity-0 scale-95"
-                        class="absolute right-0 mt-2 w-48 rounded-lg bg-white border border-gray-200 shadow-lg z-50"
+                        class="absolute right-0 mt-2 w-48 rounded-lg bg-card border border-primary shadow-lg z-50"
                         style="display: none;"
                     >
                         <!-- Light Theme Option -->
                         <div 
                             @click="document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); open = false;"
-                            class="px-4 py-2 text-sm cursor-pointer transition-colors duration-200 text-gray-700 hover:bg-gray-100"
+                            class="px-4 py-2 text-sm cursor-pointer transition-colors duration-200 text-primary hover:bg-secondary"
                         >
                             <div class="flex items-center space-x-3">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,7 +129,7 @@
                         <!-- Dark Theme Option -->
                         <div 
                             @click="document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); open = false;"
-                            class="px-4 py-2 text-sm cursor-pointer transition-colors duration-200 text-gray-700 hover:bg-gray-100"
+                            class="px-4 py-2 text-sm cursor-pointer transition-colors duration-200 text-primary hover:bg-secondary"
                         >
                             <div class="flex items-center space-x-3">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +142,7 @@
                         <!-- Auto Theme Option -->
                         <div 
                             @click="document.documentElement.setAttribute('data-theme', 'auto'); localStorage.setItem('theme', 'auto'); open = false;"
-                            class="px-4 py-2 text-sm cursor-pointer transition-colors duration-200 text-gray-700 hover:bg-gray-100"
+                            class="px-4 py-2 text-sm cursor-pointer transition-colors duration-200 text-primary hover:bg-secondary"
                         >
                             <div class="flex items-center space-x-3">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
