@@ -140,6 +140,91 @@
         @apply text-lg font-bold text-pizza-600 pt-2 border-t border-gray-200;
     }
     
+    /* Estilos da Tabela de Pizzas (copiado do cardápio) */
+    .pizza-table {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .pizza-table th {
+        background-color: #F8FAFC;
+        color: #64748B;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #E2E8F0;
+        padding: 1rem;
+    }
+    
+    .pizza-table th:first-child {
+        text-align: left;
+        padding-left: 1.5rem;
+    }
+    
+    .pizza-row {
+        border-bottom: 1px solid #F1F5F9;
+        transition: all 0.15s ease-in-out;
+    }
+    
+    .pizza-row:hover {
+        background-color: #FEF2F2;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .pizza-name {
+        font-weight: 700;
+        color: #1E293B;
+        font-size: 1rem;
+        letter-spacing: -0.025em;
+    }
+    
+    .pizza-ingredients {
+        color: #64748B;
+        font-size: 0.875rem;
+        line-height: 1.4;
+        margin-top: 0.25rem;
+    }
+    
+    .price-cell {
+        font-weight: 700;
+        color: #10B981;
+        font-size: 1rem;
+        font-variant-numeric: tabular-nums;
+    }
+    
+    .price-cell.promo {
+        color: #DC2626;
+    }
+    
+    .original-price {
+        text-decoration: line-through;
+        color: #94A3B8;
+        font-size: 0.75rem;
+        font-weight: 400;
+    }
+    
+    .category-header {
+        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Melhorias visuais para pizzas */
+    .search-highlight {
+        background-color: #FEF3C7;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+    }
+    
+    .add-button-hover:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+    }
+    
     /* Responsividade */
     @media (max-width: 1024px) {
         .layout-produtos {
@@ -162,6 +247,56 @@
         
         .carrinho-lateral {
             @apply mx-4;
+        }
+        
+        .pizza-card {
+            border: 1px solid #E5E7EB;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            background: white;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.15s;
+        }
+        
+        .pizza-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .price-item {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        
+        .price-item:hover {
+            background: #F1F5F9;
+            border-color: #CBD5E1;
+        }
+        
+        .price-label {
+            font-size: 0.75rem;
+            color: #64748B;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .price-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #10B981;
+            margin-top: 0.125rem;
         }
     }
 </style>
@@ -461,6 +596,83 @@
                         
                         <!-- Aba Pizzas -->
                         <div x-show="abaAtiva === 'pizzas'" class="space-y-4">
+
+                            <!-- Busca de Pizzas -->
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <div class="relative">
+                                    <input type="text" 
+                                           x-model="buscaPizza"
+                                           @input="filtrarPizzas"
+                                           placeholder="🔍 Buscar pizza por nome ou ingredientes..."
+                                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-pizza-500 focus:border-pizza-500 text-lg">
+                                    <svg class="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    <div x-show="buscaPizza" 
+                                         @click="buscaPizza = ''; filtrarPizzas()"
+                                         class="absolute right-3 top-3.5 w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Interface Simples e Robusta de Pizzas -->
+                            <div x-show="!carregandoProdutos && !erroProdutos" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                                <!-- Header sempre visível -->
+                                <div class="px-6 py-3 bg-gradient-to-r from-pizza-600 to-pizza-700 text-white font-bold">
+                                    <span class="text-xl">🍕 Pizzas Disponíveis</span>
+                                    <span x-show="pizzasFiltradas && pizzasFiltradas.length > 0">
+                                        (<span x-text="pizzasFiltradas.length"></span>)
+                                    </span>
+                                </div>
+                                
+                                <!-- Conteúdo das pizzas -->
+                                <div class="p-4">
+                                    <!-- Se há pizzas -->
+                                    <div x-show="pizzasFiltradas && pizzasFiltradas.length > 0" class="space-y-4">
+                                        <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
+                                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                                <div class="flex items-start gap-3 mb-3">
+                                                    <span class="text-2xl">🍕</span>
+                                                    <div class="flex-1">
+                                                        <h3 class="font-bold text-gray-900 uppercase" x-text="pizza.nome"></h3>
+                                                        <p class="text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Grid de Preços -->
+                                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                    <template x-for="tamanho in ['Pequena', 'Média', 'Grande', 'Família']" :key="tamanho">
+                                                        <div x-show="obterPrecoTamanho(pizza, tamanho)" 
+                                                             class="text-center p-3 bg-gray-100 rounded-lg">
+                                                            <div class="text-xs text-gray-600 font-medium uppercase" x-text="tamanho"></div>
+                                                            <div class="text-lg font-bold text-green-600 mt-1">
+                                                                R$ <span x-text="obterPrecoTamanho(pizza, tamanho)"></span>
+                                                            </div>
+                                                            <button type="button"
+                                                                    @click="abrirModalPizza(pizza, tamanho)"
+                                                                    class="w-full mt-2 px-2 py-1 bg-pizza-600 text-white text-xs rounded hover:bg-pizza-700 transition-colors">
+                                                                + Adicionar
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    
+                                    <!-- Se não há pizzas -->
+                                    <div x-show="!pizzasFiltradas || pizzasFiltradas.length === 0" class="text-center py-8">
+                                        <span class="text-6xl mb-4 block">🍕</span>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-2">Aguardando pizzas...</h3>
+                                        <p class="text-sm text-gray-600">Os dados estão sendo carregados</p>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+
                             <!-- Loading state -->
                             <div x-show="carregandoProdutos" class="text-center py-8">
                                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-pizza-600 mx-auto mb-4"></div>
@@ -475,58 +687,244 @@
                                 </button>
                             </div>
                             
-                            <!-- Produtos carregados -->
-                            <template x-for="pizza in produtos.pizzas" :key="pizza.id">
-                                <div class="produto-card pizza">
-                                    <div class="flex items-start">
-                                        <div class="w-16 h-16 bg-pizza-100 rounded-lg flex items-center justify-center text-2xl mr-4">
-                                            🍕
-                                        </div>
-                                        <div class="flex-1">
-                                            <h3 class="text-lg font-semibold text-gray-900" x-text="pizza.nome"></h3>
-                                            <p class="text-sm text-gray-600 mb-3" x-text="pizza.ingredientes"></p>
-                                            
-                                            <!-- Seletor de Tamanho -->
-                                            <div class="tamanho-selector">
-                                                <template x-for="tamanho in pizza.tamanhos" :key="tamanho.size">
-                                                    <div class="tamanho-option">
-                                                        <input type="radio"
-                                                               :id="`pizza-${pizza.id}-${tamanho.size}`"
-                                                               :name="`pizza-${pizza.id}`"
-                                                               :value="tamanho.size"
-                                                               x-model="pizzaSelecionada[pizza.id]">
-                                                        <label :for="`pizza-${pizza.id}-${tamanho.size}`">
-                                                            <div class="font-medium" x-text="tamanho.size"></div>
-                                                            <div class="text-xs" x-text="`R$ ${tamanho.preco.toFixed(2)}`"></div>
-                                                        </label>
-                                                    </div>
+                            <!-- Tabela de Pizzas (Desktop) -->
+                            <div x-show="!carregandoProdutos && !erroProdutos" class="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full pizza-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    🍕 Pizza
+                                                </th>
+                                                <th class="px-4 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Pequena
+                                                </th>
+                                                <th class="px-4 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Média
+                                                </th>
+                                                <th class="px-4 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Grande
+                                                </th>
+                                                <th class="px-4 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Família
+                                                </th>
+                                                <th class="px-4 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Ações
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <!-- Pizzas por categoria -->
+                                            <template x-for="categoria in categoriasOrdenadas" :key="categoria">
+                                                <template x-if="obterPizzasPorCategoria(categoria).length > 0">
+                                                    <template>
+                                                        <!-- Header da Categoria -->
+                                                        <tr>
+                                                            <td colspan="6" class="px-6 py-3 bg-gradient-to-r from-pizza-600 to-pizza-700 text-white font-bold text-sm uppercase tracking-wider">
+                                                                <span x-text="categoria"></span>
+                                                            </td>
+                                                        </tr>
+                                                        
+                                                        <!-- Pizzas da Categoria -->
+                                                        <template x-for="pizza in obterPizzasPorCategoria(categoria)" :key="pizza.id">
+                                                            <tr class="pizza-row hover:bg-red-50 transition-all duration-150">
+                                                                <td class="px-6 py-4">
+                                                                    <div class="flex items-start gap-3">
+                                                                        <span class="text-2xl flex-shrink-0">🍕</span>
+                                                                        <div class="flex-1">
+                                                                            <div class="pizza-name font-bold text-gray-900 uppercase" x-text="pizza.nome"></div>
+                                                                            <div class="pizza-ingredients text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                
+                                                                <!-- Colunas de Preços -->
+                                                                <template x-for="(tamanho, index) in ['Pequena', 'Média', 'Grande', 'Família']" :key="tamanho">
+                                                                    <td class="px-4 py-4 text-center">
+                                                                        <template x-if="obterPrecoTamanho(pizza, tamanho)">
+                                                                            <div class="space-y-2">
+                                                                                <div class="price-cell font-bold text-green-600">
+                                                                                    R$ <span x-text="obterPrecoTamanho(pizza, tamanho)"></span>
+                                                                                </div>
+                                                                                <button type="button"
+                                                                                        @click="abrirModalPizza(pizza, tamanho)"
+                                                                                        class="px-3 py-1 bg-pizza-600 text-white text-xs rounded-full hover:bg-pizza-700 transition-colors">
+                                                                                    + Adicionar
+                                                                                </button>
+                                                                            </div>
+                                                                        </template>
+                                                                        <template x-if="!obterPrecoTamanho(pizza, tamanho)">
+                                                                            <span class="text-gray-400">-</span>
+                                                                        </template>
+                                                                    </td>
+                                                                </template>
+                                                            </tr>
+                                                        </template>
+                                                    </template>
                                                 </template>
+                                            </template>
+                                            
+                                            <!-- Fallback: Mostrar todas as pizzas se categorias não funcionarem -->
+                                            <template x-if="categoriasOrdenadas.length === 0 && pizzasFiltradas.length > 0">
+                                                <template>
+                                                    <!-- Header padrão -->
+                                                    <tr>
+                                                        <td colspan="6" class="px-6 py-3 bg-gradient-to-r from-pizza-600 to-pizza-700 text-white font-bold text-sm uppercase tracking-wider">
+                                                            🍕 Todas as Pizzas
+                                                        </td>
+                                                    </tr>
+                                                    
+                                                    <!-- Todas as pizzas -->
+                                                    <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
+                                                        <tr class="pizza-row hover:bg-red-50 transition-all duration-150">
+                                                            <td class="px-6 py-4">
+                                                                <div class="flex items-start gap-3">
+                                                                    <span class="text-2xl flex-shrink-0">🍕</span>
+                                                                    <div class="flex-1">
+                                                                        <div class="pizza-name font-bold text-gray-900 uppercase" x-text="pizza.nome"></div>
+                                                                        <div class="pizza-ingredients text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            
+                                                            <!-- Colunas de Preços -->
+                                                            <template x-for="(tamanho, index) in ['Pequena', 'Média', 'Grande', 'Família']" :key="tamanho">
+                                                                <td class="px-4 py-4 text-center">
+                                                                    <template x-if="obterPrecoTamanho(pizza, tamanho)">
+                                                                        <div class="space-y-2">
+                                                                            <div class="price-cell font-bold text-green-600">
+                                                                                R$ <span x-text="obterPrecoTamanho(pizza, tamanho)"></span>
+                                                                            </div>
+                                                                            <button type="button"
+                                                                                    @click="abrirModalPizza(pizza, tamanho)"
+                                                                                    class="px-3 py-1 bg-pizza-600 text-white text-xs rounded-full hover:bg-pizza-700 transition-colors add-button-hover">
+                                                                                + Adicionar
+                                                                            </button>
+                                                                        </div>
+                                                                    </template>
+                                                                    <template x-if="!obterPrecoTamanho(pizza, tamanho)">
+                                                                        <span class="text-gray-400">-</span>
+                                                                    </template>
+                                                                </td>
+                                                            </template>
+                                                        </tr>
+                                                    </template>
+                                                </template>
+                                            </template>
+                                            
+                                            <!-- Nenhuma pizza encontrada -->
+                                            <template x-if="pizzasFiltradas.length === 0 && !carregandoProdutos">
+                                                <tr>
+                                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                                        <div class="flex flex-col items-center">
+                                                            <span class="text-6xl mb-4">🍕</span>
+                                                            <p class="text-lg">Nenhuma pizza encontrada</p>
+                                                            <p class="text-sm mt-2">Tente buscar por outro nome ou ingrediente</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Cards Mobile -->
+                            <div x-show="!carregandoProdutos && !erroProdutos" class="md:hidden space-y-4">
+                                <template x-for="categoria in categoriasOrdenadas" :key="categoria">
+                                    <template x-if="obterPizzasPorCategoria(categoria).length > 0">
+                                        <div>
+                                            <!-- Header da Categoria -->
+                                            <div class="bg-pizza-600 text-white px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider mb-3">
+                                                <span x-text="categoria"></span>
                                             </div>
                                             
-                                            <button type="button"
-                                                    @click="adicionarPizza(pizza)"
-                                                    :disabled="!pizzaSelecionada[pizza.id]"
-                                                    :class="{ 
-                                                        'btn-adicionar': true,
-                                                        'bg-green-600 hover:bg-green-700': pizzaAdicionada[pizza.id],
-                                                        'bg-pizza-600 hover:bg-pizza-700': !pizzaAdicionada[pizza.id]
-                                                    }">
-                                                <span x-show="!pizzaAdicionada[pizza.id] && !pizzaSelecionada[pizza.id]">
-                                                    Selecione um tamanho
-                                                </span>
-                                                <span x-show="!pizzaAdicionada[pizza.id] && pizzaSelecionada[pizza.id]">
-                                                    🛒 Adicionar 
-                                                    <span x-text="pizzaSelecionada[pizza.id]"></span> - 
-                                                    R$ <span x-text="obterPrecoTamanho(pizza, pizzaSelecionada[pizza.id])"></span>
-                                                </span>
-                                                <span x-show="pizzaAdicionada[pizza.id]">
-                                                    ✅ Adicionado!
-                                                </span>
-                                            </button>
+                                            <!-- Pizzas da Categoria -->
+                                            <template x-for="pizza in obterPizzasPorCategoria(categoria)" :key="pizza.id">
+                                                <div class="pizza-card bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                                    <div class="flex items-start gap-3 mb-4">
+                                                        <span class="text-2xl">🍕</span>
+                                                        <div class="flex-1">
+                                                            <h3 class="font-bold text-gray-900 uppercase" x-text="pizza.nome"></h3>
+                                                            <p class="text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Grid de Preços -->
+                                                    <div class="grid grid-cols-2 gap-3">
+                                                        <template x-for="tamanho in ['Pequena', 'Média', 'Grande', 'Família']" :key="tamanho">
+                                                            <template x-if="obterPrecoTamanho(pizza, tamanho)">
+                                                                <div class="price-item bg-gray-50 border border-gray-200 rounded-lg p-3 text-center transition-all hover:bg-gray-100">
+                                                                    <div class="text-xs text-gray-600 font-medium uppercase" x-text="tamanho"></div>
+                                                                    <div class="text-lg font-bold text-green-600 mt-1">
+                                                                        R$ <span x-text="obterPrecoTamanho(pizza, tamanho)"></span>
+                                                                    </div>
+                                                                    <button type="button"
+                                                                            @click="abrirModalPizza(pizza, tamanho)"
+                                                                            class="w-full mt-2 px-2 py-1 bg-pizza-600 text-white text-xs rounded hover:bg-pizza-700 transition-colors">
+                                                                        + Adicionar
+                                                                    </button>
+                                                                </div>
+                                                            </template>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
                                         </div>
+                                    </template>
+                                </template>
+                                
+                                <!-- Fallback: Mostrar todas as pizzas se categorias não funcionarem (Mobile) -->
+                                <template x-if="categoriasOrdenadas.length === 0 && pizzasFiltradas.length > 0">
+                                    <div>
+                                        <!-- Header padrão -->
+                                        <div class="bg-pizza-600 text-white px-4 py-2 rounded-lg font-bold text-sm uppercase tracking-wider mb-3">
+                                            🍕 Todas as Pizzas
+                                        </div>
+                                        
+                                        <!-- Todas as pizzas -->
+                                        <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
+                                            <div class="pizza-card bg-white border border-gray-200 rounded-lg p-4 shadow-sm mb-4">
+                                                <div class="flex items-start gap-3 mb-4">
+                                                    <span class="text-2xl">🍕</span>
+                                                    <div class="flex-1">
+                                                        <h3 class="font-bold text-gray-900 uppercase" x-text="pizza.nome"></h3>
+                                                        <p class="text-sm text-gray-600 mt-1" x-text="pizza.ingredientes"></p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Grid de Preços -->
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <template x-for="tamanho in ['Pequena', 'Média', 'Grande', 'Família']" :key="tamanho">
+                                                        <template x-if="obterPrecoTamanho(pizza, tamanho)">
+                                                            <div class="price-item bg-gray-50 border border-gray-200 rounded-lg p-3 text-center transition-all hover:bg-gray-100">
+                                                                <div class="text-xs text-gray-600 font-medium uppercase" x-text="tamanho"></div>
+                                                                <div class="text-lg font-bold text-green-600 mt-1">
+                                                                    R$ <span x-text="obterPrecoTamanho(pizza, tamanho)"></span>
+                                                                </div>
+                                                                <button type="button"
+                                                                        @click="abrirModalPizza(pizza, tamanho)"
+                                                                        class="w-full mt-2 px-2 py-1 bg-pizza-600 text-white text-xs rounded hover:bg-pizza-700 transition-colors">
+                                                                    + Adicionar
+                                                                </button>
+                                                            </div>
+                                                        </template>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
-                                </div>
-                            </template>
+                                </template>
+                                
+                                <!-- Nenhuma pizza encontrada -->
+                                <template x-if="pizzasFiltradas.length === 0 && !carregandoProdutos">
+                                    <div class="text-center py-12">
+                                        <span class="text-6xl">🍕</span>
+                                        <p class="text-gray-500 mt-4">Nenhuma pizza encontrada</p>
+                                        <p class="text-sm text-gray-400 mt-2">Tente buscar por outro nome ou ingrediente</p>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                         
                         <!-- Aba Bebidas -->
@@ -696,6 +1094,131 @@
             </button>
         </div>
     </form>
+
+    <!-- Modal de Seleção de Pizza -->
+    <div x-show="modalPizza.aberto" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 overflow-y-auto"
+         @click="fecharModalPizza"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="modal-title">
+        
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            
+            <!-- Conteúdo do Modal -->
+            <div @click.stop 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-pizza-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <span class="text-2xl">🍕</span>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            Adicionar <span x-text="modalPizza.pizza?.nome"></span>
+                        </h3>
+                        <div class="mt-1">
+                            <p class="text-sm text-gray-500">
+                                Tamanho: <span x-text="modalPizza.tamanho"></span> - 
+                                R$ <span x-text="modalPizza.preco?.toFixed(2)"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-5">
+                    <!-- Tipo de Pizza -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Pizza</label>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="radio" 
+                                       x-model="modalPizza.tipo" 
+                                       value="inteira"
+                                       class="focus:ring-pizza-500 h-4 w-4 text-pizza-600 border-gray-300">
+                                <span class="ml-2 text-sm text-gray-900">
+                                    Pizza Inteira - R$ <span x-text="modalPizza.preco?.toFixed(2)"></span>
+                                </span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" 
+                                       x-model="modalPizza.tipo" 
+                                       value="meio_a_meio"
+                                       class="focus:ring-pizza-500 h-4 w-4 text-pizza-600 border-gray-300">
+                                <span class="ml-2 text-sm text-gray-900">
+                                    Meio a Meio - R$ <span x-text="modalPizza.preco?.toFixed(2)"></span> + R$ <span x-text="modalPizza.precoSegundoSabor?.toFixed(2) || 'XX,XX'"></span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Segundo Sabor (apenas para meio a meio) -->
+                    <div x-show="modalPizza.tipo === 'meio_a_meio'" 
+                         x-transition
+                         class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Segundo Sabor</label>
+                        <select x-model="modalPizza.segundoSabor" 
+                                @change="calcularPrecoMeioAMeio"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm">
+                            <option value="">Selecionar outro sabor</option>
+                            <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
+                                <template x-if="pizza.id !== modalPizza.pizza?.id && obterPrecoTamanho(pizza, modalPizza.tamanho)">
+                                    <option :value="pizza.id" x-text="`${pizza.nome} - R$ ${obterPrecoTamanho(pizza, modalPizza.tamanho)}`"></option>
+                                </template>
+                            </template>
+                        </select>
+                        
+                        <div x-show="modalPizza.segundoSabor" class="mt-2 p-3 bg-gray-50 rounded-md">
+                            <p class="text-sm text-gray-600">
+                                <strong>Preço Total:</strong> R$ <span x-text="modalPizza.precoTotal?.toFixed(2)"></span>
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                O preço da pizza meio a meio é baseado no sabor mais caro
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Observações -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações (opcional)</label>
+                        <textarea x-model="modalPizza.observacoes"
+                                  rows="3"
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                                  placeholder="Ex: sem cebola, borda recheada..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Botões -->
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
+                    <button type="button"
+                            @click="adicionarPizzaAoCarrinho"
+                            :disabled="modalPizza.tipo === 'meio_a_meio' && !modalPizza.segundoSabor"
+                            :class="{ 'opacity-50 cursor-not-allowed': modalPizza.tipo === 'meio_a_meio' && !modalPizza.segundoSabor }"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pizza-600 text-base font-medium text-white hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        ✅ Adicionar ao Carrinho
+                    </button>
+                    <button type="button"
+                            @click="fecharModalPizza"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:w-auto sm:text-sm">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -739,6 +1262,23 @@ function pedidoForm() {
         carregandoProdutos: false,
         erroProdutos: '',
         
+        // Busca e filtros de pizzas
+        buscaPizza: '',
+        pizzasFiltradas: [],
+        
+        // Modal de seleção de pizza
+        modalPizza: {
+            aberto: false,
+            pizza: null,
+            tamanho: '',
+            preco: 0,
+            tipo: 'inteira',
+            segundoSabor: '',
+            precoSegundoSabor: 0,
+            precoTotal: 0,
+            observacoes: ''
+        },
+        
         // Carregar produtos da API
         async carregarProdutos() {
             if (this.produtosCarregados || this.carregandoProdutos) {
@@ -769,15 +1309,11 @@ function pedidoForm() {
                 this.produtos = data;
                 this.produtosCarregados = true;
                 
-                // Log para debug
-                console.log(`📊 Produtos por categoria:
-  🍕 Pizzas: ${data.pizzas?.length || 0}
-  🥤 Bebidas: ${data.bebidas?.length || 0} 
-  🍰 Sobremesas: ${data.sobremesas?.length || 0}
-  🍟 Acompanhamentos: ${data.acompanhamentos?.length || 0}`);
+                // Inicializar pizzas filtradas
+                this.pizzasFiltradas = data.pizzas || [];
+                
                 
             } catch (error) {
-                console.error('❌ Erro ao carregar produtos:', error);
                 this.erroProdutos = `Erro ao carregar produtos: ${error.message}`;
                 
                 // Fallback com dados vazios em caso de erro
@@ -824,6 +1360,59 @@ function pedidoForm() {
             return nomeValido && telefoneValido && tipoValido && carrinhoValido;
         },
         
+        // Computed properties para organização de pizzas
+        get categoriasOrdenadas() {
+            // Como a API já organiza por tipo, criar categorias baseadas no tipo de pizza
+            if (!this.pizzasFiltradas || this.pizzasFiltradas.length === 0) {
+                return [];
+            }
+            
+            // Identificar categorias dinamicamente baseado nos nomes das pizzas
+            const categorias = new Set();
+            this.pizzasFiltradas.forEach(pizza => {
+                const categoria = this.identificarCategoriaPizza(pizza);
+                categorias.add(categoria);
+            });
+            
+            const lista = Array.from(categorias);
+            return lista.sort((a, b) => {
+                const ordem = ['Especiais', 'Tradicionais', 'Vegetarianas', 'Doces'];
+                const indexA = ordem.indexOf(a);
+                const indexB = ordem.indexOf(b);
+                if (indexA === -1) return 1;
+                if (indexB === -1) return -1;
+                return indexA - indexB;
+            });
+        },
+        
+        // Método para identificar categoria da pizza baseado no nome/ingredientes
+        identificarCategoriaPizza(pizza) {
+            const nome = pizza.nome.toLowerCase();
+            const ingredientes = (pizza.ingredientes || '').toLowerCase();
+            
+            // Pizzas especiais/gourmet
+            if (nome.includes('chef') || nome.includes('premium') || nome.includes('camarão') || 
+                ingredientes.includes('trufado') || ingredientes.includes('búfala') || 
+                ingredientes.includes('salmão') || nome.includes('especial')) {
+                return 'Especiais';
+            }
+            
+            // Pizzas doces
+            if (nome.includes('chocolate') || nome.includes('doce') || nome.includes('nutella') ||
+                ingredientes.includes('chocolate') || ingredientes.includes('doce')) {
+                return 'Doces';
+            }
+            
+            // Pizzas vegetarianas
+            if (nome.includes('margherita') || nome.includes('vegetariana') || nome.includes('rúcula') ||
+                ingredientes.includes('rúcula') || ingredientes.includes('vegetais')) {
+                return 'Vegetarianas';
+            }
+            
+            // Pizzas tradicionais (padrão)
+            return 'Tradicionais';
+        },
+        
         async init() {
             this.$nextTick(() => {
                 document.getElementById('cliente-nome')?.focus();
@@ -831,6 +1420,124 @@ function pedidoForm() {
             
             // Carregar produtos da API
             await this.carregarProdutos();
+        },
+        
+        // Métodos para busca e filtros
+        filtrarPizzas() {
+            if (!this.buscaPizza.trim()) {
+                this.pizzasFiltradas = this.produtos.pizzas || [];
+                return;
+            }
+            
+            const termo = this.buscaPizza.toLowerCase().trim();
+            this.pizzasFiltradas = (this.produtos.pizzas || []).filter(pizza => {
+                return pizza.nome.toLowerCase().includes(termo) ||
+                       (pizza.ingredientes && pizza.ingredientes.toLowerCase().includes(termo));
+            });
+        },
+        
+        // Métodos auxiliares para organização
+        obterPizzasPorCategoria(categoria) {
+            return this.pizzasFiltradas.filter(pizza => {
+                return this.identificarCategoriaPizza(pizza) === categoria;
+            });
+        },
+        
+        // Métodos do modal de pizza
+        abrirModalPizza(pizza, tamanho) {
+            const preco = this.obterPrecoTamanhoNumerico(pizza, tamanho);
+            if (!preco) return;
+            
+            this.modalPizza = {
+                aberto: true,
+                pizza: pizza,
+                tamanho: tamanho,
+                preco: preco,
+                tipo: 'inteira',
+                segundoSabor: '',
+                precoSegundoSabor: 0,
+                precoTotal: preco,
+                observacoes: ''
+            };
+        },
+        
+        fecharModalPizza() {
+            this.modalPizza = {
+                aberto: false,
+                pizza: null,
+                tamanho: '',
+                preco: 0,
+                tipo: 'inteira',
+                segundoSabor: '',
+                precoSegundoSabor: 0,
+                precoTotal: 0,
+                observacoes: ''
+            };
+        },
+        
+        calcularPrecoMeioAMeio() {
+            if (!this.modalPizza.segundoSabor || !this.modalPizza.pizza) {
+                this.modalPizza.precoSegundoSabor = 0;
+                this.modalPizza.precoTotal = this.modalPizza.preco;
+                return;
+            }
+            
+            const segundaPizza = this.pizzasFiltradas.find(p => p.id == this.modalPizza.segundoSabor);
+            if (segundaPizza) {
+                const precoSegundo = this.obterPrecoTamanhoNumerico(segundaPizza, this.modalPizza.tamanho);
+                this.modalPizza.precoSegundoSabor = precoSegundo;
+                // Preço da pizza meio a meio é o valor do sabor mais caro
+                this.modalPizza.precoTotal = Math.max(this.modalPizza.preco, precoSegundo);
+            }
+        },
+        
+        adicionarPizzaAoCarrinho() {
+            if (this.modalPizza.tipo === 'meio_a_meio' && !this.modalPizza.segundoSabor) {
+                return;
+            }
+            
+            let nome = `Pizza ${this.modalPizza.pizza.nome}`;
+            let ingredientes = this.modalPizza.pizza.ingredientes;
+            
+            if (this.modalPizza.tipo === 'meio_a_meio') {
+                const segundaPizza = this.pizzasFiltradas.find(p => p.id == this.modalPizza.segundoSabor);
+                nome = `Pizza Meio a Meio: ${this.modalPizza.pizza.nome} / ${segundaPizza.nome}`;
+                ingredientes = `${this.modalPizza.pizza.ingredientes} | ${segundaPizza.ingredientes}`;
+            }
+            
+            const item = {
+                id: `pizza-${this.modalPizza.pizza.id}-${this.modalPizza.tamanho}-${this.modalPizza.tipo}-${this.modalPizza.segundoSabor || 'none'}`,
+                produto_id: this.modalPizza.pizza.id,
+                nome: nome,
+                tipo: 'pizza',
+                subtipo: this.modalPizza.tipo,
+                tamanho: this.modalPizza.tamanho,
+                preco: this.modalPizza.precoTotal,
+                ingredientes: ingredientes,
+                observacoes: this.modalPizza.observacoes,
+                segundoSabor: this.modalPizza.segundoSabor,
+                quantidade: 1
+            };
+            
+            // Verificar se já existe no carrinho (mesmo item)
+            const itemExistente = this.carrinho.find(i => i.id === item.id);
+            
+            if (itemExistente) {
+                itemExistente.quantidade++;
+            } else {
+                this.carrinho.push(item);
+            }
+            
+            this.calcularTotais();
+            this.fecharModalPizza();
+            
+            // Feedback visual
+            this.mostrarNotificacao('Pizza adicionada ao carrinho!', 'success');
+        },
+        
+        mostrarNotificacao(mensagem, tipo = 'info') {
+            // Implementação simples de notificação
+            // Aqui você pode implementar uma notificação visual mais elaborada
         },
         
         // Validação individual de campos
@@ -920,11 +1627,18 @@ function pedidoForm() {
             this.calcularTotais();
         },
         
-        // Função auxiliar para obter preço do tamanho
+        // Função auxiliar para obter preço do tamanho (string formatada)
         obterPrecoTamanho(pizza, tamanho) {
-            if (!tamanho) return '0.00';
+            if (!tamanho || !pizza.tamanhos) return null;
             const tamanhoObj = pizza.tamanhos.find(t => t.size === tamanho);
-            return tamanhoObj ? tamanhoObj.preco.toFixed(2) : '0.00';
+            return tamanhoObj ? tamanhoObj.preco.toFixed(2) : null;
+        },
+        
+        // Função auxiliar para obter preço do tamanho (numérico)
+        obterPrecoTamanhoNumerico(pizza, tamanho) {
+            if (!tamanho || !pizza.tamanhos) return 0;
+            const tamanhoObj = pizza.tamanhos.find(t => t.size === tamanho);
+            return tamanhoObj ? tamanhoObj.preco : 0;
         },
         
         adicionarItem(produto, tipo) {
@@ -1026,7 +1740,6 @@ function pedidoForm() {
                     total: this.total
                 };
                 
-                console.log('Pedido confirmado:', dados);
                 
                 alert(`Pedido confirmado!\nTotal: R$ ${this.total.toFixed(2)}\nItens: ${this.carrinho.length}`);
                 

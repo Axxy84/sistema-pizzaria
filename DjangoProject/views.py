@@ -150,3 +150,4 @@ def force_login_view(request):
         return redirect('home')
     else:
         return HttpResponse("Usuário não encontrado")
+
