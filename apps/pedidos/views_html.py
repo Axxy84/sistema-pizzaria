@@ -121,6 +121,9 @@ class PedidoCreateView(LoginRequiredMixin, CreateView):
             itens_formset.instance = self.object
             itens_formset.save()
             
+            # Recalcular total após salvar todos os itens
+            self.object.calcular_total()
+            
             messages.success(
                 self.request, 
                 f'Pedido #{self.object.numero} criado com sucesso!'
@@ -174,6 +177,9 @@ class PedidoUpdateView(LoginRequiredMixin, UpdateView):
             self.object = form.save()
             itens_formset.save()
             
+            # Recalcular total após salvar todos os itens
+            self.object.calcular_total()
+            
             messages.success(
                 self.request, 
                 f'Pedido #{self.object.numero} atualizado com sucesso!'
@@ -210,35 +216,65 @@ def pedido_atualizar_status(request, pk):
     pedido = get_object_or_404(Pedido, pk=pk)
     
     if request.method == 'POST':
-        form = StatusUpdateForm(request.POST, instance=pedido)
-        if form.is_valid():
-            novo_status = form.cleaned_data['status']
+        novo_status = request.POST.get('status')
+        observacao = request.POST.get('observacao', '')
+        forma_pagamento = request.POST.get('forma_pagamento')
+        
+        # Definir transições válidas para novos status
+        # Regras mais flexíveis para operação prática da pizzaria
+        transicoes_validas = {
+            'recebido': ['preparando', 'entregue', 'cancelado'],  # Permite entrega direta (bebidas, produtos prontos)
+            'preparando': ['recebido', 'saindo', 'entregue', 'cancelado'],  # Permite entrega direta (balcão)
+            'saindo': ['preparando', 'entregue', 'cancelado'],
+            'entregue': ['cancelado'],  # Permite cancelar pedido entregue (estorno)
+            'cancelado': []
+        }
+        
+        # Verificar se a transição é válida
+        if novo_status in transicoes_validas.get(pedido.status, []):
+            # Atualizar status
+            pedido.status = novo_status
             
-            # Validar transição de status
-            transicoes_validas = {
-                'pendente': ['confirmado', 'cancelado'],
-                'confirmado': ['preparando', 'cancelado'],
-                'preparando': ['saiu_entrega', 'cancelado'],
-                'saiu_entrega': ['entregue', 'cancelado'],
-                'entregue': [],
-                'cancelado': []
-            }
+            # Se entregue, atualizar forma de pagamento se fornecida
+            if novo_status == 'entregue' and forma_pagamento:
+                pedido.forma_pagamento = forma_pagamento
             
-            if novo_status in transicoes_validas.get(pedido.status, []):
-                pedido.status = novo_status
-                pedido.save()
-                
-                messages.success(
-                    request, 
-                    f'Status do pedido #{pedido.numero} atualizado para {pedido.get_status_display()}'
-                )
-            else:
-                messages.error(
-                    request, 
-                    f'Transição de status inválida'
-                )
+            pedido.save()
+            
+            # TODO: Salvar histórico de status se implementado
+            # StatusHistorico.objects.create(
+            #     pedido=pedido,
+            #     status_anterior=pedido.status,
+            #     status_novo=novo_status,
+            #     usuario=request.user,
+            #     observacao=observacao
+            # )
+            
+            # Resposta para requisições AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Status do pedido #{pedido.numero} atualizado para {pedido.get_status_display()}',
+                    'new_status': novo_status,
+                    'status_display': pedido.get_status_display()
+                })
+            
+            messages.success(
+                request, 
+                f'Status do pedido #{pedido.numero} atualizado para {pedido.get_status_display()}'
+            )
+        else:
+            error_msg = f'Transição de status inválida: {pedido.get_status_display()} → {dict(pedido.STATUS_CHOICES).get(novo_status, novo_status)}'
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': error_msg
+                }, status=400)
+            
+            messages.error(request, error_msg)
     
-    return redirect('pedido_detail', pk=pk)
+    return redirect('pedidos:pedido_detail', pk=pk)
 
 
 @login_required

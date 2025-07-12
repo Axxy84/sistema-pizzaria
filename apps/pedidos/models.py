@@ -6,10 +6,9 @@ from decimal import Decimal
 
 class Pedido(models.Model):
     STATUS_CHOICES = [
-        ('pendente', 'Pendente'),
-        ('confirmado', 'Confirmado'),
+        ('recebido', 'Recebido'),
         ('preparando', 'Preparando'),
-        ('saiu_entrega', 'Saiu para Entrega'),
+        ('saindo', 'Saindo'),
         ('entregue', 'Entregue'),
         ('cancelado', 'Cancelado'),
     ]
@@ -45,7 +44,7 @@ class Pedido(models.Model):
     mesa = models.CharField(max_length=10, blank=True)
     
     # Status e pagamento
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='recebido')
     forma_pagamento = models.CharField(max_length=20, choices=PAGAMENTO_CHOICES)
     precisa_troco = models.BooleanField(default=False)
     troco_para = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -69,20 +68,28 @@ class Pedido(models.Model):
         ordering = ['-criado_em']
     
     def __str__(self):
-        return f"Pedido #{self.numero} - {self.cliente.nome}"
+        # Avoid potential circular references by using getattr with defaults
+        numero = getattr(self, 'numero', 'N/A')
+        cliente_nome = getattr(self.cliente, 'nome', 'Cliente') if hasattr(self, 'cliente') and self.cliente else 'Sem Cliente'
+        return f"Pedido #{numero} - {cliente_nome}"
     
     def calcular_total(self):
-        self.subtotal = sum(item.subtotal for item in self.itens.all())
+        # Use aggregate to avoid loading all objects into memory
+        from django.db.models import Sum
+        total_itens = self.itens.aggregate(total=Sum('subtotal'))['total'] or Decimal('0')
+        self.subtotal = total_itens
         self.total = self.subtotal + self.taxa_entrega - self.desconto
-        self.save()
+        # Use update_fields to only update specific fields and avoid triggering signals
+        self.save(update_fields=['subtotal', 'total', 'atualizado_em'])
     
     def save(self, *args, **kwargs):
         if not self.numero:
             # Gerar número do pedido
             ultimo = Pedido.objects.all().order_by('-id').first()
-            if ultimo:
+            if ultimo and ultimo.numero.isdigit():
                 self.numero = str(int(ultimo.numero) + 1).zfill(6)
             else:
+                # If no valid numeric number exists, start from 000001
                 self.numero = '000001'
         super().save(*args, **kwargs)
 
@@ -99,11 +106,17 @@ class ItemPedido(models.Model):
         verbose_name_plural = 'Itens do Pedido'
     
     def __str__(self):
-        return f"{self.quantidade}x {self.produto_preco.produto.nome}"
+        # Safer string representation to avoid circular references
+        try:
+            produto_nome = self.produto_preco.produto.nome if self.produto_preco and self.produto_preco.produto else 'Produto'
+            return f"{self.quantidade}x {produto_nome}"
+        except:
+            return f"Item {self.id or 'Novo'}"
     
     def save(self, *args, **kwargs):
         if not self.preco_unitario:
             self.preco_unitario = self.produto_preco.preco_final
         self.subtotal = Decimal(str(self.quantidade)) * self.preco_unitario
         super().save(*args, **kwargs)
-        self.pedido.calcular_total()
+        # Note: calcular_total() should be called manually after all items are saved
+        # to avoid circular references during bulk operations

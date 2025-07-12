@@ -16,7 +16,7 @@ def create_movimento_venda(sender, instance, created, **kwargs):
     if not created and instance.status == 'entregue':
         # Verifica se já existe movimento para este pedido
         if MovimentoCaixa.objects.filter(
-            categoria='vendas',
+            categoria='venda',
             descricao__contains=f'Pedido #{instance.id}'
         ).exists():
             return
@@ -36,12 +36,10 @@ def create_movimento_venda(sender, instance, created, **kwargs):
             caixa=caixa_aberto,
             usuario=usuario,
             tipo='entrada',
-            categoria='vendas',
-            descricao=f'Venda - Pedido #{instance.id}',
+            categoria='venda',
+            descricao=f'Venda - Pedido #{instance.id} - {instance.cliente.nome if instance.cliente else "Cliente"}',
             valor=instance.total,
-            observacoes=f'Pedido entregue para {instance.cliente.nome if instance.cliente else "Cliente"}\n'
-                       f'Forma de pagamento: {instance.get_forma_pagamento_display()}\n'
-                       f'Tipo: {instance.get_tipo_display()}'
+            pedido=instance
         )
         
         print(f"DEBUG: Movimento de venda criado automaticamente - Pedido #{instance.id} - R$ {instance.total}")
@@ -113,10 +111,7 @@ def reverse_movimento_venda(pedido):
         tipo='saida',
         categoria='estornos',
         descricao=f'Estorno - Pedido #{pedido.id} cancelado',
-        valor=movimento.valor,
-        observacoes=f'Estorno de venda cancelada\n'
-                   f'Movimento original: {movimento.descricao}\n'
-                   f'Data original: {movimento.data.strftime("%d/%m/%Y %H:%M")}'
+        valor=movimento.valor
     )
     
     print(f"DEBUG: Movimento de estorno criado - Pedido #{pedido.id} - R$ {movimento.valor}")
