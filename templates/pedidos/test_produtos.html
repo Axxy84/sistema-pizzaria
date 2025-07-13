@@ -1,0 +1,53 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Teste Produtos{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6" x-data="{
+    produtos: {
+        pizzas: [
+            {id: 1, nome: 'Pizza Calabresa', descricao: 'Molho, mussarela, calabresa', tamanhos: [{id: 1, nome: 'P', preco: 30}]},
+            {id: 2, nome: 'Pizza Margherita', descricao: 'Molho, mussarela, tomate, manjericão', tamanhos: [{id: 2, nome: 'P', preco: 25}]}
+        ],
+        bebidas: [
+            {id: 3, nome: 'Coca-Cola 2L', descricao: '', preco: 12}
+        ],
+        bordas: [
+            {id: 4, nome: 'Borda Catupiry', descricao: '', preco: 8}
+        ]
+    },
+    categoriaAtiva: 'pizzas',
+    get produtosFiltrados() {
+        return this.produtos[this.categoriaAtiva] || [];
+    }
+}">
+    <h1 class="text-2xl font-bold mb-4">Teste de Produtos</h1>
+    
+    <div class="mb-4">
+        <button @click="categoriaAtiva = 'pizzas'" 
+                :class="categoriaAtiva === 'pizzas' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                class="px-4 py-2 rounded mr-2">Pizzas</button>
+        <button @click="categoriaAtiva = 'bebidas'" 
+                :class="categoriaAtiva === 'bebidas' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                class="px-4 py-2 rounded mr-2">Bebidas</button>
+        <button @click="categoriaAtiva = 'bordas'" 
+                :class="categoriaAtiva === 'bordas' ? 'bg-blue-500 text-white' : 'bg-gray-200'"
+                class="px-4 py-2 rounded">Bordas</button>
+    </div>
+    
+    <div class="mb-4">
+        <p>Categoria ativa: <span x-text="categoriaAtiva"></span></p>
+        <p>Total produtos: <span x-text="produtosFiltrados.length"></span></p>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-4">
+        <template x-for="produto in produtosFiltrados" :key="produto.id">
+            <div class="border p-4 rounded bg-white">
+                <h3 class="font-bold" x-text="produto.nome"></h3>
+                <p class="text-sm text-gray-600" x-text="produto.descricao"></p>
+            </div>
+        </template>
+    </div>
+</div>
+{% endblock %}

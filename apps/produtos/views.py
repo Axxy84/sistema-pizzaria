@@ -65,6 +65,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 tamanhos = []
                 for preco in produto.precos.all():
                     tamanhos.append({
+                        'id': preco.id,
+                        'nome': preco.tamanho.nome if preco.tamanho else 'Único',
                         'size': preco.tamanho.nome if preco.tamanho else 'Único',
                         'preco': float(preco.preco_final)
                     })
@@ -72,6 +74,8 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 # Se não tem preços por tamanho, usar preço unitário
                 if not tamanhos and produto.preco_unitario:
                     tamanhos.append({
+                        'id': 0,
+                        'nome': 'Único',
                         'size': 'Único',
                         'preco': float(produto.preco_unitario)
                     })
@@ -79,8 +83,10 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 produtos_por_categoria[categoria_key].append({
                     'id': produto.id,
                     'nome': produto.nome,
+                    'descricao': produto.ingredientes or produto.descricao or '',
                     'ingredientes': produto.ingredientes or produto.descricao or '',
-                    'tamanhos': tamanhos
+                    'tamanhos': tamanhos,
+                    'tipo': 'pizza'
                 })
             else:
                 # Para outros produtos, usar preço simples
@@ -93,7 +99,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 produtos_por_categoria[categoria_key].append({
                     'id': produto.id,
                     'nome': produto.nome,
-                    'preco': preco
+                    'descricao': produto.descricao or '',
+                    'preco': preco,
+                    'tipo': 'simples'
                 })
         
         return Response(produtos_por_categoria)
@@ -102,14 +110,17 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         """Mapear nome da categoria para aba do frontend"""
         categoria_lower = categoria_nome.lower()
         
-        if 'pizza' in categoria_lower:
+        if 'pizza' in categoria_lower or 'especial' in categoria_lower or 'tradicional' in categoria_lower:
             return 'pizzas'
-        elif any(palavra in categoria_lower for palavra in ['bebida', 'refrigerante', 'suco', 'água', 'cerveja']):
+        elif any(palavra in categoria_lower for palavra in ['bebida', 'refrigerante', 'suco', 'água', 'cerveja', 'drink']):
             return 'bebidas'
-        elif any(palavra in categoria_lower for palavra in ['borda', 'recheada']):
+        elif any(palavra in categoria_lower for palavra in ['borda', 'recheada', 'adicional']):
             return 'bordas'
+        elif any(palavra in categoria_lower for palavra in ['sobremesa', 'doce', 'acompanhamento']):
+            return 'acompanhamentos'
         else:
-            return None  # Não incluir produtos não mapeados
+            # Se não mapear para nenhuma categoria específica, colocar em pizzas por padrão
+            return 'pizzas'
 
 class ProdutoPrecoViewSet(viewsets.ModelViewSet):
     queryset = ProdutoPreco.objects.all()

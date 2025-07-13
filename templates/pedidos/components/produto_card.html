@@ -1,30 +1,78 @@
 <!-- Componente: Card de Produto -->
-<div class="produto-card" 
-     data-produto-id="{{ produto.id }}"
-     data-produto-nome="{{ produto.nome }}"
-     data-produto-preco="{{ produto.preco|default:0 }}">
+<div class="produto-card bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-all duration-300 relative overflow-hidden" 
+     :data-produto-id="produto.id"
+     :data-produto-nome="produto.nome"
+     :data-produto-preco="produto.preco || 0">
     
-    <div class="flex justify-between items-start mb-2">
-        <h4 class="text-lg font-semibold text-primary">{{ produto.nome }}</h4>
-        {% if produto.preco %}
-            <span class="text-lg font-bold text-pizza-600">
-                R$ {{ produto.preco|floatformat:2 }}
-            </span>
-        {% endif %}
+    <!-- Badge de categoria -->
+    <div class="absolute top-2 right-2">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              :class="categoriaAtiva === 'bebidas' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'">
+            <span x-text="categoriaAtiva === 'bebidas' ? '🥤' : '⭕'"></span>
+            <span x-text="categoriaAtiva.charAt(0).toUpperCase() + categoriaAtiva.slice(1, -1)" class="ml-1"></span>
+        </span>
     </div>
     
-    {% if produto.ingredientes %}
-        <p class="text-sm text-secondary mb-3">{{ produto.ingredientes }}</p>
-    {% endif %}
+    <div class="flex justify-between items-start mb-3">
+        <div class="flex-1 pr-2">
+            <h4 class="text-lg font-bold text-gray-800" x-text="produto.nome"></h4>
+            <p class="text-sm text-gray-600 mt-1" x-text="produto.descricao || ''"></p>
+        </div>
+        <div class="text-right">
+            <span class="text-xl font-bold text-green-600">
+                R$ <span x-text="(produto.preco || 0).toFixed(2).replace('.', ',')"></span>
+            </span>
+        </div>
+    </div>
     
-    <div class="flex justify-end">
+    <div class="flex items-center justify-between mt-4">
+        <!-- Seletor de quantidade -->
+        <div class="flex items-center gap-2">
+            <button type="button"
+                    @click="alterarQuantidadeProduto(produto, -1)"
+                    class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                    :disabled="!quantidadeProduto[produto.id] || quantidadeProduto[produto.id] <= 1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                </svg>
+            </button>
+            
+            <span class="w-8 text-center font-semibold" x-text="quantidadeProduto[produto.id] || 1"></span>
+            
+            <button type="button"
+                    @click="alterarQuantidadeProduto(produto, 1)"
+                    class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Botão adicionar -->
         <button type="button"
-                onclick="adicionarProdutoSimples({{ produto.id }}, '{{ produto.nome }}', {{ produto.preco|default:0 }})"
-                class="bg-pizza-600 text-white px-4 py-2 rounded-lg hover:bg-pizza-700 transition">
-            <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                @click="adicionarProdutoAoCarrinho(produto)"
+                class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 hover:bg-green-700">
+            <svg class="w-5 h-5 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
             </svg>
             Adicionar
         </button>
+    </div>
+    
+    <!-- Feedback de adicionado -->
+    <div x-show="produtoAdicionado === produto.id" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform scale-90"
+         x-transition:enter-end="opacity-100 transform scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="absolute inset-0 bg-green-500 bg-opacity-90 flex items-center justify-center rounded-lg">
+        <div class="text-white text-center">
+            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <p class="font-semibold">Adicionado!</p>
+        </div>
     </div>
 </div>

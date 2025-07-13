@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import TemplateView
 from . import views_html
 
 app_name = 'pedidos'
@@ -9,6 +10,7 @@ urlpatterns = [
     
     # CRUD
     path('novo/', views_html.PedidoCreateView.as_view(), name='pedido_create'),
+    path('test-produtos/', TemplateView.as_view(template_name='pedidos/test_produtos.html'), name='test_produtos'),
     path('<int:pk>/', views_html.PedidoDetailView.as_view(), name='pedido_detail'),
     path('<int:pk>/editar/', views_html.PedidoUpdateView.as_view(), name='pedido_update'),
     path('<int:pk>/cancelar/', views_html.pedido_cancelar, name='pedido_cancel'),

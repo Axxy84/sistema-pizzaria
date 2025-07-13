@@ -1,5 +1,5 @@
 // Pedidos Otimizado - Alpine.js Component
-function pedidoForm() {
+window.pedidoForm = function() {
     return {
         // Estado inicial
         tipoPedido: 'delivery',
@@ -9,6 +9,11 @@ function pedidoForm() {
         trocoPara: 0,
         observacoes: '',
         mostrarModalConfirmacao: false,
+        
+        // Estados para UI
+        tamanhoSelecionado: {},
+        quantidadeProduto: {},
+        produtoAdicionado: null,
         
         // Carrinho
         carrinho: [],
@@ -40,7 +45,8 @@ function pedidoForm() {
         produtosPorCategoria: {
             pizzas: [],
             bebidas: [],
-            bordas: []
+            bordas: [],
+            acompanhamentos: []
         },
         
         // Cache de produtos
@@ -48,8 +54,16 @@ function pedidoForm() {
         
         // Inicialização
         init() {
+            console.log('Iniciando pedidoForm...');
+            
+            // Usar produtos de teste temporariamente
+            if (window.produtosTeste) {
+                this.produtosPorCategoria = window.produtosTeste;
+                console.log('Usando produtos de teste:', this.produtosPorCategoria);
+            }
+            
             // Carregar produtos de forma assíncrona
-            this.carregarProdutos();
+            // this.carregarProdutos();
             
             // Restaurar carrinho do localStorage
             this.restaurarCarrinho();
@@ -66,6 +80,11 @@ function pedidoForm() {
                     this.taxaEntrega = 5;
                 }
             });
+            
+            // Log para debug
+            this.$watch('produtosPorCategoria', () => {
+                console.log('Produtos por categoria atualizado:', this.produtosPorCategoria);
+            });
         },
         
         // Carregar produtos via API com cache
@@ -78,7 +97,14 @@ function pedidoForm() {
                 
                 // Cache válido por 10 minutos
                 if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 600000) {
-                    this.produtosPorCategoria = JSON.parse(cached);
+                    const cachedData = JSON.parse(cached);
+                    this.produtosPorCategoria = {
+                        pizzas: cachedData.pizzas || [],
+                        bebidas: cachedData.bebidas || [],
+                        bordas: cachedData.bordas || [],
+                        acompanhamentos: cachedData.acompanhamentos || []
+                    };
+                    console.log('Produtos carregados do cache:', this.produtosPorCategoria);
                     return;
                 }
                 
@@ -86,10 +112,18 @@ function pedidoForm() {
                 const response = await fetch('/api/produtos/produtos/para_pedido/');
                 const data = await response.json();
                 
-                this.produtosPorCategoria = data;
+                // Garantir que as categorias existam
+                this.produtosPorCategoria = {
+                    pizzas: data.pizzas || [],
+                    bebidas: data.bebidas || [],
+                    bordas: data.bordas || [],
+                    acompanhamentos: data.acompanhamentos || []
+                };
+                
+                console.log('Produtos carregados:', this.produtosPorCategoria);
                 
                 // Salvar no cache
-                localStorage.setItem(cacheKey, JSON.stringify(data));
+                localStorage.setItem(cacheKey, JSON.stringify(this.produtosPorCategoria));
                 localStorage.setItem(cacheKey + '_time', Date.now().toString());
                 
             } catch (error) {
@@ -109,8 +143,64 @@ function pedidoForm() {
             const busca = this.buscaProduto.toLowerCase();
             return produtos.filter(p => 
                 p.nome.toLowerCase().includes(busca) ||
+                (p.descricao && p.descricao.toLowerCase().includes(busca)) ||
                 (p.ingredientes && p.ingredientes.toLowerCase().includes(busca))
             );
+        },
+        
+        // Selecionar tamanho da pizza
+        selecionarTamanho(produto, tamanho) {
+            this.tamanhoSelecionado[produto.id] = tamanho.id;
+        },
+        
+        // Alterar quantidade do produto
+        alterarQuantidadeProduto(produto, delta) {
+            const atual = this.quantidadeProduto[produto.id] || 1;
+            this.quantidadeProduto[produto.id] = Math.max(1, atual + delta);
+        },
+        
+        // Adicionar pizza ao carrinho
+        adicionarPizzaAoCarrinho(produto) {
+            const tamanhoId = this.tamanhoSelecionado[produto.id];
+            if (!tamanhoId) {
+                Alpine.store('app').showToast('Selecione um tamanho', 'warning');
+                return;
+            }
+            
+            const tamanho = produto.tamanhos.find(t => t.id === tamanhoId);
+            const quantidade = this.quantidadeProduto[produto.id] || 1;
+            
+            this.adicionarPizza(produto.id, produto.nome, tamanho.nome, tamanho.preco, produto.descricao, quantidade);
+            
+            // Feedback visual
+            this.mostrarFeedbackAdicionado(produto.id);
+            
+            // Reset seleção
+            delete this.tamanhoSelecionado[produto.id];
+            delete this.quantidadeProduto[produto.id];
+        },
+        
+        // Adicionar produto ao carrinho
+        adicionarProdutoAoCarrinho(produto) {
+            const quantidade = this.quantidadeProduto[produto.id] || 1;
+            
+            for (let i = 0; i < quantidade; i++) {
+                this.adicionarProdutoSimples(produto.id, produto.nome, produto.preco);
+            }
+            
+            // Feedback visual
+            this.mostrarFeedbackAdicionado(produto.id);
+            
+            // Reset quantidade
+            delete this.quantidadeProduto[produto.id];
+        },
+        
+        // Mostrar feedback de produto adicionado
+        mostrarFeedbackAdicionado(produtoId) {
+            this.produtoAdicionado = produtoId;
+            setTimeout(() => {
+                this.produtoAdicionado = null;
+            }, 1500);
         },
         
         // Adicionar produto simples (otimizado)
@@ -138,12 +228,12 @@ function pedidoForm() {
         },
         
         // Adicionar pizza (com tamanho)
-        adicionarPizza(id, nome, tamanho, preco, ingredientes) {
+        adicionarPizza(id, nome, tamanho, preco, ingredientes, quantidade = 1) {
             const itemId = `pizza_${id}_${tamanho}`;
             const itemExistente = this.carrinho.find(item => item.id === itemId);
             
             if (itemExistente) {
-                itemExistente.quantidade++;
+                itemExistente.quantidade += quantidade;
                 itemExistente.subtotal = itemExistente.quantidade * itemExistente.preco;
             } else {
                 this.carrinho.push({
@@ -151,8 +241,8 @@ function pedidoForm() {
                     produtoId: id,
                     nome: `${nome} (${tamanho})`,
                     preco: preco,
-                    quantidade: 1,
-                    subtotal: preco,
+                    quantidade: quantidade,
+                    subtotal: preco * quantidade,
                     tipo: 'pizza',
                     tamanho: tamanho,
                     ingredientes: ingredientes
@@ -161,6 +251,18 @@ function pedidoForm() {
             
             this.salvarCarrinho();
             Alpine.store('app').showToast(`Pizza ${nome} adicionada`, 'success');
+        },
+        
+        // Abrir modal meio a meio
+        abrirModalMeioAMeio(produto) {
+            // Implementação futura do modal meio a meio
+            Alpine.store('app').showToast('Meio a meio em breve!', 'info');
+        },
+        
+        // Filtrar produtos (com debounce implementado via Alpine)
+        filtrarProdutos() {
+            // A filtragem já é feita pelo getter produtosFiltrados
+            // Este método existe para o debounce funcionar
         },
         
         // Remover item (otimizado)

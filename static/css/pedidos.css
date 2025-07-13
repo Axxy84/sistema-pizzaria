@@ -76,6 +76,86 @@
     background-color: var(--bg-secondary);
 }
 
+/* Novos estilos para seção de produtos */
+.categoria-tab {
+    position: relative;
+    overflow: hidden;
+}
+
+.categoria-tab::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: transparent;
+    transition: background-color 0.3s;
+}
+
+.categoria-tab:hover::before {
+    background-color: #FB923C;
+}
+
+/* Cards de produto melhorados */
+.produto-card,
+.pizza-card {
+    position: relative;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.produto-card:hover,
+.pizza-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #D1D5DB;
+}
+
+/* Animação de escala suave */
+.hover\:scale-102:hover {
+    transform: scale(1.02);
+}
+
+.hover\:scale-105:hover {
+    transform: scale(1.05);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+/* Produtos container */
+.produtos-container {
+    min-height: 200px;
+}
+
+/* Animação de produto adicionado */
+@keyframes produto-adicionado {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.produto-adicionado-animation {
+    animation: produto-adicionado 0.5s ease-out;
+}
+
 /* Tamanho selector otimizado */
 .tamanho-selector {
     display: grid;
