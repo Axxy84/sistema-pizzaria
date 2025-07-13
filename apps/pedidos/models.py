@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from apps.clientes.models import Cliente, Endereco
 from apps.produtos.models import Produto, ProdutoPreco
 from decimal import Decimal
+import json
 
 class Pedido(models.Model):
     STATUS_CHOICES = [
@@ -94,12 +95,21 @@ class Pedido(models.Model):
         super().save(*args, **kwargs)
 
 class ItemPedido(models.Model):
+    REGRA_PRECO_MEIO_A_MEIO = [
+        ('mais_caro', 'Preço do sabor mais caro'),
+        ('media', 'Média dos dois preços'),
+        ('personalizado', 'Preço personalizado'),
+    ]
+    
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='itens')
     produto_preco = models.ForeignKey(ProdutoPreco, on_delete=models.PROTECT)
     quantidade = models.IntegerField(default=1)
     preco_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     observacoes = models.TextField(blank=True)
+    
+    # Campo para armazenar dados de pizza meio a meio
+    meio_a_meio_data = models.JSONField(null=True, blank=True, help_text='Dados da personalização meio a meio')
     
     class Meta:
         verbose_name = 'Item do Pedido'
@@ -113,9 +123,101 @@ class ItemPedido(models.Model):
         except:
             return f"Item {self.id or 'Novo'}"
     
+    @property
+    def is_meio_a_meio(self):
+        """Verifica se o item é uma pizza meio a meio"""
+        return self.meio_a_meio_data is not None and self.meio_a_meio_data.get('is_meio_a_meio', False)
+    
+    @property
+    def sabor_1(self):
+        """Retorna dados do primeiro sabor se for meio a meio"""
+        if self.is_meio_a_meio:
+            return self.meio_a_meio_data.get('sabor_1')
+        return None
+    
+    @property
+    def sabor_2(self):
+        """Retorna dados do segundo sabor se for meio a meio"""
+        if self.is_meio_a_meio:
+            return self.meio_a_meio_data.get('sabor_2')
+        return None
+    
+    def configurar_meio_a_meio(self, produto_1, produto_2, tamanho, regra_preco='mais_caro'):
+        """
+        Configura o item como pizza meio a meio
+        
+        Args:
+            produto_1: Produto do primeiro sabor
+            produto_2: Produto do segundo sabor  
+            tamanho: Objeto Tamanho
+            regra_preco: 'mais_caro', 'media' ou 'personalizado'
+        """
+        # Buscar preços dos dois sabores no tamanho escolhido
+        try:
+            preco_1 = ProdutoPreco.objects.get(produto=produto_1, tamanho=tamanho)
+            preco_2 = ProdutoPreco.objects.get(produto=produto_2, tamanho=tamanho)
+        except ProdutoPreco.DoesNotExist:
+            raise ValueError("Um dos sabores não possui preço para o tamanho selecionado")
+        
+        # Configurar dados do meio a meio
+        self.meio_a_meio_data = {
+            'is_meio_a_meio': True,
+            'sabor_1': {
+                'produto_id': produto_1.id,
+                'nome': produto_1.nome,
+                'preco': float(preco_1.preco_final)
+            },
+            'sabor_2': {
+                'produto_id': produto_2.id,
+                'nome': produto_2.nome,
+                'preco': float(preco_2.preco_final)
+            },
+            'tamanho': tamanho.nome,
+            'regra_preco': regra_preco
+        }
+        
+        # Calcular preço baseado na regra
+        if regra_preco == 'mais_caro':
+            self.preco_unitario = max(preco_1.preco_final, preco_2.preco_final)
+        elif regra_preco == 'media':
+            self.preco_unitario = (preco_1.preco_final + preco_2.preco_final) / 2
+        
+        # Usar o produto_preco do sabor mais caro para referência
+        self.produto_preco = preco_1 if preco_1.preco_final >= preco_2.preco_final else preco_2
+    
+    def calcular_preco_meio_a_meio(self):
+        """Calcula o preço baseado na regra configurada"""
+        if not self.is_meio_a_meio:
+            return self.preco_unitario
+        
+        sabor_1_preco = Decimal(str(self.sabor_1.get('preco', 0)))
+        sabor_2_preco = Decimal(str(self.sabor_2.get('preco', 0)))
+        regra = self.meio_a_meio_data.get('regra_preco', 'mais_caro')
+        
+        if regra == 'mais_caro':
+            return max(sabor_1_preco, sabor_2_preco)
+        elif regra == 'media':
+            return (sabor_1_preco + sabor_2_preco) / 2
+        else:
+            return self.preco_unitario
+    
+    def get_descricao_completa(self):
+        """Retorna descrição completa do item, incluindo meio a meio"""
+        if self.is_meio_a_meio:
+            sabor_1_nome = self.sabor_1.get('nome', 'Sabor 1')
+            sabor_2_nome = self.sabor_2.get('nome', 'Sabor 2')
+            tamanho = self.meio_a_meio_data.get('tamanho', '')
+            return f"Pizza {tamanho} - Meio a Meio: {sabor_1_nome} + {sabor_2_nome}"
+        else:
+            return f"{self.produto_preco.produto.nome} - {self.produto_preco.tamanho.nome}"
+
     def save(self, *args, **kwargs):
-        if not self.preco_unitario:
+        # Se for meio a meio, recalcular preço
+        if self.is_meio_a_meio:
+            self.preco_unitario = self.calcular_preco_meio_a_meio()
+        elif not self.preco_unitario:
             self.preco_unitario = self.produto_preco.preco_final
+            
         self.subtotal = Decimal(str(self.quantidade)) * self.preco_unitario
         super().save(*args, **kwargs)
         # Note: calcular_total() should be called manually after all items are saved

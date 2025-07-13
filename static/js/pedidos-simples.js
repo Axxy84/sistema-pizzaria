@@ -33,10 +33,21 @@ function pedidoForm() {
         // Modal
         mostrarModalConfirmacao: false,
         
+        // Meio a meio
+        modalMeioAMeioMostrar: false,
+        modalMeioAMeioPizzaBase: null,
+        modalMeioAMeioSabor1: null,
+        modalMeioAMeioSabor2: null,
+        modalMeioAMeioTamanho: null,
+        modalMeioAMeioRegra: 'mais_caro',
+        modalMeioAMeioPreco: 0,
+        modalMeioAMeioEconomia: 0,
+        
         // Inicialização
         async init() {
             console.log('Inicializando pedidoForm...');
             console.log('Categoria ativa inicial:', this.categoriaAtiva);
+            console.log('modalMeioAMeio inicializado');
             await this.carregarProdutos();
             this.atualizarProdutosFiltrados();
             this.calcularTotal();
@@ -271,9 +282,119 @@ function pedidoForm() {
             console.log(mensagem);
         },
         
-        // Modal meio a meio (simplificado)
+        // Modal meio a meio
         abrirModalMeioAMeio(pizza) {
-            alert('Função meio a meio em desenvolvimento');
+            this.modalMeioAMeioMostrar = true;
+            this.modalMeioAMeioPizzaBase = pizza;
+            this.modalMeioAMeioSabor1 = null;
+            this.modalMeioAMeioSabor2 = null;
+            this.modalMeioAMeioTamanho = null;
+            this.modalMeioAMeioPreco = 0;
+            this.modalMeioAMeioEconomia = 0;
+        },
+
+        fecharModalMeioAMeio() {
+            this.modalMeioAMeioMostrar = false;
+        },
+
+        selecionarSabor1(pizza) {
+            this.modalMeioAMeioSabor1 = pizza;
+            this.calcularPrecoMeioAMeio();
+        },
+
+        selecionarSabor2(pizza) {
+            this.modalMeioAMeioSabor2 = pizza;
+            this.calcularPrecoMeioAMeio();
+        },
+
+        selecionarTamanhoMeioAMeio(tamanho) {
+            this.modalMeioAMeioTamanho = tamanho;
+            this.calcularPrecoMeioAMeio();
+        },
+
+        async calcularPrecoMeioAMeio() {
+            if (!this.modalMeioAMeioSabor1 || !this.modalMeioAMeioSabor2 || !this.modalMeioAMeioTamanho) {
+                this.modalMeioAMeioPreco = 0;
+                this.modalMeioAMeioEconomia = 0;
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/pedidos/meio-a-meio/calcular-preco/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        sabor_1_id: this.modalMeioAMeioSabor1.id,
+                        sabor_2_id: this.modalMeioAMeioSabor2.id,
+                        tamanho_id: this.modalMeioAMeioTamanho.id,
+                        regra_preco: this.modalMeioAMeioRegra
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    this.modalMeioAMeioPreco = data.dados.preco_final;
+                    this.modalMeioAMeioEconomia = data.dados.economia;
+                } else {
+                    console.error('Erro ao calcular preço:', data.message);
+                    this.mostrarFeedback(data.message || 'Erro ao calcular preço');
+                }
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                this.mostrarFeedback('Erro de conexão');
+            }
+        },
+
+        async adicionarMeioAMeioAoCarrinho() {
+            if (!this.modalMeioAMeioSabor1 || !this.modalMeioAMeioSabor2 || !this.modalMeioAMeioTamanho) {
+                this.mostrarFeedback('Selecione os dois sabores e o tamanho');
+                return;
+            }
+
+            // Criar item meio a meio no carrinho
+            const itemMeioAMeio = {
+                id: `meio_a_meio_${Date.now()}`,
+                tipo: 'meio_a_meio',
+                nome: `Meio a Meio: ${this.modalMeioAMeioSabor1.nome} + ${this.modalMeioAMeioSabor2.nome}`,
+                tamanho: this.modalMeioAMeioTamanho.nome,
+                preco: this.modalMeioAMeioPreco,
+                quantidade: 1,
+                meio_a_meio_data: {
+                    is_meio_a_meio: true,
+                    sabor_1: {
+                        id: this.modalMeioAMeioSabor1.id,
+                        nome: this.modalMeioAMeioSabor1.nome
+                    },
+                    sabor_2: {
+                        id: this.modalMeioAMeioSabor2.id,
+                        nome: this.modalMeioAMeioSabor2.nome
+                    },
+                    tamanho: this.modalMeioAMeioTamanho.nome,
+                    tamanho_id: this.modalMeioAMeioTamanho.id,
+                    regra_preco: this.modalMeioAMeioRegra
+                }
+            };
+
+            this.carrinho.push(itemMeioAMeio);
+            this.calcularTotal();
+            this.fecharModalMeioAMeio();
+            this.mostrarFeedback('Pizza meio a meio adicionada ao carrinho!');
+        },
+
+        // Helper para CSRF token
+        getCSRFToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    return value;
+                }
+            }
+            return '';
         }
     };
 }

@@ -192,6 +192,148 @@
         
     </div>
     
+    <!-- Modal Meio a Meio -->
+<div x-show="modalMeioAMeioMostrar" 
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+     @click.self="fecharModalMeioAMeio()">
+    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold">🍕 Monte sua Pizza Meio a Meio</h3>
+                <button @click="fecharModalMeioAMeio()" class="text-white hover:bg-white hover:bg-opacity-20 rounded p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <!-- Seleção de Sabores -->
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                
+                <!-- Sabor 1 -->
+                <div class="border-2 border-gray-200 rounded-lg p-4">
+                    <h4 class="text-lg font-semibold mb-3 text-orange-600">1º Sabor</h4>
+                    <div class="space-y-2 max-h-64 overflow-y-auto">
+                        <template x-for="pizza in produtosPorCategoria.pizzas" :key="'sabor1_' + pizza.id">
+                            <div class="cursor-pointer border rounded-lg p-3 transition-all"
+                                 :class="modalMeioAMeioSabor1?.id === pizza.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300'"
+                                 @click="selecionarSabor1(pizza)">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">🍕</span>
+                                    <div class="flex-1">
+                                        <h5 class="font-medium" x-text="pizza.nome"></h5>
+                                        <p class="text-sm text-gray-600" x-text="pizza.descricao"></p>
+                                    </div>
+                                    <div x-show="modalMeioAMeioSabor1?.id === pizza.id" class="text-orange-500">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Sabor 2 -->
+                <div class="border-2 border-gray-200 rounded-lg p-4">
+                    <h4 class="text-lg font-semibold mb-3 text-red-600">2º Sabor</h4>
+                    <div class="space-y-2 max-h-64 overflow-y-auto">
+                        <template x-for="pizza in produtosPorCategoria.pizzas" :key="'sabor2_' + pizza.id">
+                            <div class="cursor-pointer border rounded-lg p-3 transition-all"
+                                 :class="modalMeioAMeioSabor2?.id === pizza.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'"
+                                 @click="selecionarSabor2(pizza)"
+                                 x-show="pizza.id !== modalMeioAMeioSabor1?.id">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">🍕</span>
+                                    <div class="flex-1">
+                                        <h5 class="font-medium" x-text="pizza.nome"></h5>
+                                        <p class="text-sm text-gray-600" x-text="pizza.descricao"></p>
+                                    </div>
+                                    <div x-show="modalMeioAMeioSabor2?.id === pizza.id" class="text-red-500">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seleção de Tamanho -->
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold mb-3">Tamanho</h4>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <template x-for="tamanho in modalMeioAMeioSabor1?.tamanhos || []" :key="'tamanho_' + tamanho.id">
+                        <div class="cursor-pointer border-2 rounded-lg p-3 text-center transition-all"
+                             :class="modalMeioAMeioTamanho?.id === tamanho.id ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'"
+                             @click="selecionarTamanhoMeioAMeio(tamanho)">
+                            <div class="text-sm font-medium" x-text="tamanho.nome"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- Regra de Preço -->
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold mb-3">Regra de Preço</h4>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="radio" x-model="modalMeioAMeioRegra" value="mais_caro" @change="calcularPrecoMeioAMeio()" class="text-orange-500">
+                        <span class="font-medium">Preço do sabor mais caro</span>
+                        <span class="text-sm text-gray-600">(Recomendado)</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="radio" x-model="modalMeioAMeioRegra" value="media" @change="calcularPrecoMeioAMeio()" class="text-orange-500">
+                        <span class="font-medium">Média dos dois preços</span>
+                        <span class="text-sm text-green-600" x-show="modalMeioAMeioEconomia > 0">
+                            (Economia de R$ <span x-text="modalMeioAMeioEconomia.toFixed(2)"></span>)
+                        </span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Resumo -->
+            <div x-show="modalMeioAMeioSabor1 && modalMeioAMeioSabor2 && modalMeioAMeioTamanho" 
+                 class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 mb-6">
+                <h4 class="text-lg font-semibold mb-3">Resumo da Pizza</h4>
+                <div class="space-y-2">
+                    <p><strong>Sabores:</strong> 
+                        <span x-text="modalMeioAMeioSabor1?.nome"></span> + 
+                        <span x-text="modalMeioAMeioSabor2?.nome"></span>
+                    </p>
+                    <p><strong>Tamanho:</strong> <span x-text="modalMeioAMeioTamanho?.nome"></span></p>
+                    <p class="text-xl font-bold text-green-600">
+                        <strong>Total: R$ <span x-text="modalMeioAMeioPreco.toFixed(2)"></span></strong>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Botões -->
+            <div class="flex gap-3">
+                <button @click="fecharModalMeioAMeio()" 
+                        class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium">
+                    Cancelar
+                </button>
+                <button @click="adicionarMeioAMeioAoCarrinho()" 
+                        :disabled="!modalMeioAMeioSabor1 || !modalMeioAMeioSabor2 || !modalMeioAMeioTamanho"
+                        :class="{
+                            'bg-gradient-to-r from-orange-500 to-red-600 text-white hover:from-orange-600 hover:to-red-700': modalMeioAMeioSabor1 && modalMeioAMeioSabor2 && modalMeioAMeioTamanho,
+                            'bg-gray-300 text-gray-500 cursor-not-allowed': !modalMeioAMeioSabor1 || !modalMeioAMeioSabor2 || !modalMeioAMeioTamanho
+                        }"
+                        class="flex-1 py-3 rounded-lg font-medium transition-all">
+                    🍕 Adicionar ao Carrinho
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal de Confirmação Simplificado -->
@@ -219,6 +361,8 @@
             </button>
         </div>
     </div>
+</div>
+
 </div>
 {% endblock %}
 
