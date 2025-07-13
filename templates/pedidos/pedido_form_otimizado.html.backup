@@ -1,0 +1,487 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Novo Pedido - Pizzaria{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pedidos.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6" x-data="pedidoForm()">
+    
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-primary">Novo Pedido</h1>
+        <p class="text-secondary mt-1">Adicione produtos e finalize o pedido</p>
+    </div>
+    
+    <!-- Layout Principal -->
+    <div class="layout-produtos flex flex-col lg:flex-row gap-6">
+        
+        <!-- Área de Produtos -->
+        <div class="flex-1">
+            
+            <!-- Tipo de Pedido -->
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="p-2 bg-pizza-100 rounded-lg">
+                        <svg class="w-6 h-6 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Como você deseja receber?</h3>
+                        <p class="text-sm text-gray-500">Escolha a melhor opção para você</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Delivery Card -->
+                    <label class="tipo-pedido-card group">
+                        <input type="radio" name="tipo_pedido" value="delivery" x-model="tipoPedido" class="hidden">
+                        <div class="tipo-card-content relative overflow-hidden"
+                             :class="tipoPedido === 'delivery' ? 'selected' : ''">
+                            <div class="tipo-card-icon" :class="tipoPedido === 'delivery' ? 'bg-orange-500' : 'bg-gray-400'">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                </svg>
+                            </div>
+                            <h4 class="tipo-card-title">Delivery</h4>
+                            <p class="tipo-card-description">Receba em casa com conforto</p>
+                            <div class="tipo-card-info">
+                                <span class="text-orange-600 font-semibold">Taxa: R$ 5,00</span>
+                            </div>
+                            <div class="tipo-card-badge" x-show="tipoPedido === 'delivery'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <!-- Balcão Card -->
+                    <label class="tipo-pedido-card group">
+                        <input type="radio" name="tipo_pedido" value="balcao" x-model="tipoPedido" class="hidden">
+                        <div class="tipo-card-content relative overflow-hidden"
+                             :class="tipoPedido === 'balcao' ? 'selected' : ''">
+                            <div class="tipo-card-icon" :class="tipoPedido === 'balcao' ? 'bg-blue-500' : 'bg-gray-400'">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                            </div>
+                            <h4 class="tipo-card-title">Retirar no Balcão</h4>
+                            <p class="tipo-card-description">Retire seu pedido na loja</p>
+                            <div class="tipo-card-info">
+                                <span class="text-green-600 font-semibold">Sem taxa</span>
+                            </div>
+                            <div class="tipo-card-badge" x-show="tipoPedido === 'balcao'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <!-- Mesa Card -->
+                    <label class="tipo-pedido-card group">
+                        <input type="radio" name="tipo_pedido" value="mesa" x-model="tipoPedido" class="hidden">
+                        <div class="tipo-card-content relative overflow-hidden"
+                             :class="tipoPedido === 'mesa' ? 'selected' : ''">
+                            <div class="tipo-card-icon" :class="tipoPedido === 'mesa' ? 'bg-green-500' : 'bg-gray-400'">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </div>
+                            <h4 class="tipo-card-title">Consumir na Mesa</h4>
+                            <p class="tipo-card-description">Atendimento presencial</p>
+                            <div class="tipo-card-info">
+                                <span class="text-purple-600 font-semibold">Serviço de mesa</span>
+                            </div>
+                            <div class="tipo-card-badge" x-show="tipoPedido === 'mesa'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Formulários de Cliente e Endereço -->
+            {% include 'pedidos/components/form_cliente.html' %}
+            {% include 'pedidos/components/form_endereco.html' %}
+            
+            <!-- Forma de Pagamento -->
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100" x-data="{ aberto: true }">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Forma de Pagamento</h3>
+                        <p class="text-sm text-gray-500">Escolha como prefere pagar</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Dinheiro Card -->
+                    <label class="payment-card group">
+                        <input type="radio" name="forma_pagamento" value="dinheiro" x-model="formaPagamento" class="hidden">
+                        <div class="payment-card-content" :class="formaPagamento === 'dinheiro' ? 'selected' : ''">
+                            <div class="payment-icon-wrapper" :class="formaPagamento === 'dinheiro' ? 'bg-yellow-100' : 'bg-gray-100'">
+                                <svg class="w-10 h-10" :class="formaPagamento === 'dinheiro' ? 'text-yellow-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                            </div>
+                            <h5 class="payment-title">Dinheiro</h5>
+                            <p class="payment-description">À vista</p>
+                            <span class="payment-badge">Troco disponível</span>
+                            <div class="payment-check" x-show="formaPagamento === 'dinheiro'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <!-- PIX Card -->
+                    <label class="payment-card group">
+                        <input type="radio" name="forma_pagamento" value="pix" x-model="formaPagamento" class="hidden">
+                        <div class="payment-card-content" :class="formaPagamento === 'pix' ? 'selected' : ''">
+                            <div class="payment-icon-wrapper" :class="formaPagamento === 'pix' ? 'bg-teal-100' : 'bg-gray-100'">
+                                <svg class="w-10 h-10" :class="formaPagamento === 'pix' ? 'text-teal-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                                </svg>
+                            </div>
+                            <h5 class="payment-title">PIX</h5>
+                            <p class="payment-description">Instantâneo</p>
+                            <span class="payment-badge">QR Code</span>
+                            <div class="payment-check" x-show="formaPagamento === 'pix'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <!-- Crédito Card -->
+                    <label class="payment-card group">
+                        <input type="radio" name="forma_pagamento" value="cartao_credito" x-model="formaPagamento" class="hidden">
+                        <div class="payment-card-content" :class="formaPagamento === 'cartao_credito' ? 'selected' : ''">
+                            <div class="payment-icon-wrapper" :class="formaPagamento === 'cartao_credito' ? 'bg-blue-100' : 'bg-gray-100'">
+                                <svg class="w-10 h-10" :class="formaPagamento === 'cartao_credito' ? 'text-blue-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                            </div>
+                            <h5 class="payment-title">Crédito</h5>
+                            <p class="payment-description">Até 4x</p>
+                            <span class="payment-badge">Sem juros</span>
+                            <div class="payment-check" x-show="formaPagamento === 'cartao_credito'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <!-- Débito Card -->
+                    <label class="payment-card group">
+                        <input type="radio" name="forma_pagamento" value="cartao_debito" x-model="formaPagamento" class="hidden">
+                        <div class="payment-card-content" :class="formaPagamento === 'cartao_debito' ? 'selected' : ''">
+                            <div class="payment-icon-wrapper" :class="formaPagamento === 'cartao_debito' ? 'bg-purple-100' : 'bg-gray-100'">
+                                <svg class="w-10 h-10" :class="formaPagamento === 'cartao_debito' ? 'text-purple-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                            </div>
+                            <h5 class="payment-title">Débito</h5>
+                            <p class="payment-description">À vista</p>
+                            <span class="payment-badge">Imediato</span>
+                            <div class="payment-check" x-show="formaPagamento === 'cartao_debito'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Troco -->
+                <div x-show="formaPagamento === 'dinheiro'" x-transition class="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <label for="troco_para" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Precisa de troco?
+                    </label>
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <input type="number" 
+                                   id="troco_para" 
+                                   name="troco_para"
+                                   x-model="trocoPara"
+                                   step="0.01"
+                                   placeholder="Digite o valor"
+                                   class="w-full px-4 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white">
+                        </div>
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <span class="text-yellow-600 font-medium">Exemplo:</span>&nbsp;R$ 50,00
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção de Produtos -->
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="p-2 bg-orange-100 rounded-lg">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Escolha seus Produtos</h3>
+                        <p class="text-sm text-gray-500">Adicione pizzas, bebidas e acompanhamentos ao seu pedido</p>
+                    </div>
+                </div>
+                
+                <!-- Abas de Categorias -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <template x-for="(produtos, categoria) in produtosPorCategoria" :key="categoria">
+                        <button type="button"
+                                @click="categoriaAtiva = categoria"
+                                class="categoria-tab relative px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                                :class="categoriaAtiva === categoria ? 
+                                        'bg-orange-500 text-white shadow-md transform scale-105' : 
+                                        'bg-gray-100 text-gray-600 hover:bg-gray-200'">
+                            <span class="flex items-center gap-2">
+                                <!-- Ícone da categoria -->
+                                <template x-if="categoria === 'pizzas'">
+                                    <span>🍕</span>
+                                </template>
+                                <template x-if="categoria === 'bebidas'">
+                                    <span>🥤</span>
+                                </template>
+                                <template x-if="categoria === 'bordas'">
+                                    <span>⭕</span>
+                                </template>
+                                
+                                <span x-text="categoria.charAt(0).toUpperCase() + categoria.slice(1)"></span>
+                                
+                                <!-- Contador de produtos na categoria -->
+                                <span class="ml-1 px-2 py-0.5 text-xs rounded-full"
+                                      :class="categoriaAtiva === categoria ? 
+                                              'bg-orange-600 text-white' : 
+                                              'bg-gray-300 text-gray-700'"
+                                      x-text="'(' + produtos.length + ')'">
+                                </span>
+                            </span>
+                        </button>
+                    </template>
+                </div>
+                
+                <!-- Busca de Produtos -->
+                <div class="relative mb-6">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" 
+                           x-model="buscaProduto"
+                           @input.debounce.300ms="filtrarProdutos()"
+                           placeholder="Buscar produto..."
+                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all">
+                </div>
+                
+                <!-- Grid de Produtos -->
+                <div class="produtos-container">
+                    <template x-if="produtosFiltrados.length > 0">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <template x-for="produto in produtosFiltrados" :key="produto.id">
+                                <div class="produto-item transform transition-all duration-200 hover:scale-102"
+                                     x-show="!buscaProduto || produto.nome.toLowerCase().includes(buscaProduto.toLowerCase())">
+                                    <!-- Pizza Card -->
+                                    <template x-if="categoriaAtiva === 'pizzas'">
+                                        {% include 'pedidos/components/pizza_card.html' %}
+                                    </template>
+                                    
+                                    <!-- Produto Simples Card -->
+                                    <template x-if="categoriaAtiva !== 'pizzas'">
+                                        {% include 'pedidos/components/produto_card.html' %}
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    
+                    <!-- Estado vazio -->
+                    <template x-if="produtosFiltrados.length === 0">
+                        <div class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="mt-2 text-gray-500">Nenhum produto encontrado</p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- Observações -->
+            <div class="secao-formulario" x-data="{ aberto: false }">
+                <div class="secao-header" @click="aberto = !aberto">
+                    <h3 class="text-lg font-semibold">Observações</h3>
+                    <svg class="w-5 h-5 transform transition-transform" 
+                         :class="{ 'rotate-180': aberto }"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                
+                <div class="secao-content" x-show="aberto" x-transition>
+                    <textarea id="observacoes" 
+                              name="observacoes"
+                              rows="3"
+                              x-model="observacoes"
+                              class="w-full px-3 py-2 border border-secondary rounded-lg focus:ring-2 focus:ring-pizza-500"
+                              placeholder="Observações gerais do pedido..."></textarea>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Carrinho Lateral -->
+        <div class="lg:w-96">
+            {% include 'pedidos/components/carrinho_lateral.html' %}
+        </div>
+        
+    </div>
+    
+</div>
+
+<!-- Modal de Confirmação -->
+<div x-show="mostrarModalConfirmacao" 
+     x-cloak
+     class="fixed inset-0 z-50 overflow-y-auto"
+     @keydown.escape.window="mostrarModalConfirmacao = false">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-black opacity-50" @click="mostrarModalConfirmacao = false"></div>
+        
+        <!-- Modal -->
+        <div class="relative bg-white rounded-lg max-w-lg w-full p-6 shadow-xl">
+            <h3 class="text-lg font-semibold mb-4">Confirmar Pedido</h3>
+            
+            <div class="mb-4">
+                <p class="text-secondary mb-2">Revise os dados do pedido antes de confirmar:</p>
+                
+                <!-- Resumo do Pedido -->
+                <div class="bg-gray-50 rounded p-3 space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Tipo:</span>
+                        <span class="font-medium" x-text="tipoPedido"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Itens:</span>
+                        <span class="font-medium" x-text="carrinho.length"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Total:</span>
+                        <span class="font-bold text-pizza-600" x-text="'R$ ' + total.toFixed(2).replace('.', ',')"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Pagamento:</span>
+                        <span class="font-medium" x-text="formaPagamento"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        @click="mostrarModalConfirmacao = false"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                    Voltar
+                </button>
+                <button type="button"
+                        @click="finalizarPedido()"
+                        class="px-4 py-2 bg-pizza-600 text-white rounded-lg hover:bg-pizza-700 transition">
+                    Confirmar Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pedidos-otimizado.js' %}"></script>
+<script>
+// Debug - verificar se Alpine está funcionando
+document.addEventListener('alpine:init', () => {
+    console.log('Alpine.js inicializado!');
+    
+    // Limpar cache antigo para forçar recarregamento
+    localStorage.removeItem('produtos_pedido');
+    localStorage.removeItem('produtos_pedido_time');
+    
+    // Adicionar produtos de teste temporários
+    window.produtosTeste = {
+        pizzas: [
+            {
+                id: 1,
+                nome: 'Pizza Margherita',
+                descricao: 'Molho de tomate, mussarela, manjericão',
+                tamanhos: [
+                    {id: 1, nome: 'P', preco: 30},
+                    {id: 2, nome: 'M', preco: 40},
+                    {id: 3, nome: 'G', preco: 50}
+                ]
+            },
+            {
+                id: 2,
+                nome: 'Pizza Calabresa',
+                descricao: 'Molho de tomate, mussarela, calabresa',
+                tamanhos: [
+                    {id: 4, nome: 'P', preco: 35},
+                    {id: 5, nome: 'M', preco: 45},
+                    {id: 6, nome: 'G', preco: 55}
+                ]
+            }
+        ],
+        bebidas: [
+            {id: 3, nome: 'Coca-Cola 2L', descricao: '', preco: 12},
+            {id: 4, nome: 'Água Mineral', descricao: '', preco: 3}
+        ],
+        bordas: [
+            {id: 5, nome: 'Borda Catupiry', descricao: '', preco: 8}
+        ]
+    };
+});
+
+// Verificar quando o componente é inicializado
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const pedidoForm = document.querySelector('[x-data*="pedidoForm"]');
+        if (pedidoForm && pedidoForm.__x) {
+            console.log('Componente pedidoForm encontrado:', pedidoForm.__x.$data);
+            console.log('Produtos por categoria:', pedidoForm.__x.$data.produtosPorCategoria);
+            console.log('Categoria ativa:', pedidoForm.__x.$data.categoriaAtiva);
+            console.log('Produtos filtrados:', pedidoForm.__x.$data.produtosFiltrados);
+            
+            // Verificar se há produtos carregados
+            const totalProdutos = Object.values(pedidoForm.__x.$data.produtosPorCategoria)
+                .reduce((sum, arr) => sum + arr.length, 0);
+            console.log('Total de produtos carregados:', totalProdutos);
+            
+            if (totalProdutos === 0) {
+                console.warn('Nenhum produto foi carregado! Verificando API...');
+                // Forçar carregamento
+                pedidoForm.__x.$data.carregarProdutos();
+            }
+        }
+    }, 1500);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+<!-- Componente: Pizza em Lista Compacta -->
+<div class="pizza-lista-item bg-white border-b border-gray-200 py-3 px-2 hover:bg-gray-50 transition-colors">
+    <div class="flex items-center justify-between">
+        <!-- Info da Pizza -->
+        <div class="flex-1">
+            <div class="flex items-start gap-2">
+                <span class="text-lg">🍕</span>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-800" x-text="produto.nome"></h4>
+                    <p class="text-xs text-gray-500 truncate" x-text="produto.descricao || 'Pizza artesanal'"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preços e Botões -->
+        <div class="flex items-center gap-2 ml-4">
+            <!-- Tamanhos com preços -->
+            <div class="flex gap-1">
+                <template x-for="tamanho in produto.tamanhos" :key="tamanho.id">
+                    <button type="button"
+                            @click="adicionarAoCarrinho(produto, tamanho)"
+                            class="px-3 py-1 text-xs font-medium rounded border transition-all"
+                            :class="'border-gray-300 hover:border-orange-500 hover:bg-orange-50'"
+                            :title="'Adicionar ' + tamanho.nome">
+                        <span x-text="tamanho.nome"></span>: 
+                        <span class="font-bold">R$ <span x-text="tamanho.preco.toFixed(0)"></span></span>
+                    </button>
+                </template>
+            </div>
+            
+            <!-- Botão Meio a Meio -->
+            <button type="button"
+                    @click="abrirModalMeioAMeio(produto)"
+                    class="px-2 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600"
+                    title="Pizza Meio a Meio">
+                ½+½
+            </button>
+        </div>
+    </div>
+</div>

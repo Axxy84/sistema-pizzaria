@@ -1,0 +1,25 @@
+<!-- Componente: Produto Simples em Lista -->
+<div class="produto-lista-item bg-white border-b border-gray-200 py-3 px-2 hover:bg-gray-50 transition-colors">
+    <div class="flex items-center justify-between">
+        <!-- Info do Produto -->
+        <div class="flex items-center gap-2">
+            <span class="text-lg" x-text="categoriaAtiva === 'bebidas' ? '🥤' : (categoriaAtiva === 'bordas' ? '⭕' : '🍟')"></span>
+            <div>
+                <h4 class="font-semibold text-gray-800" x-text="produto.nome"></h4>
+                <p class="text-xs text-gray-500" x-text="produto.descricao || ''"></p>
+            </div>
+        </div>
+        
+        <!-- Preço e Botão -->
+        <div class="flex items-center gap-3">
+            <span class="font-bold text-gray-700">
+                R$ <span x-text="produto.preco.toFixed(2).replace('.', ',')"></span>
+            </span>
+            <button type="button"
+                    @click="adicionarProdutoAoCarrinho(produto)"
+                    class="px-4 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors">
+                <span class="text-lg">+</span>
+            </button>
+        </div>
+    </div>
+</div>
