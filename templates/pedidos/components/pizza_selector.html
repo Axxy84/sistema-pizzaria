@@ -1,0 +1,87 @@
+<!-- Componente: Seletor de Pizzas -->
+<div x-data="pizzaSelector()" class="pizza-selector">
+    
+    <!-- Busca -->
+    <div class="mb-4">
+        <div class="relative">
+            <input type="text" 
+                   x-model="busca"
+                   @input="filtrarPizzas"
+                   placeholder="🔍 Buscar pizza..."
+                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-pizza-500 focus:border-pizza-500">
+            <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+    </div>
+    
+    <!-- Lista de Pizzas -->
+    <div class="space-y-3">
+        <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
+            <div class="border border-gray-200 rounded-lg p-4">
+                
+                <!-- Info da Pizza -->
+                <div class="mb-3">
+                    <h3 class="font-bold text-gray-900" x-text="pizza.nome"></h3>
+                    <p class="text-sm text-gray-600" x-text="pizza.ingredientes"></p>
+                </div>
+                
+                <!-- Tamanhos -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <template x-for="tamanho in ['Pequena', 'Média', 'Grande', 'Família']">
+                        <div x-show="pizza.precos && pizza.precos[tamanho]" 
+                             class="text-center p-2 bg-gray-50 rounded">
+                            <div class="text-xs font-medium" x-text="tamanho"></div>
+                            <div class="text-sm font-bold text-green-600">
+                                R$ <span x-text="pizza.precos[tamanho]"></span>
+                            </div>
+                            <button type="button" 
+                                    @click="$dispatch('adicionar-pizza', { pizza, tamanho })"
+                                    class="w-full mt-1 px-2 py-1 bg-pizza-600 text-white text-xs rounded hover:bg-pizza-700">
+                                + Adicionar
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+        
+        <!-- Nenhum resultado -->
+        <div x-show="pizzasFiltradas.length === 0" class="text-center py-8 text-gray-500">
+            <span class="text-4xl block mb-2">🍕</span>
+            <p>Nenhuma pizza encontrada</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function pizzaSelector() {
+    return {
+        pizzas: [],
+        busca: '',
+        pizzasFiltradas: [],
+        
+        init() {
+            this.pizzasFiltradas = this.pizzas;
+        },
+        
+        setPizzas(pizzas) {
+            this.pizzas = pizzas;
+            this.filtrarPizzas();
+        },
+        
+        filtrarPizzas() {
+            if (!this.busca.trim()) {
+                this.pizzasFiltradas = this.pizzas;
+                return;
+            }
+            
+            const termo = this.busca.toLowerCase();
+            this.pizzasFiltradas = this.pizzas.filter(pizza => 
+                pizza.nome.toLowerCase().includes(termo) ||
+                (pizza.ingredientes && pizza.ingredientes.toLowerCase().includes(termo))
+            );
+        }
+    }
+}
+</script>

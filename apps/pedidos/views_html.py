@@ -149,7 +149,7 @@ class PedidoUpdateView(LoginRequiredMixin, UpdateView):
     """Editar pedido existente"""
     model = Pedido
     form_class = PedidoForm
-    template_name = 'pedidos/pedido_form.html'
+    template_name = 'pedidos/pedido_form_otimizado.html'
     success_url = reverse_lazy('pedido_list')
     
     def get_context_data(self, **kwargs):
