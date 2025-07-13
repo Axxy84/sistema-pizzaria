@@ -34,33 +34,47 @@ function pedidoForm() {
         mostrarModalConfirmacao: false,
         
         // Inicialização
-        init() {
-            this.carregarProdutos();
+        async init() {
+            console.log('Inicializando pedidoForm...');
+            console.log('Categoria ativa inicial:', this.categoriaAtiva);
+            await this.carregarProdutos();
             this.atualizarProdutosFiltrados();
             this.calcularTotal();
+            console.log('Inicialização completa');
         },
         
         // Carregar produtos da API
         async carregarProdutos() {
             try {
+                console.log('Iniciando carregamento de produtos...');
                 const response = await fetch('/api/produtos/produtos/para_pedido/');
                 const data = await response.json();
                 
-                if (data.produtos) {
-                    // Organizar por categoria
+                console.log('Dados recebidos da API:', data);
+                
+                // A API já retorna os produtos organizados por categoria
+                if (data) {
                     this.produtosPorCategoria = {
-                        pizzas: data.produtos.filter(p => p.categoria === 'Pizza'),
-                        bebidas: data.produtos.filter(p => p.categoria === 'Bebida'),
-                        bordas: data.produtos.filter(p => p.categoria === 'Borda')
+                        pizzas: data.pizzas || [],
+                        bebidas: data.bebidas || [],
+                        bordas: data.bordas || []
                     };
+                    
+                    console.log('Produtos organizados:', this.produtosPorCategoria);
+                    console.log('Total de pizzas:', this.produtosPorCategoria.pizzas.length);
+                    console.log('Total de bebidas:', this.produtosPorCategoria.bebidas.length);
+                    console.log('Total de bordas:', this.produtosPorCategoria.bordas.length);
+                    
+                    // Forçar atualização após carregar os dados
+                    this.$nextTick(() => {
+                        this.atualizarProdutosFiltrados();
+                    });
                 }
             } catch (error) {
                 console.error('Erro ao carregar produtos:', error);
                 // Usar produtos de teste se falhar
                 this.usarProdutosTeste();
             }
-            
-            this.atualizarProdutosFiltrados();
         },
         
         // Produtos de teste como fallback
@@ -102,7 +116,10 @@ function pedidoForm() {
         
         // Atualizar produtos filtrados por categoria
         atualizarProdutosFiltrados() {
+            console.log('Atualizando produtos filtrados para categoria:', this.categoriaAtiva);
             this.produtosFiltrados = this.produtosPorCategoria[this.categoriaAtiva] || [];
+            console.log('Produtos filtrados:', this.produtosFiltrados);
+            console.log('Total de produtos na categoria ativa:', this.produtosFiltrados.length);
         },
         
         // Adicionar pizza ao carrinho
