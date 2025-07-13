@@ -268,7 +268,8 @@ STATICFILES_FINDERS = (
 # Whitenoise settings for static files
 WHITENOISE_AUTOREFRESH = DEBUG
 WHITENOISE_USE_FINDERS = True
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Performance settings
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Para formulários grandes

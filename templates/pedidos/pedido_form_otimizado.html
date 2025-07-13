@@ -4,7 +4,7 @@
 {% block title %}Novo Pedido - Pizzaria{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pedidos.css' %}">
+<link rel="stylesheet" href="{% static 'css/pedidos.css' %}?v=2.0">
 {% endblock %}
 
 {% block content %}
@@ -23,39 +23,86 @@
         <div class="flex-1">
             
             <!-- Tipo de Pedido -->
-            <div class="bg-card rounded-lg shadow-sm p-4 mb-6">
-                <h3 class="text-lg font-semibold mb-3">Tipo de Pedido</h3>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <label class="tipo-pedido-card">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="p-2 bg-pizza-100 rounded-lg">
+                        <svg class="w-6 h-6 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Como você deseja receber?</h3>
+                        <p class="text-sm text-gray-500">Escolha a melhor opção para você</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Delivery Card -->
+                    <label class="tipo-pedido-card group">
                         <input type="radio" name="tipo_pedido" value="delivery" x-model="tipoPedido" class="hidden">
-                        <div class="p-4 border-2 rounded-lg cursor-pointer transition-all text-center"
-                             :class="tipoPedido === 'delivery' ? 'border-pizza-600 bg-pizza-50' : 'border-secondary'">
-                            <svg class="w-8 h-8 mx-auto mb-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-                            </svg>
-                            <span class="font-medium">Delivery</span>
+                        <div class="tipo-card-content relative overflow-hidden"
+                             :class="tipoPedido === 'delivery' ? 'selected' : ''">
+                            <div class="tipo-card-icon" :class="tipoPedido === 'delivery' ? 'bg-orange-500' : 'bg-gray-400'">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                </svg>
+                            </div>
+                            <h4 class="tipo-card-title">Delivery</h4>
+                            <p class="tipo-card-description">Receba em casa com conforto</p>
+                            <div class="tipo-card-info">
+                                <span class="text-orange-600 font-semibold">Taxa: R$ 5,00</span>
+                            </div>
+                            <div class="tipo-card-badge" x-show="tipoPedido === 'delivery'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
                         </div>
                     </label>
                     
-                    <label class="tipo-pedido-card">
+                    <!-- Balcão Card -->
+                    <label class="tipo-pedido-card group">
                         <input type="radio" name="tipo_pedido" value="balcao" x-model="tipoPedido" class="hidden">
-                        <div class="p-4 border-2 rounded-lg cursor-pointer transition-all text-center"
-                             :class="tipoPedido === 'balcao' ? 'border-pizza-600 bg-pizza-50' : 'border-secondary'">
-                            <svg class="w-8 h-8 mx-auto mb-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                            <span class="font-medium">Balcão</span>
+                        <div class="tipo-card-content relative overflow-hidden"
+                             :class="tipoPedido === 'balcao' ? 'selected' : ''">
+                            <div class="tipo-card-icon" :class="tipoPedido === 'balcao' ? 'bg-blue-500' : 'bg-gray-400'">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                            </div>
+                            <h4 class="tipo-card-title">Retirar no Balcão</h4>
+                            <p class="tipo-card-description">Retire seu pedido na loja</p>
+                            <div class="tipo-card-info">
+                                <span class="text-green-600 font-semibold">Sem taxa</span>
+                            </div>
+                            <div class="tipo-card-badge" x-show="tipoPedido === 'balcao'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
                         </div>
                     </label>
                     
-                    <label class="tipo-pedido-card">
+                    <!-- Mesa Card -->
+                    <label class="tipo-pedido-card group">
                         <input type="radio" name="tipo_pedido" value="mesa" x-model="tipoPedido" class="hidden">
-                        <div class="p-4 border-2 rounded-lg cursor-pointer transition-all text-center"
-                             :class="tipoPedido === 'mesa' ? 'border-pizza-600 bg-pizza-50' : 'border-secondary'">
-                            <svg class="w-8 h-8 mx-auto mb-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                            </svg>
-                            <span class="font-medium">Mesa</span>
+                        <div class="tipo-card-content relative overflow-hidden"
+                             :class="tipoPedido === 'mesa' ? 'selected' : ''">
+                            <div class="tipo-card-icon" :class="tipoPedido === 'mesa' ? 'bg-green-500' : 'bg-gray-400'">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </div>
+                            <h4 class="tipo-card-title">Consumir na Mesa</h4>
+                            <p class="tipo-card-description">Atendimento presencial</p>
+                            <div class="tipo-card-info">
+                                <span class="text-purple-600 font-semibold">Serviço de mesa</span>
+                            </div>
+                            <div class="tipo-card-badge" x-show="tipoPedido === 'mesa'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
                         </div>
                     </label>
                 </div>
@@ -105,75 +152,122 @@
             {% include 'pedidos/components/form_endereco.html' %}
             
             <!-- Forma de Pagamento -->
-            <div class="secao-formulario" x-data="{ aberto: false }">
-                <div class="secao-header" @click="aberto = !aberto">
-                    <h3 class="text-lg font-semibold flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-pizza-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100" x-data="{ aberto: true }">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
-                        Forma de Pagamento
-                    </h3>
-                    <svg class="w-5 h-5 transform transition-transform" 
-                         :class="{ 'rotate-180': aberto }"
-                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Forma de Pagamento</h3>
+                        <p class="text-sm text-gray-500">Escolha como prefere pagar</p>
+                    </div>
                 </div>
                 
-                <div class="secao-content" x-show="aberto" x-transition>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <label class="forma-pagamento">
-                            <input type="radio" name="forma_pagamento" value="dinheiro" x-model="formaPagamento" class="hidden">
-                            <div :class="formaPagamento === 'dinheiro' ? 'border-pizza-600 bg-pizza-50' : ''">
-                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Dinheiro Card -->
+                    <label class="payment-card group">
+                        <input type="radio" name="forma_pagamento" value="dinheiro" x-model="formaPagamento" class="hidden">
+                        <div class="payment-card-content" :class="formaPagamento === 'dinheiro' ? 'selected' : ''">
+                            <div class="payment-icon-wrapper" :class="formaPagamento === 'dinheiro' ? 'bg-yellow-100' : 'bg-gray-100'">
+                                <svg class="w-10 h-10" :class="formaPagamento === 'dinheiro' ? 'text-yellow-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
-                                <span>Dinheiro</span>
                             </div>
-                        </label>
-                        
-                        <label class="forma-pagamento">
-                            <input type="radio" name="forma_pagamento" value="pix" x-model="formaPagamento" class="hidden">
-                            <div :class="formaPagamento === 'pix' ? 'border-pizza-600 bg-pizza-50' : ''">
-                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <h5 class="payment-title">Dinheiro</h5>
+                            <p class="payment-description">À vista</p>
+                            <span class="payment-badge">Troco disponível</span>
+                            <div class="payment-check" x-show="formaPagamento === 'dinheiro'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <!-- PIX Card -->
+                    <label class="payment-card group">
+                        <input type="radio" name="forma_pagamento" value="pix" x-model="formaPagamento" class="hidden">
+                        <div class="payment-card-content" :class="formaPagamento === 'pix' ? 'selected' : ''">
+                            <div class="payment-icon-wrapper" :class="formaPagamento === 'pix' ? 'bg-teal-100' : 'bg-gray-100'">
+                                <svg class="w-10 h-10" :class="formaPagamento === 'pix' ? 'text-teal-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
                                 </svg>
-                                <span>PIX</span>
                             </div>
-                        </label>
-                        
-                        <label class="forma-pagamento">
-                            <input type="radio" name="forma_pagamento" value="cartao_credito" x-model="formaPagamento" class="hidden">
-                            <div :class="formaPagamento === 'cartao_credito' ? 'border-pizza-600 bg-pizza-50' : ''">
-                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            <h5 class="payment-title">PIX</h5>
+                            <p class="payment-description">Instantâneo</p>
+                            <span class="payment-badge">QR Code</span>
+                            <div class="payment-check" x-show="formaPagamento === 'pix'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Crédito</span>
                             </div>
-                        </label>
-                        
-                        <label class="forma-pagamento">
-                            <input type="radio" name="forma_pagamento" value="cartao_debito" x-model="formaPagamento" class="hidden">
-                            <div :class="formaPagamento === 'cartao_debito' ? 'border-pizza-600 bg-pizza-50' : ''">
-                                <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                                </svg>
-                                <span>Débito</span>
-                            </div>
-                        </label>
-                    </div>
+                        </div>
+                    </label>
                     
-                    <!-- Troco -->
-                    <div x-show="formaPagamento === 'dinheiro'" class="mt-4">
-                        <label for="troco_para" class="block text-sm font-medium text-primary mb-1">
-                            Troco para
-                        </label>
-                        <input type="number" 
-                               id="troco_para" 
-                               name="troco_para"
-                               x-model="trocoPara"
-                               step="0.01"
-                               class="w-full px-3 py-2 border border-secondary rounded-lg focus:ring-2 focus:ring-pizza-500">
+                    <!-- Crédito Card -->
+                    <label class="payment-card group">
+                        <input type="radio" name="forma_pagamento" value="cartao_credito" x-model="formaPagamento" class="hidden">
+                        <div class="payment-card-content" :class="formaPagamento === 'cartao_credito' ? 'selected' : ''">
+                            <div class="payment-icon-wrapper" :class="formaPagamento === 'cartao_credito' ? 'bg-blue-100' : 'bg-gray-100'">
+                                <svg class="w-10 h-10" :class="formaPagamento === 'cartao_credito' ? 'text-blue-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                            </div>
+                            <h5 class="payment-title">Crédito</h5>
+                            <p class="payment-description">Até 4x</p>
+                            <span class="payment-badge">Sem juros</span>
+                            <div class="payment-check" x-show="formaPagamento === 'cartao_credito'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <!-- Débito Card -->
+                    <label class="payment-card group">
+                        <input type="radio" name="forma_pagamento" value="cartao_debito" x-model="formaPagamento" class="hidden">
+                        <div class="payment-card-content" :class="formaPagamento === 'cartao_debito' ? 'selected' : ''">
+                            <div class="payment-icon-wrapper" :class="formaPagamento === 'cartao_debito' ? 'bg-purple-100' : 'bg-gray-100'">
+                                <svg class="w-10 h-10" :class="formaPagamento === 'cartao_debito' ? 'text-purple-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                            </div>
+                            <h5 class="payment-title">Débito</h5>
+                            <p class="payment-description">À vista</p>
+                            <span class="payment-badge">Imediato</span>
+                            <div class="payment-check" x-show="formaPagamento === 'cartao_debito'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Troco -->
+                <div x-show="formaPagamento === 'dinheiro'" x-transition class="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <label for="troco_para" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Precisa de troco?
+                    </label>
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <input type="number" 
+                                   id="troco_para" 
+                                   name="troco_para"
+                                   x-model="trocoPara"
+                                   step="0.01"
+                                   placeholder="Digite o valor"
+                                   class="w-full px-4 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 bg-white">
+                        </div>
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <span class="text-yellow-600 font-medium">Exemplo:</span>&nbsp;R$ 50,00
+                        </p>
                     </div>
                 </div>
             </div>
