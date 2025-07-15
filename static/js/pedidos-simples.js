@@ -108,7 +108,6 @@ function pedidoForm() {
                     console.log('Total de pizzas:', this.produtosPorCategoria.pizzas.length);
                     console.log('Total de bebidas:', this.produtosPorCategoria.bebidas.length);
                     console.log('Total de bordas:', this.produtosPorCategoria.bordas.length);
-                    console.log('Bordas carregadas:', JSON.stringify(this.produtosPorCategoria.bordas, null, 2));
                     
                     // Forçar atualização após carregar os dados
                     this.$nextTick(() => {
@@ -271,7 +270,7 @@ function pedidoForm() {
             };
             
             try {
-                const response = await fetch('/api/pedidos/criar/', {
+                const response = await fetch('/api/pedidos/pedidos/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -654,9 +653,6 @@ function pedidoForm() {
         
         // Atualizar preço do pedido
         async atualizarPrecoPedido() {
-            console.log('=== ATUALIZANDO PREÇO DO PEDIDO ===');
-            console.log('Borda selecionada:', this.modalPedido.borda);
-            
             if (!this.modalPedido.tamanhoSelecionado) {
                 this.modalPedido.precoPizza = 0;
                 this.modalPedido.total = 0;
@@ -742,14 +738,7 @@ function pedidoForm() {
             
             // Adicionar borda
             if (this.modalPedido.borda) {
-                console.log('Borda completa (JSON):', JSON.stringify(this.modalPedido.borda));
-                console.log('Tipo de borda:', typeof this.modalPedido.borda);
-                console.log('Campos da borda:', Object.keys(this.modalPedido.borda));
-                console.log('borda.preco:', this.modalPedido.borda.preco);
-                console.log('borda.preco_unitario:', this.modalPedido.borda.preco_unitario);
-                
                 const precoBorda = this.modalPedido.borda.preco || this.modalPedido.borda.preco_unitario || 0;
-                console.log('Preço da borda calculado:', precoBorda);
                 total += precoBorda;
             }
             
@@ -764,8 +753,6 @@ function pedidoForm() {
             }
             
             this.modalPedido.total = total;
-            console.log('Total calculado:', total);
-            console.log('=== FIM DO CÁLCULO ===');
         },
         
         // Controles de quantidade de bebida
@@ -963,7 +950,7 @@ function pedidoForm() {
                 
                 console.log('Enviando pedido:', pedidoData);
                 
-                const response = await fetch('/api/pedidos/criar_pedido_seguro/', {
+                const response = await fetch('/api/pedidos/pedidos/criar_pedido_seguro/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -211,7 +211,7 @@
                         <input type="radio" 
                                name="modalBorda"
                                value="sem-borda"
-                               @change="modalPedido.borda = null; console.log('Sem borda selecionada'); atualizarPrecoPedido()" 
+                               @change="modalPedido.borda = null; atualizarPrecoPedido()" 
                                :checked="!modalPedido.borda"
                                class="sr-only peer">
                         <div class="p-4 border-2 rounded-lg bg-white transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
@@ -229,7 +229,7 @@
                             <input type="radio" 
                                    name="modalBorda"
                                    :value="borda.id"
-                                   @change="modalPedido.borda = produtosPorCategoria.bordas.find(b => b.id === borda.id); console.log('Borda selecionada:', modalPedido.borda); atualizarPrecoPedido()" 
+                                   @change="modalPedido.borda = produtosPorCategoria.bordas.find(b => b.id === borda.id); atualizarPrecoPedido()" 
                                    :checked="modalPedido.borda && modalPedido.borda.id === borda.id"
                                    class="sr-only peer">
                             <div class="p-4 border-2 rounded-lg bg-white transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
@@ -243,7 +243,6 @@
                                     </div>
                                     <div class="font-medium" x-text="borda.nome"></div>
                                     <div class="text-sm text-green-600 font-semibold">+R$ <span x-text="(borda.preco || borda.preco_unitario || 0).toFixed(2)"></span></div>
-                                    <div class="text-xs text-gray-500" x-show="false" x-text="'Debug: ' + JSON.stringify(borda)"></div>
                                 </div>
                             </div>
                         </label>
