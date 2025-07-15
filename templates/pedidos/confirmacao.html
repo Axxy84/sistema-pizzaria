@@ -1,0 +1,64 @@
+{% extends 'layouts/simple.html' %}
+{% load static %}
+
+{% block title %}Pedido Confirmado{% endblock %}
+
+{% block simple_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+        <!-- Ícone de sucesso -->
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+            <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Pedido Confirmado!</h1>
+        
+        <p class="text-lg text-gray-600 mb-6">
+            Seu pedido foi recebido com sucesso e está sendo preparado.
+        </p>
+        
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <p class="text-sm text-gray-500 mb-2">Número do Pedido</p>
+            <p class="text-2xl font-bold text-gray-900">{{ pedido.numero }}</p>
+        </div>
+        
+        <div class="space-y-2 text-left mb-8">
+            <div class="flex justify-between">
+                <span class="text-gray-600">Status:</span>
+                <span class="font-medium text-gray-900">{{ pedido.get_status_display }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Tipo:</span>
+                <span class="font-medium text-gray-900">{{ pedido.get_tipo_display }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Total:</span>
+                <span class="font-bold text-gray-900">R$ {{ pedido.total|floatformat:2 }}</span>
+            </div>
+            {% if pedido.tipo == 'delivery' %}
+            <div class="flex justify-between">
+                <span class="text-gray-600">Tempo estimado:</span>
+                <span class="font-medium text-gray-900">40-60 minutos</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="flex gap-4 justify-center">
+            <a href="/" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition">
+                Voltar ao Início
+            </a>
+            <a href="/pedidos/" class="bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition">
+                Fazer Novo Pedido
+            </a>
+        </div>
+    </div>
+    
+    <!-- Informações adicionais -->
+    <div class="mt-8 text-center text-gray-600">
+        <p class="mb-2">Dúvidas sobre seu pedido?</p>
+        <p class="font-medium">Ligue para (11) 3456-7890</p>
+    </div>
+</div>
+{% endblock %}

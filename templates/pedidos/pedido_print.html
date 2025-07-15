@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimir Pedido #{{ pedido.numero }}</title>
+    <style>
+        @media print {
+            @page {
+                size: 80mm auto;
+                margin: 0;
+            }
+            body {
+                margin: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 10px;
+            width: 80mm;
+            max-width: 80mm;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header p {
+            margin: 5px 0;
+            font-size: 11px;
+        }
+        
+        .section {
+            margin: 10px 0;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+        
+        .section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+        }
+        
+        .info-label {
+            font-weight: bold;
+        }
+        
+        .items {
+            margin: 10px 0;
+        }
+        
+        .item {
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .item-details {
+            font-size: 11px;
+            color: #555;
+            margin-left: 10px;
+        }
+        
+        .item-price {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2px;
+        }
+        
+        .totals {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #000;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        
+        .total-final {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid #000;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #DC2626;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .print-button:hover {
+            background: #B91C1C;
+        }
+        
+        .observacoes {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border: 1px dashed #999;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">Imprimir</button>
+    
+    <div class="header">
+        <h1>PIZZARIA</h1>
+        <p>Tel: (11) 1234-5678</p>
+        <p>{{ pedido.criado_em|date:"d/m/Y H:i" }}</p>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">PEDIDO #{{ pedido.numero }}</div>
+        <div class="info-row">
+            <span class="info-label">Tipo:</span>
+            <span>{{ pedido.get_tipo_display|upper }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Status:</span>
+            <span>{{ pedido.get_status_display|upper }}</span>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">CLIENTE</div>
+        <div class="info-row">
+            <span>{{ pedido.cliente.nome }}</span>
+        </div>
+        <div class="info-row">
+            <span>Tel: {{ pedido.cliente.telefone }}</span>
+        </div>
+        {% if pedido.tipo == 'delivery' and pedido.endereco_entrega %}
+        <div class="info-row">
+            <span>{{ pedido.endereco_entrega.rua }}, {{ pedido.endereco_entrega.numero }}</span>
+        </div>
+        {% if pedido.endereco_entrega.complemento %}
+        <div class="info-row">
+            <span>{{ pedido.endereco_entrega.complemento }}</span>
+        </div>
+        {% endif %}
+        <div class="info-row">
+            <span>{{ pedido.endereco_entrega.bairro }} - {{ pedido.endereco_entrega.cidade }}/{{ pedido.endereco_entrega.estado }}</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="section">
+        <div class="section-title">ITENS DO PEDIDO</div>
+        <div class="items">
+            {% for item in pedido.itens.all %}
+            <div class="item">
+                <div class="item-name">
+                    {{ item.quantidade }}x 
+                    {% if item.is_meio_a_meio %}
+                        MEIO A MEIO
+                    {% else %}
+                        {{ item.produto.nome|upper }}
+                    {% endif %}
+                </div>
+                
+                {% if item.is_meio_a_meio and item.meio_a_meio_data %}
+                <div class="item-details">
+                    {{ item.meio_a_meio_data.sabor_1.nome }} + {{ item.meio_a_meio_data.sabor_2.nome }}
+                </div>
+                {% endif %}
+                
+                {% if item.tamanho %}
+                <div class="item-details">
+                    Tamanho: {{ item.tamanho }}
+                </div>
+                {% endif %}
+                
+                {% if item.borda_data %}
+                <div class="item-details">
+                    + Borda {{ item.borda_data.nome }}
+                </div>
+                {% endif %}
+                
+                {% if item.observacoes %}
+                <div class="item-details">
+                    Obs: {{ item.observacoes }}
+                </div>
+                {% endif %}
+                
+                <div class="item-price">
+                    <span>Valor unitário:</span>
+                    <span>R$ {{ item.preco_unitario|floatformat:2 }}</span>
+                </div>
+                <div class="item-price">
+                    <span>Subtotal:</span>
+                    <span>R$ {{ item.subtotal|floatformat:2 }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="totals">
+        <div class="total-row">
+            <span>Subtotal:</span>
+            <span>R$ {{ pedido.subtotal|floatformat:2 }}</span>
+        </div>
+        {% if pedido.taxa_entrega > 0 %}
+        <div class="total-row">
+            <span>Taxa de entrega:</span>
+            <span>R$ {{ pedido.taxa_entrega|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+        {% if pedido.desconto > 0 %}
+        <div class="total-row">
+            <span>Desconto:</span>
+            <span>- R$ {{ pedido.desconto|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+        <div class="total-row total-final">
+            <span>TOTAL:</span>
+            <span>R$ {{ pedido.total|floatformat:2 }}</span>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">PAGAMENTO</div>
+        <div class="info-row">
+            <span>Forma:</span>
+            <span>{{ pedido.get_forma_pagamento_display|upper }}</span>
+        </div>
+        {% if pedido.precisa_troco and pedido.troco_para %}
+        <div class="info-row">
+            <span>Troco para:</span>
+            <span>R$ {{ pedido.troco_para|floatformat:2 }}</span>
+        </div>
+        <div class="info-row">
+            <span>Troco:</span>
+            <span>R$ {% widthratio pedido.troco_para 1 pedido.total as troco %}{{ troco|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if pedido.observacoes %}
+    <div class="observacoes">
+        <strong>OBSERVAÇÕES:</strong><br>
+        {{ pedido.observacoes }}
+    </div>
+    {% endif %}
+    
+    <div class="footer">
+        <p>Obrigado pela preferência!</p>
+        <p>Pedido #{{ pedido.numero }} - {{ pedido.criado_em|date:"d/m/Y H:i" }}</p>
+    </div>
+    
+    <script>
+        // Auto-imprimir ao carregar (opcional)
+        // window.onload = function() {
+        //     window.print();
+        // };
+    </script>
+</body>
+</html>

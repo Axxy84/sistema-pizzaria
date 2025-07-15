@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
+from django.shortcuts import render, get_object_or_404
 from .models import Pedido, ItemPedido
 from .serializers import (
     PedidoListSerializer, PedidoDetailSerializer,
@@ -101,7 +102,7 @@ class PedidoViewSet(viewsets.ModelViewSet):
         """Endpoint para criar pedido com validações avançadas"""
         try:
             manager = PedidoSupabaseManager()
-            dados = getattr(request, 'data', request.POST.dict())
+            dados = request.data if hasattr(request, 'data') else request.POST.dict()
             resultado, erros = manager.criar_pedido_seguro(dados)
             
             if erros:
@@ -310,3 +311,9 @@ def criar_item_meio_a_meio(request):
             'status': 'error',
             'message': f'Erro ao criar item meio a meio: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def pedido_confirmacao_view(request, pedido_id):
+    """View para exibir a página de confirmação do pedido"""
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    return render(request, 'pedidos/confirmacao.html', {'pedido': pedido})

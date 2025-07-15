@@ -179,6 +179,8 @@ function pedidoForm() {
             };
             
             this.carrinho.push(item);
+            console.log('➕ Pizza adicionada ao carrinho:', item);
+            console.log('🛒 Carrinho atualizado:', this.carrinho);
             this.calcularTotal();
             
             // Feedback visual
@@ -776,11 +778,17 @@ function pedidoForm() {
         
         // Adicionar pedido completo ao carrinho
         adicionarPedidoCompletoAoCarrinho() {
+            console.log('🎯 Iniciando adicionarPedidoCompletoAoCarrinho');
+            console.log('📊 Estado do modalPedido:', this.modalPedido);
+            console.log('🛒 Carrinho atual:', this.carrinho);
+            
             if (!this.modalPedido.sabor1 || !this.modalPedido.tamanhoSelecionado) {
+                console.log('❌ Retornando: falta sabor1 ou tamanho');
                 return;
             }
             
             if (this.modalPedido.tipoPizza === 'meio-a-meio' && !this.modalPedido.sabor2) {
+                console.log('❌ Retornando: pizza meio-a-meio sem sabor2');
                 return;
             }
             
@@ -801,7 +809,9 @@ function pedidoForm() {
             } else {
                 pizzaItem = {
                     id: Date.now(),
+                    produto_id: this.modalPedido.sabor1.id, // Adicionar produto_id também para meio a meio
                     tipo: 'meio_a_meio',
+                    meio_a_meio: true, // Flag adicional para identificar meio a meio
                     nome: `Meio a Meio: ${this.modalPedido.sabor1.nome} + ${this.modalPedido.sabor2.nome}`,
                     tamanho: this.modalPedido.tamanhoSelecionado.nome,
                     preco: this.modalPedido.precoPizza,
@@ -837,6 +847,8 @@ function pedidoForm() {
             }
             
             this.carrinho.push(pizzaItem);
+            console.log('➕ Pedido completo - Pizza adicionada:', pizzaItem);
+            console.log('🛒 Carrinho após pizza:', this.carrinho);
             
             // Adicionar bebidas ao carrinho
             for (const [bebidaId, quantidade] of Object.entries(this.modalPedido.bebidas)) {
@@ -865,6 +877,24 @@ function pedidoForm() {
         
         // Abrir modal de dados do cliente
         abrirModalDadosCliente() {
+            console.log('🔍 Abrindo modal de dados do cliente');
+            console.log('🛒 Estado do carrinho:', this.carrinho);
+            console.log('📦 Número de itens:', this.carrinho.length);
+            
+            // Debug detalhado do carrinho
+            this.carrinho.forEach((item, index) => {
+                console.log(`Item ${index + 1}:`, {
+                    id: item.id,
+                    produto_id: item.produto_id,
+                    nome: item.nome,
+                    preco: item.preco,
+                    quantidade: item.quantidade,
+                    tipo: item.tipo,
+                    meio_a_meio: item.meio_a_meio,
+                    meio_a_meio_data: item.meio_a_meio_data
+                });
+            });
+            
             if (this.carrinho.length === 0) {
                 this.mostrarFeedback('Adicione itens ao pedido primeiro!');
                 return;
@@ -885,19 +915,27 @@ function pedidoForm() {
         
         // Finalizar pedido direto do modal completo
         finalizarPedidoCompleto() {
+            console.log('🚀 Iniciando finalizarPedidoCompleto');
+            console.log('🛒 Carrinho ANTES de adicionar:', this.carrinho);
+            
             if (!this.modalPedido.sabor1 || !this.modalPedido.tamanhoSelecionado) {
+                console.log('❌ Validação falhou: falta sabor1 ou tamanho');
                 return;
             }
             
             if (this.modalPedido.tipoPizza === 'meio-a-meio' && !this.modalPedido.sabor2) {
+                console.log('❌ Validação falhou: pizza meio-a-meio sem sabor2');
                 return;
             }
             
             // Primeiro adicionar o pedido ao carrinho
             this.adicionarPedidoCompletoAoCarrinho();
+            console.log('🛒 Carrinho DEPOIS de adicionar:', this.carrinho);
             
             // Depois abrir o modal de dados do cliente
             this.$nextTick(() => {
+                console.log('⏭️ nextTick - abrindo modal de dados');
+                console.log('🛒 Carrinho no nextTick:', this.carrinho);
                 this.abrirModalDadosCliente();
             });
         },
@@ -927,6 +965,14 @@ function pedidoForm() {
             this.processandoPedido = true;
             
             try {
+                // Verificação adicional de segurança
+                if (this.carrinho.length === 0) {
+                    console.error('❌ ERRO: Carrinho vazio ao tentar finalizar pedido!');
+                    this.mostrarFeedback('Erro: O carrinho está vazio. Por favor, adicione itens novamente.');
+                    this.fecharModalDadosCliente();
+                    return;
+                }
+                
                 // Preparar dados do pedido
                 const pedidoData = {
                     tipo: this.tipoPedido,
@@ -934,21 +980,65 @@ function pedidoForm() {
                     troco_para: this.formaPagamento === 'dinheiro' ? this.trocoPara : null,
                     observacoes: this.observacoes,
                     cliente: this.cliente,
-                    itens: this.carrinho.map(item => ({
-                        produto_id: item.produto_id,
-                        quantidade: item.quantidade,
-                        preco_unitario: item.preco,
-                        observacoes: item.observacoes || '',
-                        // Dados adicionais para meio a meio
-                        ...(item.meio_a_meio_data ? { meio_a_meio_data: item.meio_a_meio_data } : {}),
-                        // Dados da borda
-                        ...(item.borda ? { borda: item.borda } : {})
-                    })),
+                    itens: this.carrinho.map(item => {
+                        // Debug do item sendo mapeado
+                        console.log('Mapeando item:', item);
+                        
+                        // Para itens meio a meio (verifica por meio_a_meio ou meio_a_meio_data)
+                        if ((item.meio_a_meio || item.tipo === 'meio_a_meio') && item.meio_a_meio_data) {
+                            const itemMapeado = {
+                                produto_id: item.meio_a_meio_data.sabor_1.id, // Usar o ID do primeiro sabor como referência
+                                quantidade: item.quantidade,
+                                preco_unitario: item.preco,
+                                observacoes: item.observacoes || '',
+                                meio_a_meio_data: item.meio_a_meio_data,
+                                ...(item.borda ? { borda: item.borda } : {})
+                            };
+                            console.log('Item meio a meio mapeado:', itemMapeado);
+                            return itemMapeado;
+                        }
+                        
+                        // Para itens normais - garantir que produto_id existe
+                        const produtoId = item.produto_id || item.id;
+                        if (!produtoId) {
+                            console.error('❌ Item sem produto_id:', item);
+                        }
+                        
+                        const itemMapeado = {
+                            produto_id: produtoId,
+                            quantidade: item.quantidade,
+                            preco_unitario: item.preco,
+                            observacoes: item.observacoes || '',
+                            ...(item.meio_a_meio_data ? { meio_a_meio_data: item.meio_a_meio_data } : {}),
+                            ...(item.borda ? { borda: item.borda } : {})
+                        };
+                        console.log('Item normal mapeado:', itemMapeado);
+                        return itemMapeado;
+                    }).filter(item => item.produto_id), // Filtrar itens sem produto_id
                     taxa_entrega: this.tipoPedido === 'delivery' ? this.taxaEntrega : 0,
                     total: this.total
                 };
                 
-                console.log('Enviando pedido:', pedidoData);
+                console.log('🛒 Estado do carrinho antes de enviar:', this.carrinho);
+                console.log('📦 Número de itens no carrinho:', this.carrinho.length);
+                
+                // Debug do mapeamento dos itens
+                console.log('🔍 Iniciando mapeamento dos itens...');
+                this.carrinho.forEach((item, index) => {
+                    console.log(`   Item ${index + 1} original:`, item);
+                });
+                
+                console.log('📋 Dados do pedido preparados:', pedidoData);
+                console.log('📋 Itens mapeados:', pedidoData.itens);
+                console.log('📋 Número de itens mapeados:', pedidoData.itens.length);
+                
+                // Verificar se os itens foram mapeados corretamente
+                if (pedidoData.itens.length === 0) {
+                    console.error('❌ ERRO: Nenhum item foi mapeado!');
+                    console.error('   Carrinho original:', this.carrinho);
+                    alert('Erro: O carrinho está vazio ou os itens não foram mapeados corretamente.');
+                    return;
+                }
                 
                 const response = await fetch('/api/pedidos/pedidos/criar_pedido_seguro/', {
                     method: 'POST',
@@ -959,9 +1049,21 @@ function pedidoForm() {
                     body: JSON.stringify(pedidoData)
                 });
                 
-                const result = await response.json();
+                console.log('Response status:', response.status);
+                console.log('Response OK:', response.ok);
                 
-                if (response.ok && result.pedido_id) {
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                // Log detalhado dos erros se existirem
+                if (result.erros && Array.isArray(result.erros)) {
+                    console.error('🚫 Erros de validação detalhados:', result.erros);
+                    result.erros.forEach((erro, index) => {
+                        console.error(`   Erro ${index + 1}:`, erro);
+                    });
+                }
+                
+                if (response.ok && result.status === 'success' && result.pedido) {
                     this.mostrarFeedback('Pedido criado com sucesso!');
                     // Limpar carrinho
                     this.carrinho = [];
@@ -969,9 +1071,13 @@ function pedidoForm() {
                     // Fechar modais
                     this.fecharModalDadosCliente();
                     // Redirecionar ou mostrar confirmação
-                    window.location.href = `/pedidos/${result.pedido_id}/confirmacao/`;
+                    window.location.href = `/pedidos/${result.pedido.id}/confirmacao/`;
+                } else if (result.erros && Array.isArray(result.erros)) {
+                    // Mostrar erros de validação específicos
+                    const mensagemErro = result.erros.join('\n');
+                    alert('Por favor, corrija os seguintes erros:\n\n' + mensagemErro);
                 } else {
-                    throw new Error(result.erro || 'Erro ao criar pedido');
+                    throw new Error(result.message || result.erro || 'Erro ao criar pedido');
                 }
             } catch (error) {
                 console.error('Erro ao finalizar pedido:', error);
