@@ -5,12 +5,11 @@
      @click.self="fecharModalPedidoCompleto()"
      @keydown.escape.window="fecharModalPedidoCompleto()">
     
-    <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl"
-         @click.stop
->
+    <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
+         @click.stop>
         
         <!-- Header -->
-        <div class="bg-gradient-to-r from-red-600 to-orange-600 text-white p-6">
+        <div class="bg-gradient-to-r from-red-600 to-orange-600 text-white p-6 flex-shrink-0">
             <div class="flex items-center justify-between">
                 <h2 class="text-2xl font-bold flex items-center gap-2">
                     <span class="text-3xl">🍕</span>
@@ -29,7 +28,7 @@
         </div>
         
         <!-- Body com scroll -->
-        <div class="overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div class="flex-1 overflow-y-auto">
             
             <!-- 1. PIZZA PRINCIPAL -->
             <div class="p-6 border-b border-gray-200">
@@ -254,36 +253,153 @@
                 <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                     <span class="text-xl">3️⃣</span>
                     Adicionar Bebidas
+                    <span x-show="Object.values(modalPedido.bebidas).reduce((a, b) => a + b, 0) > 0" 
+                          class="ml-auto text-sm bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                        <span x-text="Object.values(modalPedido.bebidas).reduce((a, b) => a + b, 0)"></span> selecionadas
+                    </span>
                 </h3>
                 
-                <div class="space-y-3">
-                    <template x-for="bebida in produtosPorCategoria.bebidas" :key="bebida.id">
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div class="flex items-center gap-3">
-                                <span class="text-2xl">🥤</span>
-                                <div>
-                                    <div class="font-medium" x-text="bebida.nome"></div>
-                                    <div class="text-sm text-gray-600">R$ <span x-text="(bebida.preco_unitario || bebida.preco || 0).toFixed(2)"></span></div>
+                <!-- Botão Limpar Bebidas -->
+                <div x-show="Object.values(modalPedido.bebidas).reduce((a, b) => a + b, 0) > 0" class="mb-4">
+                    <button @click="Object.keys(modalPedido.bebidas).forEach(key => delete modalPedido.bebidas[key]); atualizarPrecoPedido()"
+                            class="text-sm text-red-600 hover:text-red-700 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Limpar todas as bebidas
+                    </button>
+                </div>
+                
+                <!-- REFRIGERANTES -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span>REFRIGERANTES</span>
+                        <div class="flex-1 h-px bg-gray-300"></div>
+                    </h4>
+                    <div class="grid gap-3">
+                        <template x-for="bebida in produtosPorCategoria.bebidas.filter(b => b.nome.includes('Coca') || b.nome.includes('Guaraná') || b.nome.includes('Fanta') || b.nome.includes('Sprite') || b.nome.includes('Refrigerante'))" :key="bebida.id">
+                            <div class="flex items-center justify-between p-4 bg-white border rounded-lg transition-all"
+                                 :class="modalPedido.bebidas[bebida.id] > 0 ? 'border-red-400 bg-red-50' : 'border-gray-200'">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">🥤</span>
+                                    <div>
+                                        <div class="font-medium" x-text="bebida.nome"></div>
+                                        <div class="text-sm text-gray-600">R$ <span x-text="(bebida.preco_unitario || bebida.preco || 0).toFixed(2)"></span></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div x-show="modalPedido.bebidas[bebida.id] > 0" 
+                                         class="text-sm font-medium text-red-600">
+                                        R$ <span x-text="((modalPedido.bebidas[bebida.id] || 0) * (bebida.preco_unitario || bebida.preco || 0)).toFixed(2)"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button @click="diminuirQuantidadeBebida(bebida)"
+                                                :disabled="!modalPedido.bebidas[bebida.id] || modalPedido.bebidas[bebida.id] === 0"
+                                                class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                            </svg>
+                                        </button>
+                                        <span class="w-8 text-center font-medium" x-text="modalPedido.bebidas[bebida.id] || 0"></span>
+                                        <button @click="aumentarQuantidadeBebida(bebida)"
+                                                class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button @click="diminuirQuantidadeBebida(bebida)"
-                                        :disabled="!modalPedido.bebidas[bebida.id] || modalPedido.bebidas[bebida.id] === 0"
-                                        class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                    </svg>
-                                </button>
-                                <span class="w-8 text-center font-medium" x-text="modalPedido.bebidas[bebida.id] || 0"></span>
-                                <button @click="aumentarQuantidadeBebida(bebida)"
-                                        class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors">
-                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                </button>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- CERVEJAS -->
+                <div class="mb-6" x-show="produtosPorCategoria.bebidas.filter(b => b.nome.includes('Cerveja') || b.nome.includes('Heineken') || b.nome.includes('Stella') || b.nome.includes('Brahma') || b.nome.includes('Skol')).length > 0">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span>CERVEJAS</span>
+                        <div class="flex-1 h-px bg-gray-300"></div>
+                    </h4>
+                    <div class="grid gap-3">
+                        <template x-for="bebida in produtosPorCategoria.bebidas.filter(b => b.nome.includes('Cerveja') || b.nome.includes('Heineken') || b.nome.includes('Stella') || b.nome.includes('Brahma') || b.nome.includes('Skol'))" :key="bebida.id">
+                            <div class="flex items-center justify-between p-4 bg-white border rounded-lg transition-all"
+                                 :class="modalPedido.bebidas[bebida.id] > 0 ? 'border-red-400 bg-red-50' : 'border-gray-200'">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">🍺</span>
+                                    <div>
+                                        <div class="font-medium" x-text="bebida.nome"></div>
+                                        <div class="text-sm text-gray-600">R$ <span x-text="(bebida.preco_unitario || bebida.preco || 0).toFixed(2)"></span></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div x-show="modalPedido.bebidas[bebida.id] > 0" 
+                                         class="text-sm font-medium text-red-600">
+                                        R$ <span x-text="((modalPedido.bebidas[bebida.id] || 0) * (bebida.preco_unitario || bebida.preco || 0)).toFixed(2)"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button @click="diminuirQuantidadeBebida(bebida)"
+                                                :disabled="!modalPedido.bebidas[bebida.id] || modalPedido.bebidas[bebida.id] === 0"
+                                                class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                            </svg>
+                                        </button>
+                                        <span class="w-8 text-center font-medium" x-text="modalPedido.bebidas[bebida.id] || 0"></span>
+                                        <button @click="aumentarQuantidadeBebida(bebida)"
+                                                class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </template>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- SUCOS E OUTROS -->
+                <div x-show="produtosPorCategoria.bebidas.filter(b => !b.nome.includes('Coca') && !b.nome.includes('Guaraná') && !b.nome.includes('Fanta') && !b.nome.includes('Sprite') && !b.nome.includes('Refrigerante') && !b.nome.includes('Cerveja') && !b.nome.includes('Heineken') && !b.nome.includes('Stella') && !b.nome.includes('Brahma') && !b.nome.includes('Skol')).length > 0">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span>SUCOS E OUTROS</span>
+                        <div class="flex-1 h-px bg-gray-300"></div>
+                    </h4>
+                    <div class="grid gap-3">
+                        <template x-for="bebida in produtosPorCategoria.bebidas.filter(b => !b.nome.includes('Coca') && !b.nome.includes('Guaraná') && !b.nome.includes('Fanta') && !b.nome.includes('Sprite') && !b.nome.includes('Refrigerante') && !b.nome.includes('Cerveja') && !b.nome.includes('Heineken') && !b.nome.includes('Stella') && !b.nome.includes('Brahma') && !b.nome.includes('Skol'))" :key="bebida.id">
+                            <div class="flex items-center justify-between p-4 bg-white border rounded-lg transition-all"
+                                 :class="modalPedido.bebidas[bebida.id] > 0 ? 'border-red-400 bg-red-50' : 'border-gray-200'">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl" x-text="bebida.nome.includes('Suco') ? '🧃' : bebida.nome.includes('Água') ? '💧' : '🥤'"></span>
+                                    <div>
+                                        <div class="font-medium" x-text="bebida.nome"></div>
+                                        <div class="text-sm text-gray-600">R$ <span x-text="(bebida.preco_unitario || bebida.preco || 0).toFixed(2)"></span></div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div x-show="modalPedido.bebidas[bebida.id] > 0" 
+                                         class="text-sm font-medium text-red-600">
+                                        R$ <span x-text="((modalPedido.bebidas[bebida.id] || 0) * (bebida.preco_unitario || bebida.preco || 0)).toFixed(2)"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button @click="diminuirQuantidadeBebida(bebida)"
+                                                :disabled="!modalPedido.bebidas[bebida.id] || modalPedido.bebidas[bebida.id] === 0"
+                                                class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                            </svg>
+                                        </button>
+                                        <span class="w-8 text-center font-medium" x-text="modalPedido.bebidas[bebida.id] || 0"></span>
+                                        <button @click="aumentarQuantidadeBebida(bebida)"
+                                                class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
             
@@ -301,8 +417,8 @@
             
         </div>
         
-        <!-- Footer com Resumo e Ações -->
-        <div class="bg-gray-100 p-6 border-t border-gray-200">
+        <!-- Footer com Resumo e Ações (sempre visível) -->
+        <div class="bg-gray-100 p-6 border-t border-gray-200 flex-shrink-0">
             <!-- Resumo do Pedido -->
             <div class="mb-4 p-4 bg-white rounded-lg shadow-sm">
                 <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -360,14 +476,20 @@
             <!-- Botões -->
             <div class="flex gap-3">
                 <button @click="fecharModalPedidoCompleto()" 
-                        class="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-lg transition-colors">
-                    ❌ Cancelar
+                        class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-lg transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Cancelar
                 </button>
-                <button @click="adicionarPedidoCompletoAoCarrinho()" 
+                <button @click="finalizarPedidoCompleto()" 
                         :disabled="!modalPedido.sabor1 || !modalPedido.tamanhoSelecionado || 
                                    (modalPedido.tipoPizza === 'meio-a-meio' && !modalPedido.sabor2)"
-                        class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors">
-                    🛒 Adicionar ao Pedido
+                        class="flex-1 px-6 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span>Finalizar Pedido - R$ <span x-text="modalPedido.total.toFixed(2)"></span></span>
                 </button>
             </div>
         </div>

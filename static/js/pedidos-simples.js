@@ -882,6 +882,25 @@ function pedidoForm() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
         
+        // Finalizar pedido direto do modal completo
+        finalizarPedidoCompleto() {
+            if (!this.modalPedido.sabor1 || !this.modalPedido.tamanhoSelecionado) {
+                return;
+            }
+            
+            if (this.modalPedido.tipoPizza === 'meio-a-meio' && !this.modalPedido.sabor2) {
+                return;
+            }
+            
+            // Primeiro adicionar o pedido ao carrinho
+            this.adicionarPedidoCompletoAoCarrinho();
+            
+            // Depois abrir o modal de dados do cliente
+            this.$nextTick(() => {
+                this.abrirModalDadosCliente();
+            });
+        },
+        
         // Formatar telefone
         formatarTelefone(event) {
             let value = event.target.value.replace(/\D/g, '');
