@@ -275,7 +275,7 @@
 
 /* Sidebar active indicator */
 .sidebar-item-active {
-    @apply bg-pizza-50 border-r-2 border-pizza-500 text-pizza-700;
+    @apply bg-pizza-50 border-r border-pizza-500 text-pizza-700;
 }
 
 .sidebar-item-active svg {
@@ -322,11 +322,11 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .card {
-        @apply border-2 border-gray-900;
+        @apply border border-gray-900;
     }
     
     .btn-primary {
-        @apply border-2 border-gray-900;
+        @apply border border-gray-900;
     }
 }
 

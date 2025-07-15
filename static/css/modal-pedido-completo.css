@@ -1,0 +1,174 @@
+/* Estilos para o Modal de Pedido Completo */
+
+/* Animações */
+@keyframes slideIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Modal Container */
+.modal-pedido-completo {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-pedido-completo .modal-content {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Pizza Preview Responsivo */
+@media (max-width: 768px) {
+    .modal-pedido-completo .w-48 {
+        width: 10rem;
+        height: 10rem;
+    }
+    
+    .modal-pedido-completo .text-3xl {
+        font-size: 1.5rem;
+    }
+}
+
+/* Cards de Borda com Hover Effect */
+.borda-card {
+    transition: all 0.2s ease;
+}
+
+.borda-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Seleção de Tipo de Pizza */
+.tipo-pizza-selector input:checked + div {
+    animation: pulse 0.5s ease-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Controles de Bebida */
+.bebida-control button {
+    transition: all 0.15s ease;
+}
+
+.bebida-control button:active {
+    transform: scale(0.95);
+}
+
+/* Resumo do Pedido */
+.resumo-pedido {
+    background: linear-gradient(to bottom, #f9fafb, #f3f4f6);
+}
+
+/* Loading Overlay para cálculo de preço */
+.calculando-preco-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Melhorias de Acessibilidade */
+.modal-pedido-completo button:focus,
+.modal-pedido-completo input:focus,
+.modal-pedido-completo select:focus {
+    outline: 2px solid #ef4444;
+    outline-offset: 2px;
+}
+
+/* Scroll Suave */
+.modal-pedido-completo .overflow-y-auto {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb #f3f4f6;
+}
+
+.modal-pedido-completo .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-pedido-completo .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+.modal-pedido-completo .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 4px;
+}
+
+.modal-pedido-completo .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #d1d5db;
+}
+
+/* Estados de Validação */
+.campo-invalido {
+    border-color: #ef4444 !important;
+}
+
+.campo-valido {
+    border-color: #10b981 !important;
+}
+
+/* Tamanho Selecionado Display */
+.tamanho-selecionado-display {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.tamanho-selecionado-display::before {
+    content: '✓';
+    position: absolute;
+    top: -5px;
+    right: 10px;
+    font-size: 3rem;
+    color: rgba(239, 68, 68, 0.1);
+    transform: rotate(15deg);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+    .modal-pedido-completo .grid-cols-3 {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .modal-pedido-completo .p-6 {
+        padding: 1rem;
+    }
+    
+    .modal-pedido-completo h2 {
+        font-size: 1.25rem;
+    }
+    
+    .modal-pedido-completo .max-w-4xl {
+        max-width: 100%;
+        margin: 0.5rem;
+    }
+}

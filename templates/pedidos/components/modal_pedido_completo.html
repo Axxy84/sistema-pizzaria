@@ -1,0 +1,324 @@
+<!-- Modal de Pedido Completo - Tudo em uma tela -->
+<div x-show="modalPedidoCompleto" 
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+     @click.self="fecharModalPedidoCompleto()"
+     @keydown.escape.window="fecharModalPedidoCompleto()">
+    
+    <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl"
+         @click.stop
+         x-trap.noscroll.inert="modalPedidoCompleto">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-red-600 to-orange-600 text-white p-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <span class="text-3xl">🍕</span>
+                    <span>Monte sua Pizza</span>
+                    <span class="text-xl font-normal" x-text="modalPedido.tamanhoSelecionado ? 
+                        '(' + (modalPedido.tamanhoSelecionado.nome === 'P' ? 'Pequena' : 
+                               modalPedido.tamanhoSelecionado.nome === 'M' ? 'Média' : 'Grande') + ')' : ''"></span>
+                </h2>
+                <button @click="fecharModalPedidoCompleto()" 
+                        class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Body com scroll -->
+        <div class="overflow-y-auto max-h-[calc(90vh-200px)]">
+            
+            <!-- 1. PIZZA PRINCIPAL -->
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span class="text-xl">1️⃣</span>
+                    Pizza Principal
+                </h3>
+                
+                <!-- Seleção Pizza Inteira ou Meio a Meio -->
+                <div class="mb-6">
+                    <div class="flex gap-4">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" 
+                                   x-model="modalPedido.tipoPizza" 
+                                   value="inteira" 
+                                   @change="atualizarPrecoPedido()"
+                                   class="sr-only peer">
+                            <div class="p-4 border rounded-lg text-center transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                                <div class="text-2xl mb-1">🍕</div>
+                                <div class="font-medium">Pizza Inteira</div>
+                                <div class="text-sm text-gray-600">Um sabor completo</div>
+                            </div>
+                        </label>
+                        
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" 
+                                   x-model="modalPedido.tipoPizza" 
+                                   value="meio-a-meio"
+                                   @change="atualizarPrecoPedido()" 
+                                   class="sr-only peer">
+                            <div class="p-4 border rounded-lg text-center transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                                <div class="text-2xl mb-1">🍕🍕</div>
+                                <div class="font-medium">Meio a Meio</div>
+                                <div class="text-sm text-gray-600">Dois sabores diferentes</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Preview da Pizza e Seleção de Sabores -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Preview Visual -->
+                    <div class="flex justify-center">
+                        <div class="relative w-48 h-48">
+                            <!-- Pizza Inteira -->
+                            <div x-show="modalPedido.tipoPizza === 'inteira'" 
+                                 class="absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full shadow-lg flex items-center justify-center">
+                                <div class="text-white text-center">
+                                    <div class="text-4xl mb-2">🍕</div>
+                                    <div class="font-medium" x-text="modalPedido.sabor1?.nome || 'Escolha o sabor'"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Pizza Meio a Meio -->
+                            <div x-show="modalPedido.tipoPizza === 'meio-a-meio'" class="absolute inset-0">
+                                <div class="absolute inset-0 overflow-hidden rounded-full shadow-lg">
+                                    <div class="absolute inset-0 flex">
+                                        <div class="w-1/2 bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                                            <div class="text-white text-center -rotate-45">
+                                                <div class="text-3xl mb-1">🍕</div>
+                                                <div class="text-sm font-medium" x-text="modalPedido.sabor1?.nome || 'Sabor 1'"></div>
+                                            </div>
+                                        </div>
+                                        <div class="w-1/2 bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center">
+                                            <div class="text-white text-center rotate-45">
+                                                <div class="text-3xl mb-1">🍕</div>
+                                                <div class="text-sm font-medium" x-text="modalPedido.sabor2?.nome || 'Sabor 2'"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="absolute inset-y-0 left-1/2 w-1 bg-white transform -translate-x-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Seleção de Sabores -->
+                    <div class="space-y-4">
+                        <!-- Tamanho Selecionado (Apenas Exibição) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tamanho Selecionado</label>
+                            <div class="bg-red-50 border border-red-500 rounded-lg p-4 text-center tamanho-selecionado-display">
+                                <div class="text-lg font-bold text-red-700">
+                                    <span x-text="modalPedido.tamanhoSelecionado?.nome === 'P' ? 'Pequena' : 
+                                                  (modalPedido.tamanhoSelecionado?.nome === 'M' ? 'Média' : 'Grande')"></span>
+                                </div>
+                                <div class="text-red-600 font-semibold">
+                                    R$ <span x-text="modalPedido.tamanhoSelecionado?.preco.toFixed(2)"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sabor 1 -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <span x-text="modalPedido.tipoPizza === 'meio-a-meio' ? '1º Sabor' : 'Sabor da Pizza'"></span>
+                            </label>
+                            <select x-model="modalPedido.sabor1Id" 
+                                    @change="selecionarSabor1ModalCompleto()"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Escolha um sabor</option>
+                                <template x-for="pizza in produtosPorCategoria.pizzas" :key="pizza.id">
+                                    <option :value="pizza.id" x-text="pizza.nome"></option>
+                                </template>
+                            </select>
+                        </div>
+                        
+                        <!-- Sabor 2 (apenas meio a meio) -->
+                        <div x-show="modalPedido.tipoPizza === 'meio-a-meio'">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">2º Sabor</label>
+                            <select x-model="modalPedido.sabor2Id"
+                                    @change="selecionarSabor2ModalCompleto()" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Escolha um sabor</option>
+                                <template x-for="pizza in produtosPorCategoria.pizzas.filter(p => p.id !== modalPedido.sabor1Id)" :key="pizza.id">
+                                    <option :value="pizza.id" x-text="pizza.nome"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. BORDA RECHEADA -->
+            <div class="p-6 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span class="text-xl">2️⃣</span>
+                    Quer Borda Recheada?
+                </h3>
+                
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <!-- Sem Borda -->
+                    <label class="cursor-pointer">
+                        <input type="radio" 
+                               x-model="modalPedido.borda" 
+                               :value="null"
+                               @change="atualizarPrecoPedido()" 
+                               class="sr-only peer">
+                        <div class="p-4 border-2 rounded-lg bg-white transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                            <div class="text-center">
+                                <div class="text-2xl mb-1">🍕</div>
+                                <div class="font-medium">Sem Borda</div>
+                                <div class="text-sm text-gray-600">Pizza tradicional</div>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <!-- Bordas Disponíveis -->
+                    <template x-for="borda in produtosPorCategoria.bordas" :key="borda.id">
+                        <label class="cursor-pointer">
+                            <input type="radio" 
+                                   x-model="modalPedido.borda" 
+                                   :value="borda"
+                                   @change="atualizarPrecoPedido()" 
+                                   class="sr-only peer">
+                            <div class="p-4 border-2 rounded-lg bg-white transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                                <div class="text-center">
+                                    <div class="text-2xl mb-1">
+                                        <span x-text="borda.nome.includes('Catupiry') ? '🧀' : 
+                                                      borda.nome.includes('Cheddar') ? '🧈' :
+                                                      borda.nome.includes('Chocolate') ? '🍫' :
+                                                      borda.nome.includes('Doce') ? '🍯' :
+                                                      borda.nome.includes('Alho') ? '🧄' : '🧀'"></span>
+                                    </div>
+                                    <div class="font-medium" x-text="borda.nome"></div>
+                                    <div class="text-sm text-green-600 font-semibold">+R$ <span x-text="borda.preco_unitario.toFixed(2)"></span></div>
+                                </div>
+                            </div>
+                        </label>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- 3. BEBIDAS -->
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span class="text-xl">3️⃣</span>
+                    Adicionar Bebidas
+                </h3>
+                
+                <div class="space-y-3">
+                    <template x-for="bebida in produtosPorCategoria.bebidas" :key="bebida.id">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">🥤</span>
+                                <div>
+                                    <div class="font-medium" x-text="bebida.nome"></div>
+                                    <div class="text-sm text-gray-600">R$ <span x-text="bebida.preco_unitario.toFixed(2)"></span></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button @click="diminuirQuantidadeBebida(bebida)"
+                                        :disabled="!modalPedido.bebidas[bebida.id] || modalPedido.bebidas[bebida.id] === 0"
+                                        class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
+                                </button>
+                                <span class="w-8 text-center font-medium" x-text="modalPedido.bebidas[bebida.id] || 0"></span>
+                                <button @click="aumentarQuantidadeBebida(bebida)"
+                                        class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- 4. OBSERVAÇÕES -->
+            <div class="p-6 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span class="text-xl">4️⃣</span>
+                    Observações
+                </h3>
+                <textarea x-model="modalPedido.observacoes"
+                          placeholder="Observações especiais para sua pizza (ex: sem cebola, bem assada, etc.)"
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                          rows="3"></textarea>
+            </div>
+            
+        </div>
+        
+        <!-- Footer com Resumo e Ações -->
+        <div class="bg-gray-100 p-6 border-t border-gray-200">
+            <!-- Resumo do Pedido -->
+            <div class="mb-4 p-4 bg-white rounded-lg shadow-sm">
+                <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <span>💰</span>
+                    Resumo do Pedido
+                </h4>
+                <div class="space-y-1 text-sm">
+                    <!-- Pizza -->
+                    <div x-show="modalPedido.sabor1" class="flex justify-between">
+                        <span>
+                            <span x-text="modalPedido.tipoPizza === 'meio-a-meio' ? 
+                                          modalPedido.sabor1?.nome + '/' + (modalPedido.sabor2?.nome || '...') : 
+                                          modalPedido.sabor1?.nome"></span>
+                            <span x-show="modalPedido.tamanhoSelecionado" 
+                                  class="text-gray-600" 
+                                  x-text="'(' + (modalPedido.tamanhoSelecionado?.nome === 'P' ? 'P' : 
+                                                 modalPedido.tamanhoSelecionado?.nome === 'M' ? 'M' : 'G') + ')'"></span>
+                        </span>
+                        <span class="font-medium">R$ <span x-text="(modalPedido.precoPizza || 0).toFixed(2)"></span></span>
+                    </div>
+                    
+                    <!-- Borda -->
+                    <div x-show="modalPedido.borda" class="flex justify-between">
+                        <span x-text="modalPedido.borda?.nome"></span>
+                        <span class="font-medium">R$ <span x-text="(modalPedido.borda?.preco_unitario || 0).toFixed(2)"></span></span>
+                    </div>
+                    
+                    <!-- Bebidas -->
+                    <template x-for="(quantidade, bebidaId) in modalPedido.bebidas" :key="bebidaId">
+                        <div x-show="quantidade > 0" class="flex justify-between">
+                            <span>
+                                <span x-text="quantidade"></span>x 
+                                <span x-text="produtosPorCategoria.bebidas.find(b => b.id == bebidaId)?.nome"></span>
+                            </span>
+                            <span class="font-medium">R$ 
+                                <span x-text="(quantidade * (produtosPorCategoria.bebidas.find(b => b.id == bebidaId)?.preco_unitario || 0)).toFixed(2)"></span>
+                            </span>
+                        </div>
+                    </template>
+                    
+                    <!-- Total -->
+                    <div class="pt-2 mt-2 border-t border-gray-200 flex justify-between font-bold text-base">
+                        <span>TOTAL:</span>
+                        <span class="text-red-600">R$ <span x-text="modalPedido.total.toFixed(2)"></span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botões -->
+            <div class="flex gap-3">
+                <button @click="fecharModalPedidoCompleto()" 
+                        class="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-lg transition-colors">
+                    ❌ Cancelar
+                </button>
+                <button @click="adicionarPedidoCompletoAoCarrinho()" 
+                        :disabled="!modalPedido.sabor1 || !modalPedido.tamanhoSelecionado || 
+                                   (modalPedido.tipoPizza === 'meio-a-meio' && !modalPedido.sabor2)"
+                        class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors">
+                    🛒 Adicionar ao Pedido
+                </button>
+            </div>
+        </div>
+        
+    </div>
+</div>

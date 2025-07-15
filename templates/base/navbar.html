@@ -37,7 +37,7 @@
             <!-- Center - Desktop Navigation -->
             <div class="hidden lg:flex lg:items-center lg:space-x-8">
                 <a href="{% url 'home' %}" 
-                   class="inline-flex items-center border-b-2 {% if request.resolver_match.url_name == 'home' %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
+                   class="inline-flex items-center border-b {% if request.resolver_match.url_name == 'home' %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
                     <!-- Heroicon: home -->
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -46,7 +46,7 @@
                 </a>
                 
                 <a href="{% url 'product_list' %}" 
-                   class="inline-flex items-center border-b-2 {% if 'produtos' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
+                   class="inline-flex items-center border-b {% if 'produtos' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
                     <!-- Heroicon: squares-plus -->
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -55,7 +55,7 @@
                 </a>
                 
                 <a href="{% url 'pedidos:pedido_list' %}" 
-                   class="inline-flex items-center border-b-2 {% if 'pedidos' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
+                   class="inline-flex items-center border-b {% if 'pedidos' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
                     <!-- Heroicon: shopping-bag -->
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
@@ -64,7 +64,7 @@
                 </a>
                 
                 <a href="#" onclick="event.preventDefault(); Alpine.store('app').showToast('Gestão de clientes em desenvolvimento. Use a API REST por enquanto.', 'warning', 3000);" 
-                   class="inline-flex items-center border-b-2 {% if 'clientes' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
+                   class="inline-flex items-center border-b {% if 'clientes' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
                     <!-- Heroicon: users -->
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
