@@ -279,6 +279,13 @@ def pedido_imprimir(request, pk):
     return render(request, 'pedidos/pedido_print.html', {'pedido': pedido})
 
 
+@login_required
+def pedido_comanda_cozinha(request, pk):
+    """Imprimir comanda simplificada para cozinha"""
+    pedido = get_object_or_404(Pedido, pk=pk)
+    return render(request, 'pedidos/comanda_cozinha.html', {'pedido': pedido})
+
+
 # Views AJAX
 @login_required
 def ajax_buscar_cliente(request):

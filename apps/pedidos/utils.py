@@ -215,9 +215,22 @@ class PedidoSupabaseManager:
                     # Buscar preço do produto
                     produto_preco = ProdutoPreco.objects.filter(produto=produto).first()
                     if not produto_preco:
-                        # Se não tem preço específico, usar preço unitário
+                        # Se não tem preço específico, criar um ProdutoPreco
                         if not produto.preco_unitario:
                             raise ValidationError(f"Produto {produto.nome} sem preço configurado")
+                        
+                        # Criar ProdutoPreco com base no preço unitário do produto
+                        # Buscar tamanho padrão (primeiro tamanho disponível)
+                        from apps.produtos.models import Tamanho
+                        tamanho_padrao = Tamanho.objects.first()
+                        if not tamanho_padrao:
+                            raise ValidationError("Nenhum tamanho cadastrado no sistema")
+                        
+                        produto_preco = ProdutoPreco.objects.create(
+                            produto=produto,
+                            tamanho=tamanho_padrao,
+                            preco=produto.preco_unitario
+                        )
                     
                     item_pedido = ItemPedido.objects.create(
                         pedido=pedido,

@@ -101,12 +101,29 @@
                     {% endif %}
                 </div>
                 
-                <!-- Ver Detalhes -->
-                <div>
+                <!-- Ações -->
+                <div class="flex gap-2">
+                    <!-- Ver Detalhes -->
                     <a href="{% url 'pedidos:pedido_detail' pedido.pk %}"
                        class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <span class="mr-1">👁️</span>
                         Ver
+                    </a>
+                    
+                    <!-- Comanda Cozinha -->
+                    <a href="{% url 'pedidos:pedido_comanda_cozinha' pedido.pk %}"
+                       target="_blank"
+                       class="inline-flex items-center px-3 py-1.5 border border-orange-300 text-sm font-medium rounded-md text-orange-700 bg-white hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                        <span class="mr-1">🍕</span>
+                        <span class="hidden lg:inline">Cozinha</span>
+                    </a>
+                    
+                    <!-- Cupom Cliente -->
+                    <a href="{% url 'pedidos:pedido_print' pedido.pk %}"
+                       target="_blank"
+                       class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        <span class="mr-1">🧾</span>
+                        <span class="hidden lg:inline">Cupom</span>
                     </a>
                 </div>
             </div>

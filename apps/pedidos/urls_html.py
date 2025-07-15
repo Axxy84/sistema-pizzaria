@@ -21,6 +21,7 @@ urlpatterns = [
     
     # Views especiais
     path('<int:pk>/imprimir/', views_html.pedido_imprimir, name='pedido_print'),
+    path('<int:pk>/comanda-cozinha/', views_html.pedido_comanda_cozinha, name='pedido_comanda_cozinha'),
     
     # AJAX endpoints
     path('ajax/buscar-cliente/', views_html.ajax_buscar_cliente, name='ajax_buscar_cliente'),
