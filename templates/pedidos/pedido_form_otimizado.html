@@ -205,7 +205,7 @@
      aria-labelledby="modal-title">
     <div class="bg-white rounded-lg pizza-modal-content"
          @click.stop
-         x-trap.noscroll.inert="modalMeioAMeioMostrar">
+>
         
         <!-- Header Aprimorado -->
         <div class="pizza-modal-header">
@@ -475,5 +475,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pedidos-simples.js' %}"></script>
+<script src="{% static 'js/pedidos-simples.js' %}?v=4.3"></script>
 {% endblock %}

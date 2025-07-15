@@ -65,7 +65,7 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 tamanhos = []
                 for preco in produto.precos.all():
                     tamanhos.append({
-                        'id': preco.id,
+                        'id': preco.tamanho.id if preco.tamanho else preco.id,
                         'nome': preco.tamanho.nome if preco.tamanho else 'Único',
                         'size': preco.tamanho.nome if preco.tamanho else 'Único',
                         'preco': float(preco.preco_final)

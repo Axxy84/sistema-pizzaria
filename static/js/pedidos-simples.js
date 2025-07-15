@@ -46,6 +46,10 @@ function pedidoForm() {
         // Busca de sabores
         buscaSabor1: '',
         buscaSabor2: '',
+        mostrarListaSabor1: false,
+        mostrarListaSabor2: false,
+        saboresFiltrados1: [],
+        saboresFiltrados2: [],
         
         // Loading state
         calculandoPreco: false,
@@ -504,12 +508,105 @@ function pedidoForm() {
                 total: tamanho.preco
             };
             
+            // Inicializar busca
+            this.buscaSabor1 = pizza.nome;
+            this.buscaSabor2 = '';
+            this.mostrarListaSabor1 = false;
+            this.mostrarListaSabor2 = false;
+            this.saboresFiltrados1 = [];
+            this.saboresFiltrados2 = [];
+            
+            // Inicializar listas filtradas
+            this.$nextTick(() => {
+                this.filtrarSabores1();
+                this.filtrarSabores2();
+                console.log('Modal aberto - Pizzas disponíveis:', this.produtosPorCategoria.pizzas?.length || 0);
+                console.log('Pizzas:', this.produtosPorCategoria.pizzas);
+            });
+            
             this.modalPedidoCompleto = true;
         },
         
         // Fechar modal
         fecharModalPedidoCompleto() {
             this.modalPedidoCompleto = false;
+            // Limpar busca
+            this.buscaSabor1 = '';
+            this.buscaSabor2 = '';
+            this.mostrarListaSabor1 = false;
+            this.mostrarListaSabor2 = false;
+            this.saboresFiltrados1 = [];
+            this.saboresFiltrados2 = [];
+        },
+        
+        // Funções de busca
+        filtrarSabores1() {
+            console.log('Filtrando sabor 1...');
+            console.log('Pizzas disponíveis:', this.produtosPorCategoria.pizzas);
+            console.log('Busca sabor 1:', this.buscaSabor1);
+            
+            const busca = this.buscaSabor1.toLowerCase().trim();
+            
+            // Sempre filtrar, independente do estado de mostrarListaSabor1
+            if (!busca) {
+                // Campo vazio - mostrar todas
+                this.saboresFiltrados1 = this.produtosPorCategoria.pizzas || [];
+            } else {
+                // Filtrar baseado na busca
+                this.saboresFiltrados1 = (this.produtosPorCategoria.pizzas || []).filter(pizza => {
+                    const nomeMatch = pizza.nome.toLowerCase().includes(busca);
+                    const descMatch = pizza.descricao && pizza.descricao.toLowerCase().includes(busca);
+                    return nomeMatch || descMatch;
+                });
+            }
+            
+            console.log('Sabores filtrados 1:', this.saboresFiltrados1);
+            console.log('Total filtrados:', this.saboresFiltrados1.length);
+        },
+        
+        filtrarSabores2() {
+            console.log('Filtrando sabor 2...');
+            const busca = this.buscaSabor2.toLowerCase().trim();
+            const pizzasDisponiveis = (this.produtosPorCategoria.pizzas || []).filter(p => 
+                p.id !== this.modalPedido.sabor1Id
+            );
+            
+            console.log('Pizzas disponíveis para sabor 2:', pizzasDisponiveis.length);
+            console.log('Busca sabor 2:', this.buscaSabor2);
+            
+            // Sempre filtrar, independente do estado de mostrarListaSabor2
+            if (!busca) {
+                // Campo vazio - mostrar todas disponíveis
+                this.saboresFiltrados2 = pizzasDisponiveis;
+            } else {
+                // Filtrar baseado na busca
+                this.saboresFiltrados2 = pizzasDisponiveis.filter(pizza => {
+                    const nomeMatch = pizza.nome.toLowerCase().includes(busca);
+                    const descMatch = pizza.descricao && pizza.descricao.toLowerCase().includes(busca);
+                    return nomeMatch || descMatch;
+                });
+            }
+            
+            console.log('Sabores filtrados 2:', this.saboresFiltrados2);
+            console.log('Total filtrados 2:', this.saboresFiltrados2.length);
+        },
+        
+        // Selecionar sabor 1
+        selecionarSabor1(pizza) {
+            this.modalPedido.sabor1 = pizza;
+            this.modalPedido.sabor1Id = pizza.id;
+            this.buscaSabor1 = pizza.nome;
+            this.mostrarListaSabor1 = false;
+            this.atualizarPrecoPedido();
+        },
+        
+        // Selecionar sabor 2
+        selecionarSabor2(pizza) {
+            this.modalPedido.sabor2 = pizza;
+            this.modalPedido.sabor2Id = pizza.id;
+            this.buscaSabor2 = pizza.nome;
+            this.mostrarListaSabor2 = false;
+            this.atualizarPrecoPedido();
         },
         
         // Funções auxiliares de seleção
@@ -572,23 +669,56 @@ function pedidoForm() {
                 // Pizza meio a meio - calcular preço
                 try {
                     this.calculandoPreco = true;
-                    const response = await fetch('/api/pedidos/meio-a-meio/calcular-preco/', {
+                    
+                    // DEBUG: Log detalhado do estado atual
+                    console.log('🔍 DEBUG MODAL PEDIDO STATE:');
+                    console.log('  modalPedido:', this.modalPedido);
+                    console.log('  sabor1:', this.modalPedido.sabor1);
+                    console.log('  sabor2:', this.modalPedido.sabor2);
+                    console.log('  tamanhoSelecionado:', this.modalPedido.tamanhoSelecionado);
+                    
+                    const requestData = {
+                        sabor_1_id: this.modalPedido.sabor1?.id,
+                        sabor_2_id: this.modalPedido.sabor2?.id,
+                        tamanho_id: this.modalPedido.tamanhoSelecionado?.id,
+                        regra_preco: 'mais_caro'
+                    };
+                    const url = '/api/pedidos/meio-a-meio/calcular-preco/';
+                    const fullUrl = window.location.origin + url;
+                    
+                    console.log('🔍 DEBUG MEIO-A-MEIO REQUEST:');
+                    console.log('  URL:', url);
+                    console.log('  Full URL:', fullUrl);
+                    console.log('  Data:', requestData);
+                    console.log('  CSRF Token:', this.getCSRFToken());
+                    console.log('  Current location:', window.location.href);
+                    
+                    const response = await fetch(url, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRFToken': this.getCSRFToken()
                         },
-                        body: JSON.stringify({
-                            sabor_1_id: this.modalPedido.sabor1.id,
-                            sabor_2_id: this.modalPedido.sabor2.id,
-                            tamanho_id: this.modalPedido.tamanhoSelecionado.id,
-                            regra_preco: 'mais_caro'
-                        })
+                        body: JSON.stringify(requestData)
                     });
+                    
+                    console.log('🔍 DEBUG RESPONSE:');
+                    console.log('  Status:', response.status);
+                    console.log('  OK:', response.ok);
+                    console.log('  URL:', response.url);
                     
                     if (response.ok) {
                         const data = await response.json();
-                        precoPizza = data.preco_final;
+                        console.log('✅ Resposta da API de cálculo:', data);
+                        if (data.status === 'success' && data.dados) {
+                            precoPizza = data.dados.preco_final;
+                        } else {
+                            precoPizza = data.preco_final || 0;
+                        }
+                    } else {
+                        console.error('❌ Erro na resposta da API:', response.status);
+                        const errorText = await response.text();
+                        console.error('❌ Error body:', errorText);
                     }
                 } catch (error) {
                     console.error('Erro ao calcular preço:', error);
@@ -608,7 +738,7 @@ function pedidoForm() {
             
             // Adicionar borda
             if (this.modalPedido.borda) {
-                total += this.modalPedido.borda.preco_unitario;
+                total += (this.modalPedido.borda.preco_unitario || this.modalPedido.borda.preco || 0);
             }
             
             // Adicionar bebidas
@@ -616,7 +746,7 @@ function pedidoForm() {
                 if (quantidade > 0) {
                     const bebida = this.produtosPorCategoria.bebidas.find(b => b.id == bebidaId);
                     if (bebida) {
-                        total += bebida.preco_unitario * quantidade;
+                        total += (bebida.preco_unitario || bebida.preco || 0) * quantidade;
                     }
                 }
             }
@@ -695,12 +825,13 @@ function pedidoForm() {
             
             // Adicionar borda se selecionada
             if (this.modalPedido.borda) {
+                const precoBorda = this.modalPedido.borda.preco_unitario || this.modalPedido.borda.preco || 0;
                 pizzaItem.nome += ` + Borda ${this.modalPedido.borda.nome}`;
-                pizzaItem.preco += this.modalPedido.borda.preco_unitario;
+                pizzaItem.preco += precoBorda;
                 pizzaItem.borda = {
                     id: this.modalPedido.borda.id,
                     nome: this.modalPedido.borda.nome,
-                    preco: this.modalPedido.borda.preco_unitario
+                    preco: precoBorda
                 };
             }
             
@@ -715,7 +846,7 @@ function pedidoForm() {
                             id: Date.now() + parseInt(bebidaId),
                             produto_id: bebida.id,
                             nome: bebida.nome,
-                            preco: bebida.preco_unitario,
+                            preco: bebida.preco_unitario || bebida.preco || 0,
                             quantidade: quantidade,
                             tipo: 'bebida'
                         };

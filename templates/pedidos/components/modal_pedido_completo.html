@@ -7,7 +7,7 @@
     
     <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl"
          @click.stop
-         x-trap.noscroll.inert="modalPedidoCompleto">
+>
         
         <!-- Header -->
         <div class="bg-gradient-to-r from-red-600 to-orange-600 text-white p-6">
@@ -58,7 +58,7 @@
                             <input type="radio" 
                                    x-model="modalPedido.tipoPizza" 
                                    value="meio-a-meio"
-                                   @change="atualizarPrecoPedido()" 
+                                   @change="atualizarPrecoPedido(); buscaSabor2 = ''; $nextTick(() => filtrarSabores2())" 
                                    class="sr-only peer">
                             <div class="p-4 border rounded-lg text-center transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
                                 <div class="text-2xl mb-1">🍕🍕</div>
@@ -127,27 +127,73 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <span x-text="modalPedido.tipoPizza === 'meio-a-meio' ? '1º Sabor' : 'Sabor da Pizza'"></span>
                             </label>
-                            <select x-model="modalPedido.sabor1Id" 
-                                    @change="selecionarSabor1ModalCompleto()"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Escolha um sabor</option>
-                                <template x-for="pizza in produtosPorCategoria.pizzas" :key="pizza.id">
-                                    <option :value="pizza.id" x-text="pizza.nome"></option>
-                                </template>
-                            </select>
+                            <div class="relative">
+                                <input type="text" 
+                                       x-model="buscaSabor1"
+                                       @input="filtrarSabores1()"
+                                       @focus="mostrarListaSabor1 = true; filtrarSabores1()"
+                                       @click="mostrarListaSabor1 = true; filtrarSabores1()"
+                                       @click.away="setTimeout(() => mostrarListaSabor1 = false, 200)"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                       :placeholder="modalPedido.sabor1 ? modalPedido.sabor1.nome : 'Clique para buscar sabor...'"
+                                       autocomplete="off">
+                                
+                                <!-- Lista de sabores filtrados -->
+                                <div x-show="mostrarListaSabor1 && saboresFiltrados1.length > 0" 
+                                     x-transition
+                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                    <template x-for="pizza in saboresFiltrados1" :key="pizza.id">
+                                        <div @click="selecionarSabor1(pizza)"
+                                             class="px-3 py-2 hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                            <div class="font-medium" x-text="pizza.nome"></div>
+                                            <div class="text-xs text-gray-600" x-text="pizza.descricao || 'Pizza artesanal'"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Sabor 2 (apenas meio a meio) -->
                         <div x-show="modalPedido.tipoPizza === 'meio-a-meio'">
                             <label class="block text-sm font-medium text-gray-700 mb-2">2º Sabor</label>
-                            <select x-model="modalPedido.sabor2Id"
-                                    @change="selecionarSabor2ModalCompleto()" 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Escolha um sabor</option>
-                                <template x-for="pizza in produtosPorCategoria.pizzas.filter(p => p.id !== modalPedido.sabor1Id)" :key="pizza.id">
-                                    <option :value="pizza.id" x-text="pizza.nome"></option>
-                                </template>
-                            </select>
+                            <div class="relative">
+                                <input type="text" 
+                                       x-model="buscaSabor2"
+                                       @input="filtrarSabores2()"
+                                       @focus="mostrarListaSabor2 = true; filtrarSabores2()"
+                                       @click="mostrarListaSabor2 = true; filtrarSabores2()"
+                                       @click.away="setTimeout(() => mostrarListaSabor2 = false, 200)"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                       :placeholder="modalPedido.sabor2 ? modalPedido.sabor2.nome : 'Clique para buscar segundo sabor...'"
+                                       autocomplete="off">
+                                
+                                <!-- Lista de sabores filtrados -->
+                                <div x-show="mostrarListaSabor2" 
+                                     x-transition
+                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                    <template x-if="saboresFiltrados2.length > 0">
+                                        <div>
+                                            <template x-for="pizza in saboresFiltrados2" :key="pizza.id">
+                                                <div @click="selecionarSabor2(pizza)"
+                                                     class="px-3 py-2 hover:bg-red-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                    <div class="font-medium" x-text="pizza.nome"></div>
+                                                    <div class="text-xs text-gray-600" x-text="pizza.descricao || 'Pizza artesanal'"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="saboresFiltrados2.length === 0">
+                                        <div class="px-3 py-4 text-center text-gray-500 text-sm">
+                                            <template x-if="buscaSabor2.length > 0">
+                                                <span>Nenhum sabor encontrado</span>
+                                            </template>
+                                            <template x-if="buscaSabor2.length === 0">
+                                                <span>Digite para buscar ou selecione da lista</span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -195,7 +241,7 @@
                                                       borda.nome.includes('Alho') ? '🧄' : '🧀'"></span>
                                     </div>
                                     <div class="font-medium" x-text="borda.nome"></div>
-                                    <div class="text-sm text-green-600 font-semibold">+R$ <span x-text="borda.preco_unitario.toFixed(2)"></span></div>
+                                    <div class="text-sm text-green-600 font-semibold">+R$ <span x-text="(borda.preco_unitario || borda.preco || 0).toFixed(2)"></span></div>
                                 </div>
                             </div>
                         </label>
@@ -217,7 +263,7 @@
                                 <span class="text-2xl">🥤</span>
                                 <div>
                                     <div class="font-medium" x-text="bebida.nome"></div>
-                                    <div class="text-sm text-gray-600">R$ <span x-text="bebida.preco_unitario.toFixed(2)"></span></div>
+                                    <div class="text-sm text-gray-600">R$ <span x-text="(bebida.preco_unitario || bebida.preco || 0).toFixed(2)"></span></div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
@@ -275,13 +321,19 @@
                                   x-text="'(' + (modalPedido.tamanhoSelecionado?.nome === 'P' ? 'P' : 
                                                  modalPedido.tamanhoSelecionado?.nome === 'M' ? 'M' : 'G') + ')'"></span>
                         </span>
-                        <span class="font-medium">R$ <span x-text="(modalPedido.precoPizza || 0).toFixed(2)"></span></span>
+                        <span class="font-medium">
+                            <span x-show="!calculandoPreco">R$ <span x-text="(modalPedido.precoPizza || 0).toFixed(2)"></span></span>
+                            <span x-show="calculandoPreco" class="inline-flex items-center gap-1">
+                                <span class="animate-spin rounded-full h-3 w-3 border-b-2 border-orange-600"></span>
+                                <span class="text-xs text-gray-600">Calculando...</span>
+                            </span>
+                        </span>
                     </div>
                     
                     <!-- Borda -->
                     <div x-show="modalPedido.borda" class="flex justify-between">
                         <span x-text="modalPedido.borda?.nome"></span>
-                        <span class="font-medium">R$ <span x-text="(modalPedido.borda?.preco_unitario || 0).toFixed(2)"></span></span>
+                        <span class="font-medium">R$ <span x-text="(modalPedido.borda?.preco_unitario || modalPedido.borda?.preco || 0).toFixed(2)"></span></span>
                     </div>
                     
                     <!-- Bebidas -->
@@ -292,7 +344,7 @@
                                 <span x-text="produtosPorCategoria.bebidas.find(b => b.id == bebidaId)?.nome"></span>
                             </span>
                             <span class="font-medium">R$ 
-                                <span x-text="(quantidade * (produtosPorCategoria.bebidas.find(b => b.id == bebidaId)?.preco_unitario || 0)).toFixed(2)"></span>
+                                <span x-text="(quantidade * (produtosPorCategoria.bebidas.find(b => b.id == bebidaId)?.preco_unitario || produtosPorCategoria.bebidas.find(b => b.id == bebidaId)?.preco || 0)).toFixed(2)"></span>
                             </span>
                         </div>
                     </template>
