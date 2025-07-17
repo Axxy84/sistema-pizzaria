@@ -157,7 +157,7 @@
         {% if "Pizza" in item.produto_preco.produto.categoria.nome or item.is_meio_a_meio %}
         <div class="pizza-item">
             <div class="pizza-name">
-                {% if item.is_meio_a_meio %}
+                {% if item.meio_a_meio_data %}
                     <span class="pizza-size">
                         {% if item.meio_a_meio_data.tamanho == "Broto" %}P
                         {% elif item.meio_a_meio_data.tamanho == "Pequena" %}P
@@ -167,7 +167,7 @@
                         {% else %}{{ item.meio_a_meio_data.tamanho|first }}
                         {% endif %}
                     </span>
-                    {{ item.meio_a_meio_data.sabor_1.nome|upper }}/{{ item.meio_a_meio_data.sabor_2.nome|upper }}
+                    {{ item.meio_a_meio_data.sabor1|upper }} + {{ item.meio_a_meio_data.sabor2|upper }}
                 {% else %}
                     <span class="pizza-size">
                         {% if item.produto_preco.tamanho.nome == "Broto" %}P
@@ -186,8 +186,8 @@
                 {% endif %}
             </div>
             
-            {% if item.is_meio_a_meio %}
-                <div class="pizza-details">Meio {{ item.meio_a_meio_data.sabor_1.nome }}, meio {{ item.meio_a_meio_data.sabor_2.nome }}</div>
+            {% if item.meio_a_meio_data %}
+                <div class="pizza-details">1/2 {{ item.meio_a_meio_data.sabor1 }}, 1/2 {{ item.meio_a_meio_data.sabor2 }}</div>
             {% else %}
                 {% if item.produto_preco.produto.descricao %}
                     <div class="pizza-details">{{ item.produto_preco.produto.descricao|truncatewords:10 }}</div>

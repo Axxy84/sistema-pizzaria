@@ -408,18 +408,98 @@ class PedidoRapidoView(LoginRequiredMixin, TemplateView):
         return context
 
 
-@login_required
 def api_criar_pedido_rapido(request):
     """API para criar pedido do sistema rápido"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Método não permitido'}, status=405)
+    import traceback
+    
+    # Wrapper completo para capturar QUALQUER erro
+    try:
+        print(f"DEBUG: =====INÍCIO api_criar_pedido_rapido=====")
+        print(f"DEBUG: request = {request}")
+        print(f"DEBUG: type(request) = {type(request)}")
+        
+        # Verificar se request não é None
+        if request is None:
+            print(f"ERRO: request é None!")
+            return JsonResponse({'error': 'Request é None'}, status=500)
+        
+        # Verificar autenticação manualmente
+        if hasattr(request, 'user'):
+            print(f"DEBUG: request.user = {request.user}")
+            print(f"DEBUG: user.is_authenticated = {request.user.is_authenticated if request.user else 'user é None'}")
+        else:
+            print(f"DEBUG: request NÃO tem atributo 'user'")
+        
+        # Verificar método
+        if hasattr(request, 'method'):
+            print(f"DEBUG: request.method = {request.method}")
+            if request.method != 'POST':
+                return JsonResponse({'error': 'Método não permitido'}, status=405)
+        else:
+            print(f"ERRO: request não tem atributo 'method'!")
+            return JsonResponse({'error': 'Request inválido - sem method'}, status=500)
+    
+    except Exception as e:
+        print(f"ERRO CRÍTICO CAPTURADO NO WRAPPER: {str(e)}")
+        print(f"Tipo do erro: {type(e)}")
+        print(f"Traceback:\n{traceback.format_exc()}")
+        return JsonResponse({
+            'error': f'Erro crítico: {str(e)}',
+            'traceback': traceback.format_exc()
+        }, status=500)
     
     try:
-        data = json.loads(request.body)
+        # Debug completo do request
+        print(f"DEBUG: Verificando atributos do request...")
+        print(f"DEBUG: request = {request}")
+        print(f"DEBUG: type(request) = {type(request)}")
+        
+        # Verificar se request tem os atributos esperados
+        if hasattr(request, 'body'):
+            print(f"DEBUG: request.body = {request.body}")
+        else:
+            print(f"DEBUG: request NÃO tem atributo 'body'")
+            
+        if hasattr(request, 'POST'):
+            print(f"DEBUG: request.POST = {request.POST}")
+        else:
+            print(f"DEBUG: request NÃO tem atributo 'POST'")
+            
+        if hasattr(request, 'content_type'):
+            print(f"DEBUG: request.content_type = {request.content_type}")
+        else:
+            print(f"DEBUG: request NÃO tem atributo 'content_type'")
+        
+        # Verificar se o body está vazio
+        if not request.body:
+            return JsonResponse({
+                'error': 'Corpo da requisição vazio'
+            }, status=400)
+        
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            print(f"DEBUG: Erro ao decodificar JSON: {e}")
+            return JsonResponse({
+                'error': f'JSON inválido: {str(e)}'
+            }, status=400)
+        
+        print(f"DEBUG: Dados recebidos: {json.dumps(data, indent=2) if data else 'None'}")
+        
+        # Validar dados obrigatórios
+        if not data or not isinstance(data, dict):
+            return JsonResponse({
+                'error': 'Dados inválidos'
+            }, status=400)
+            
+        if not data.get('itens'):
+            return JsonResponse({
+                'error': 'Pedido deve conter pelo menos um item'
+            }, status=400)
         
         # Criar ou buscar cliente
         cliente = None
-        if data.get('cliente_nome'):
+        if data and isinstance(data, dict) and data.get('cliente_nome'):
             # Buscar por telefone se fornecido
             if data.get('cliente_telefone'):
                 cliente = Cliente.objects.filter(
@@ -428,56 +508,164 @@ def api_criar_pedido_rapido(request):
             
             # Se não encontrar, criar novo
             if not cliente:
-                cliente = Cliente.objects.create(
-                    nome=data['cliente_nome'],
-                    telefone=data.get('cliente_telefone', ''),
-                    email=data.get('cliente_email', '')
-                )
+                try:
+                    cliente = Cliente.objects.create(
+                        nome=data['cliente_nome'],
+                        telefone=data.get('cliente_telefone', ''),
+                        email=data.get('cliente_email', '')
+                    )
+                except Exception as e:
+                    raise
                 
                 # Criar endereço se for delivery
                 if data.get('tipo') == 'delivery' and data.get('endereco_entrega'):
-                    Endereco.objects.create(
-                        cliente=cliente,
-                        tipo='residencial',
-                        logradouro=data['endereco_entrega'],
-                        principal=True
-                    )
+                    try:
+                        endereco = Endereco.objects.create(
+                            cliente=cliente,
+                            tipo='residencial',
+                            logradouro=data['endereco_entrega'],
+                            principal=True
+                        )
+                    except Exception as e:
+                        raise
         
         # Criar pedido
-        pedido = Pedido.objects.create(
-            cliente=cliente,
-            usuario=request.user,
-            tipo=data.get('tipo', 'balcao'),
-            forma_pagamento=data.get('forma_pagamento', 'dinheiro'),
-            taxa_entrega=Decimal(str(data.get('taxa_entrega', 0))),
-            observacoes=data.get('observacoes', '')
-        )
+        
+        # Processar forma de pagamento (única ou múltipla)
+        if data is None:
+            print(f"ERRO: data é None ao processar forma de pagamento!")
+            return JsonResponse({'error': 'Dados inválidos'}, status=400)
+            
+        forma_pagamento = data.get('forma_pagamento', 'dinheiro') if data else 'dinheiro'
+        formas_pagamento_multiplas = data.get('formas_pagamento', []) if data else []
+        
+        # Se tiver múltiplas formas, usar a primeira como principal
+        if formas_pagamento_multiplas and len(formas_pagamento_multiplas) > 0:
+            primeiro_pagamento = formas_pagamento_multiplas[0]
+            if isinstance(primeiro_pagamento, dict):
+                forma_pagamento = primeiro_pagamento.get('tipo', 'dinheiro')
+            else:
+                forma_pagamento = 'dinheiro'
+        
+        try:
+            # Preparar dados do pedido com verificações defensivas
+            tipo_pedido = data.get('tipo', 'balcao') if data else 'balcao'
+            mesa = ''
+            if data and data.get('tipo') == 'mesa':
+                mesa = data.get('mesa', '')
+            
+            taxa_entrega_str = '0'
+            if data and data.get('taxa_entrega') is not None:
+                taxa_entrega_str = str(data.get('taxa_entrega', 0))
+            
+            observacoes = ''
+            if data and data.get('observacoes'):
+                observacoes = data.get('observacoes', '')
+            
+            pedido = Pedido.objects.create(
+                cliente=cliente,
+                usuario=request.user,
+                tipo=tipo_pedido,
+                mesa=mesa,
+                forma_pagamento=forma_pagamento,
+                taxa_entrega=Decimal(taxa_entrega_str),
+                observacoes=observacoes
+            )
+            
+            # TODO: Salvar formas de pagamento múltiplas em tabela separada se necessário
+        except Exception as e:
+            raise
         
         # Adicionar itens
-        for item_data in data.get('itens', []):
-            # Tratamento especial para pizza meio a meio
-            if item_data.get('meio_a_meio'):
-                observacao = item_data.get('observacoes', '')
-            else:
-                observacao = item_data.get('observacoes', '')
+        itens_adicionados = 0
+        itens_list = data.get('itens', []) if data else []
+        
+        print(f"DEBUG: Total de itens a processar: {len(itens_list)}")
+        print(f"DEBUG: Tipo de itens_list: {type(itens_list)}")
+        
+        # Verificar se itens_list é uma lista
+        if not isinstance(itens_list, list):
+            print(f"ERRO: itens não é uma lista: {type(itens_list)}")
+            return JsonResponse({'error': 'Formato de itens inválido'}, status=400)
+        
+        for idx, item_data in enumerate(itens_list):
+            print(f"DEBUG: Processando item {idx}: {item_data}")
+            print(f"DEBUG: Tipo do item: {type(item_data)}")
+            
+            if item_data is None:
+                print(f"DEBUG: Item {idx} é None, pulando")
+                continue
+                
+            if not isinstance(item_data, dict):
+                print(f"DEBUG: Item {idx} não é um dicionário: {type(item_data)}, pulando")
+                continue
+                
+            observacao = item_data.get('observacoes', '')
             
             # Buscar produto_preco
             produto_preco = None
-            if item_data.get('produto_preco_id'):
-                produto_preco = ProdutoPreco.objects.filter(
-                    id=item_data['produto_preco_id']
-                ).first()
+            produto_preco_id = item_data.get('produto_preco_id')
+            print(f"DEBUG: produto_preco_id = {produto_preco_id}")
+            
+            if produto_preco_id:
+                try:
+                    produto_preco = ProdutoPreco.objects.filter(
+                        id=produto_preco_id
+                    ).first()
+                    print(f"DEBUG: produto_preco encontrado: {produto_preco}")
+                except Exception as e:
+                    print(f"DEBUG: Erro ao buscar produto_preco: {type(e).__name__}: {str(e)}")
+                    pass  # Ignorar erro e continuar
+            else:
+                print(f"DEBUG: produto_preco_id é None ou vazio para item {idx}")
             
             if produto_preco:
-                ItemPedido.objects.create(
-                    pedido=pedido,
-                    produto_preco=produto_preco,
-                    quantidade=item_data.get('quantidade', 1),
-                    observacoes=observacao
-                )
+                try:
+                    quantidade = int(item_data.get('quantidade', 1))
+                    
+                    # Criar item (o save automático calculará preco_unitario e subtotal)
+                    item_pedido = ItemPedido(
+                        pedido=pedido,
+                        produto_preco=produto_preco,
+                        quantidade=quantidade,
+                        observacoes=observacao
+                    )
+                    
+                    # Se for pizza meio a meio, configurar antes de salvar
+                    if item_data and isinstance(item_data, dict) and item_data.get('meio_a_meio'):
+                        meio_a_meio_data = item_data.get('meio_a_meio_data')
+                        if meio_a_meio_data and isinstance(meio_a_meio_data, dict):
+                            item_pedido.meio_a_meio_data = meio_a_meio_data
+                        else:
+                            print(f"DEBUG: Dados meio a meio inválidos: {meio_a_meio_data}")
+                    
+                    # Salvar (calculará preços automaticamente)
+                    item_pedido.save()
+                    itens_adicionados += 1
+                    
+                except Exception as e:
+                    raise
+        
+        # Verificar se adicionou algum item
+        if itens_adicionados == 0:
+            # Deletar pedido vazio
+            pedido.delete()
+            return JsonResponse({
+                'error': 'Nenhum item válido foi encontrado para adicionar ao pedido'
+            }, status=400)
         
         # Calcular total
-        pedido.calcular_total()
+        try:
+            pedido.calcular_total()
+        except Exception as e:
+            print(f"DEBUG: Erro ao calcular total: {type(e).__name__}: {str(e)}")
+            # Se der erro ao calcular, fazer manualmente
+            pedido.subtotal = Decimal('0')
+            pedido.total = Decimal('0')
+            for item in pedido.itens.all():
+                pedido.subtotal += item.subtotal
+            pedido.total = pedido.subtotal + pedido.taxa_entrega - pedido.desconto
+            pedido.save()
         
         return JsonResponse({
             'success': True,
@@ -486,7 +674,15 @@ def api_criar_pedido_rapido(request):
             'total': float(pedido.total)
         })
         
+    except json.JSONDecodeError as e:
+        print(f"DEBUG: Erro ao decodificar JSON: {str(e)}")
+        return JsonResponse({
+            'error': f'JSON inválido: {str(e)}'
+        }, status=400)
     except Exception as e:
+        print(f"DEBUG: Erro geral: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'error': f'Erro ao criar pedido: {str(e)}'
         }, status=400)

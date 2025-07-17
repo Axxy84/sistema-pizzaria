@@ -234,7 +234,7 @@
     .item-compacto {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
         padding: 0.5rem;
         background: #f9fafb;
         border-radius: 0.375rem;
@@ -244,6 +244,7 @@
     .item-info-compacto {
         flex: 1;
         min-width: 0;
+        margin-right: 0.5rem;
     }
     
     .item-acoes-compacto {
@@ -519,6 +520,14 @@
                                placeholder="Endereço"
                                class="input-compacto">
                     </div>
+                    <!-- Campo Mesa -->
+                    <div x-show="tipoPedido === 'mesa'" class="mt-1">
+                        <input type="number" 
+                               x-model="numeroMesa"
+                               placeholder="Número da mesa"
+                               min="1"
+                               class="input-compacto w-full">
+                    </div>
                 </div>
                 
                 <!-- Forma de pagamento -->
@@ -570,6 +579,14 @@
                                     <div class="text-xs text-gray-500">
                                         <span x-text="item.tamanho"></span> • 
                                         R$ <span x-text="item.preco.toFixed(2).replace('.', ',')"></span>
+                                    </div>
+                                    <!-- Campo de observações -->
+                                    <div class="mt-1">
+                                        <input type="text" 
+                                               x-model="item.observacoes"
+                                               placeholder="Observações (ex: sem cebola)"
+                                               class="w-full text-xs px-2 py-1 border border-gray-200 rounded focus:outline-none focus:border-orange-400"
+                                               @input="$nextTick(() => { item.observacoes = $event.target.value })">
                                     </div>
                                 </div>
                                 <div class="item-acoes-compacto">
@@ -952,6 +969,7 @@ function pedidoRapido() {
         formaPagamento: 'dinheiro',
         formasPagamento: [], // Array para múltiplas formas
         taxaEntrega: 5.00, // Taxa de entrega editável
+        numeroMesa: '', // Número da mesa
         cliente: {
             nome: '',
             telefone: '',
@@ -1049,7 +1067,8 @@ function pedidoRapido() {
                     nome: produto.nome,
                     tamanho: preco.tamanho,
                     preco: preco.preco,
-                    quantidade: 1
+                    quantidade: 1,
+                    observacoes: '' // Campo de observações vazio
                 });
             }
             
@@ -1111,7 +1130,8 @@ function pedidoRapido() {
                 quantidade: 1,
                 meio_a_meio: true,
                 sabor1_id: sabor1.id,
-                sabor2_id: sabor2.id
+                sabor2_id: sabor2.id,
+                observacoes: '' // Campo de observações vazio
             });
             
             this.modalMeioAMeio = false;
@@ -1150,6 +1170,7 @@ function pedidoRapido() {
             if (this.carrinho.length === 0) return false;
             if (!this.cliente.nome) return false;
             if (this.tipoPedido === 'delivery' && (!this.cliente.telefone || !this.cliente.endereco)) return false;
+            if (this.tipoPedido === 'mesa' && !this.numeroMesa) return false;
             return true;
         },
         
@@ -1249,20 +1270,47 @@ function pedidoRapido() {
             
             const pedido = {
                 tipo: this.tipoPedido,
+                mesa: this.tipoPedido === 'mesa' ? this.numeroMesa : null,
                 forma_pagamento: this.formasPagamento.length > 0 ? 'multiplas' : this.formaPagamento,
                 formas_pagamento: this.formasPagamento.length > 0 ? this.formasPagamento : null,
                 cliente_nome: this.cliente.nome,
                 cliente_telefone: this.cliente.telefone,
                 endereco_entrega: this.cliente.endereco,
-                itens: this.carrinho.map(item => ({
-                    produto_preco_id: item.preco_id,
-                    quantidade: item.quantidade,
-                    observacoes: item.meio_a_meio ? 
-                        `Meio a meio: ${item.nome}` : ''
-                })),
+                itens: this.carrinho.map(item => {
+                    // Preparar dados do item
+                    const itemData = {
+                        produto_preco_id: item.preco_id || null,
+                        quantidade: item.quantidade,
+                        observacoes: item.observacoes || ''
+                    };
+                    
+                    // Se for meio a meio, adicionar dados especiais
+                    if (item.meio_a_meio) {
+                        itemData.meio_a_meio = true;
+                        itemData.meio_a_meio_data = {
+                            is_meio_a_meio: true,
+                            sabor1: item.sabor1_id ? this.pizzas.find(p => p.id === item.sabor1_id)?.nome : item.nome.split(' + ')[0],
+                            sabor2: item.sabor2_id ? this.pizzas.find(p => p.id === item.sabor2_id)?.nome : item.nome.split(' + ')[1],
+                            tamanho: item.tamanho,
+                            preco: item.preco
+                        };
+                        // Usar o ID de preço do primeiro sabor como base
+                        const sabor1 = this.pizzas.find(p => p.id === item.sabor1_id);
+                        if (sabor1) {
+                            const precoBase = sabor1.precos.find(p => p.tamanho === item.tamanho);
+                            if (precoBase) {
+                                itemData.produto_preco_id = precoBase.id;
+                            }
+                        }
+                    }
+                    
+                    return itemData;
+                }),
                 taxa_entrega: this.tipoPedido === 'delivery' ? this.taxaEntrega : 0,
                 total: this.total
             };
+            
+            console.log('DEBUG: Dados do pedido:', pedido);
             
             try {
                 const response = await fetch('/pedidos/api/criar-rapido/', {
@@ -1281,13 +1329,16 @@ function pedidoRapido() {
                     // Limpar carrinho
                     this.carrinho = [];
                     this.cliente = { nome: '', telefone: '', endereco: '' };
+                    this.numeroMesa = '';
                     
                     // Redirecionar para detalhes do pedido
                     setTimeout(() => {
                         window.location.href = `/pedidos/${data.pedido_id}/`;
                     }, 1000);
                 } else {
-                    throw new Error('Erro ao criar pedido');
+                    const errorData = await response.json();
+                    console.error('DEBUG: Erro do servidor:', errorData);
+                    throw new Error(errorData.error || 'Erro ao criar pedido');
                 }
             } catch (error) {
                 this.mostrarNotificacao('Erro ao criar pedido', 'error');

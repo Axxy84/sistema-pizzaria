@@ -30,7 +30,7 @@ class Pedido(models.Model):
     
     # Identificação
     numero = models.CharField(max_length=20, unique=True)
-    cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name='pedidos')
+    cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name='pedidos', null=True, blank=True)
     usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name='pedidos_atendidos')
     
     # Tipo e endereço
@@ -131,15 +131,17 @@ class ItemPedido(models.Model):
     @property
     def sabor_1(self):
         """Retorna dados do primeiro sabor se for meio a meio"""
-        if self.is_meio_a_meio:
-            return self.meio_a_meio_data.get('sabor_1')
+        if self.is_meio_a_meio and self.meio_a_meio_data:
+            # Tenta com underscore primeiro, depois sem
+            return self.meio_a_meio_data.get('sabor_1') or self.meio_a_meio_data.get('sabor1')
         return None
     
     @property
     def sabor_2(self):
         """Retorna dados do segundo sabor se for meio a meio"""
-        if self.is_meio_a_meio:
-            return self.meio_a_meio_data.get('sabor_2')
+        if self.is_meio_a_meio and self.meio_a_meio_data:
+            # Tenta com underscore primeiro, depois sem
+            return self.meio_a_meio_data.get('sabor_2') or self.meio_a_meio_data.get('sabor2')
         return None
     
     def configurar_meio_a_meio(self, produto_1, produto_2, tamanho, regra_preco='mais_caro'):
@@ -187,11 +189,21 @@ class ItemPedido(models.Model):
     
     def calcular_preco_meio_a_meio(self):
         """Calcula o preço baseado na regra configurada"""
-        if not self.is_meio_a_meio:
-            return self.preco_unitario
+        if not self.is_meio_a_meio or not self.meio_a_meio_data:
+            return self.preco_unitario or Decimal('0')
         
-        sabor_1_preco = Decimal(str(self.sabor_1.get('preco', 0)))
-        sabor_2_preco = Decimal(str(self.sabor_2.get('preco', 0)))
+        # Se sabor_1 ou sabor_2 forem strings (nomes), usar o preço direto do meio_a_meio_data
+        if isinstance(self.sabor_1, str) or isinstance(self.sabor_2, str):
+            # Pegar o preço direto do meio_a_meio_data
+            preco = self.meio_a_meio_data.get('preco', 0)
+            return Decimal(str(preco))
+        
+        # Se forem dicionários com informações completas
+        sabor_1_data = self.sabor_1 if isinstance(self.sabor_1, dict) else {}
+        sabor_2_data = self.sabor_2 if isinstance(self.sabor_2, dict) else {}
+        
+        sabor_1_preco = Decimal(str(sabor_1_data.get('preco', 0)))
+        sabor_2_preco = Decimal(str(sabor_2_data.get('preco', 0)))
         regra = self.meio_a_meio_data.get('regra_preco', 'mais_caro')
         
         if regra == 'mais_caro':
@@ -199,13 +211,26 @@ class ItemPedido(models.Model):
         elif regra == 'media':
             return (sabor_1_preco + sabor_2_preco) / 2
         else:
-            return self.preco_unitario
+            return self.preco_unitario or Decimal('0')
     
     def get_descricao_completa(self):
         """Retorna descrição completa do item, incluindo meio a meio"""
-        if self.is_meio_a_meio:
-            sabor_1_nome = self.sabor_1.get('nome', 'Sabor 1')
-            sabor_2_nome = self.sabor_2.get('nome', 'Sabor 2')
+        if self.is_meio_a_meio and self.meio_a_meio_data:
+            # Se sabor_1 e sabor_2 forem strings diretos
+            if isinstance(self.sabor_1, str):
+                sabor_1_nome = self.sabor_1
+            elif isinstance(self.sabor_1, dict):
+                sabor_1_nome = self.sabor_1.get('nome', 'Sabor 1')
+            else:
+                sabor_1_nome = 'Sabor 1'
+                
+            if isinstance(self.sabor_2, str):
+                sabor_2_nome = self.sabor_2
+            elif isinstance(self.sabor_2, dict):
+                sabor_2_nome = self.sabor_2.get('nome', 'Sabor 2')
+            else:
+                sabor_2_nome = 'Sabor 2'
+                
             tamanho = self.meio_a_meio_data.get('tamanho', '')
             return f"Pizza {tamanho} - Meio a Meio: {sabor_1_nome} + {sabor_2_nome}"
         else:
