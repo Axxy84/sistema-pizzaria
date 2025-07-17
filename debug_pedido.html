@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Pedido</title>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body>
+<div x-data="{
+    carrinho: [
+        {
+            id: 1,
+            produto_id: 1,
+            nome: 'Pizza Margherita',
+            tamanho: 'M',
+            preco: 35,
+            quantidade: 1,
+            tipo: 'pizza'
+        },
+        {
+            id: 2,
+            produto_id: 3,
+            nome: 'Coca-Cola 2L',
+            preco: 12,
+            quantidade: 2,
+            tipo: 'bebida'
+        }
+    ],
+    
+    prepararDados() {
+        const dados = {
+            tipo: 'delivery',
+            forma_pagamento: 'dinheiro',
+            cliente: {
+                nome: 'João Silva',
+                telefone: '(11) 99999-9999',
+                endereco_simples: 'Rua Teste, 123'
+            },
+            itens: this.carrinho.map(item => ({
+                produto_id: item.produto_id,
+                quantidade: item.quantidade,
+                preco_unitario: item.preco,
+                observacoes: item.observacoes || ''
+            })),
+            taxa_entrega: 5,
+            total: 52
+        };
+        
+        console.log('Dados preparados:', dados);
+        console.log('Carrinho original:', this.carrinho);
+        console.log('Itens mapeados:', dados.itens);
+        
+        return dados;
+    }
+}">
+    <div style="padding: 20px;">
+        <h1>Debug do Pedido</h1>
+        
+        <h2>Carrinho:</h2>
+        <pre x-text="JSON.stringify(carrinho, null, 2)"></pre>
+        
+        <button @click="prepararDados()" 
+                style="padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer;">
+            Preparar Dados do Pedido
+        </button>
+        
+        <p>Verifique o console para ver os dados preparados</p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Produtos</title>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body>
+    <div x-data="{
+        produtos: [],
+        async init() {
+            try {
+                const response = await fetch('http://127.0.0.1:8080/api/produtos/produtos/para_pedido_rapido/');
+                const data = await response.json();
+                this.produtos = data.produtos;
+                console.log('Produtos carregados:', this.produtos);
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+    }">
+        <h1>Debug de Produtos</h1>
+        
+        <h2>Pizzas</h2>
+        <template x-for="p in produtos.filter(p => p.categoria === 'pizzas')">
+            <div>
+                <strong x-text="p.nome"></strong> - 
+                <span x-text="p.precos.length + ' preços'"></span>
+            </div>
+        </template>
+        
+        <h2>Bebidas</h2>
+        <template x-for="p in produtos.filter(p => p.categoria === 'bebidas')">
+            <div>
+                <strong x-text="p.nome"></strong> - 
+                <span x-text="p.precos.length + ' preços'"></span>
+            </div>
+        </template>
+        
+        <h2>Bordas</h2>
+        <template x-for="p in produtos.filter(p => p.categoria === 'bordas')">
+            <div>
+                <strong x-text="p.nome"></strong> - 
+                <span x-text="p.precos.length + ' preços'"></span>
+            </div>
+        </template>
+        
+        <h2>Outros</h2>
+        <template x-for="p in produtos.filter(p => p.categoria === 'outros')">
+            <div>
+                <strong x-text="p.nome"></strong> - 
+                <span x-text="p.precos.length + ' preços'"></span>
+            </div>
+        </template>
+    </div>
+</body>
+</html>

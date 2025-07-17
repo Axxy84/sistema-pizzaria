@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Carrinho Compacto - Nova Interface</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #DC2626; 
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .version {
+            padding: 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .version h3 {
+            margin-top: 0;
+            color: #374151;
+        }
+        .old {
+            background: #fee2e2;
+        }
+        .new {
+            background: #d1fae5;
+        }
+        .improvements {
+            background: #eff6ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .improvements h2 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .button {
+            display: inline-block;
+            background: #DC2626;
+            color: white;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .button:hover {
+            background: #b91c1c;
+        }
+        .center {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .comparison-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+        .checkmark {
+            color: #16a34a;
+            font-size: 1.2rem;
+        }
+        .cross {
+            color: #dc2626;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Novo Carrinho Compacto e Otimizado</h1>
+        
+        <div class="improvements">
+            <h2>✨ O que mudou no carrinho:</h2>
+            <ul>
+                <li>✅ <span class="highlight">Dados do pedido no topo</span> - Não precisa mais rolar para preencher</li>
+                <li>✅ <span class="highlight">Layout compacto</span> - Todos os campos essenciais visíveis</li>
+                <li>✅ <span class="highlight">Total sempre visível</span> - No header do carrinho</li>
+                <li>✅ <span class="highlight">Lista de itens scrollável</span> - Apenas os produtos têm scroll</li>
+                <li>✅ <span class="highlight">Campos menores</span> - Mais informação em menos espaço</li>
+                <li>✅ <span class="highlight">Organização lógica</span> - Tipo → Cliente → Pagamento → Produtos → Finalizar</li>
+            </ul>
+        </div>
+        
+        <div class="before-after">
+            <div class="version old">
+                <h3>❌ Antes (Problemático)</h3>
+                <ul>
+                    <li>Formulários no final do carrinho</li>
+                    <li>Necessário rolar muito para preencher</li>
+                    <li>Total escondido no final</li>
+                    <li>Muito espaço desperdiçado</li>
+                    <li>Campos grandes demais</li>
+                </ul>
+            </div>
+            
+            <div class="version new">
+                <h3>✅ Depois (Otimizado)</h3>
+                <ul>
+                    <li>Dados do pedido fixos no topo</li>
+                    <li>Tudo acessível sem rolar</li>
+                    <li>Total sempre visível no header</li>
+                    <li>Layout compacto e eficiente</li>
+                    <li>Campos do tamanho ideal</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h2>📊 Comparação Detalhada</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Aspecto</th>
+                    <th>Antes</th>
+                    <th>Agora</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Posição dos dados</strong></td>
+                    <td><span class="cross">✗</span> No final, após os produtos</td>
+                    <td><span class="checkmark">✓</span> No topo, sempre visíveis</td>
+                </tr>
+                <tr>
+                    <td><strong>Visibilidade do total</strong></td>
+                    <td><span class="cross">✗</span> Apenas no final</td>
+                    <td><span class="checkmark">✓</span> No header, sempre visível</td>
+                </tr>
+                <tr>
+                    <td><strong>Tamanho dos campos</strong></td>
+                    <td><span class="cross">✗</span> Grandes e espaçosos</td>
+                    <td><span class="checkmark">✓</span> Compactos e eficientes</td>
+                </tr>
+                <tr>
+                    <td><strong>Organização</strong></td>
+                    <td><span class="cross">✗</span> Produtos → Dados → Total</td>
+                    <td><span class="checkmark">✓</span> Dados → Produtos → Total</td>
+                </tr>
+                <tr>
+                    <td><strong>Scroll necessário</strong></td>
+                    <td><span class="cross">✗</span> Scroll da página toda</td>
+                    <td><span class="checkmark">✓</span> Apenas lista de produtos</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 30px 0;">
+            <h3>🎯 Novo Fluxo de Trabalho:</h3>
+            <ol>
+                <li><strong>Escolha o tipo</strong> - Balcão, Delivery ou Mesa (no topo)</li>
+                <li><strong>Preencha o cliente</strong> - Nome e dados se necessário (logo abaixo)</li>
+                <li><strong>Selecione pagamento</strong> - Dinheiro, PIX ou Cartão (compacto)</li>
+                <li><strong>Adicione produtos</strong> - Lista scrollável no meio</li>
+                <li><strong>Finalize</strong> - Botão sempre visível no rodapé</li>
+            </ol>
+        </div>
+        
+        <div class="center">
+            <a href="http://127.0.0.1:8080/pedidos/novo/" class="button">
+                🚀 Testar Novo Carrinho Compacto
+            </a>
+        </div>
+        
+        <div style="margin-top: 40px; padding: 20px; background: #fef3c7; border-radius: 8px;">
+            <h4>💡 Benefícios da Nova Interface:</h4>
+            <ul>
+                <li><strong>Mais rápido</strong> - Todos os campos essenciais estão visíveis imediatamente</li>
+                <li><strong>Menos cliques</strong> - Não precisa rolar para preencher dados</li>
+                <li><strong>Mais intuitivo</strong> - Fluxo lógico de cima para baixo</li>
+                <li><strong>Melhor UX</strong> - Total sempre visível ajuda na tomada de decisão</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

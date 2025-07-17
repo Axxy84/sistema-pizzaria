@@ -1,0 +1,472 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Novo Pedido - Pizzaria{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pedidos-simples.css' %}?v=3.0">
+<link rel="stylesheet" href="{% static 'css/pizza-modal.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6" x-data="pedidoForm()">
+    
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-primary">Novo Pedido</h1>
+        <p class="text-secondary mt-1">Adicione produtos e finalize o pedido</p>
+    </div>
+    
+    <!-- Layout Principal -->
+    <div class="layout-produtos flex flex-col lg:flex-row gap-6">
+        
+        <!-- Área de Produtos -->
+        <div class="flex-1">
+            
+            <!-- Tipo de Pedido Simplificado -->
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">🚚 COMO RECEBER?</h3>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- Delivery -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipo_pedido" value="delivery" x-model="tipoPedido" class="hidden">
+                        <div class="text-center py-3 px-2 rounded-lg border-2 transition-all"
+                             :class="tipoPedido === 'delivery' ? 'border-orange-500 bg-orange-50' : 'border-gray-300 hover:border-gray-400'">
+                            <span class="text-2xl block mb-1">🚚</span>
+                            <span class="text-sm font-medium block">Delivery</span>
+                            <span class="text-xs text-orange-600">R$ 5,00</span>
+                        </div>
+                    </label>
+                    
+                    <!-- Balcão -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipo_pedido" value="balcao" x-model="tipoPedido" class="hidden">
+                        <div class="text-center py-3 px-2 rounded-lg border-2 transition-all"
+                             :class="tipoPedido === 'balcao' ? 'border-orange-500 bg-orange-50' : 'border-gray-300 hover:border-gray-400'">
+                            <span class="text-2xl block mb-1">🏪</span>
+                            <span class="text-sm font-medium block">Balcão</span>
+                            <span class="text-xs text-green-600">Sem taxa</span>
+                        </div>
+                    </label>
+                    
+                    <!-- Mesa -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipo_pedido" value="mesa" x-model="tipoPedido" class="hidden">
+                        <div class="text-center py-3 px-2 rounded-lg border-2 transition-all"
+                             :class="tipoPedido === 'mesa' ? 'border-orange-500 bg-orange-50' : 'border-gray-300 hover:border-gray-400'">
+                            <span class="text-2xl block mb-1">🍽️</span>
+                            <span class="text-sm font-medium block">Mesa</span>
+                            <span class="text-xs text-purple-600">No local</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Formulário de Cliente Simplificado -->
+            {% include 'pedidos/components/form_cliente_simples.html' %}
+            
+            <!-- Forma de Pagamento Simplificada -->
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">💳 PAGAMENTO</h3>
+                
+                <div class="grid grid-cols-4 gap-2">
+                    <!-- Dinheiro -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="forma_pagamento" value="dinheiro" x-model="formaPagamento" class="hidden">
+                        <div class="text-center py-3 px-2 rounded-lg border-2 transition-all"
+                             :class="formaPagamento === 'dinheiro' ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'">
+                            <span class="text-2xl block mb-1">💰</span>
+                            <span class="text-xs font-medium">Dinheiro</span>
+                        </div>
+                    </label>
+                    
+                    <!-- PIX -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="forma_pagamento" value="pix" x-model="formaPagamento" class="hidden">
+                        <div class="text-center py-3 px-2 rounded-lg border-2 transition-all"
+                             :class="formaPagamento === 'pix' ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'">
+                            <span class="text-2xl block mb-1">📱</span>
+                            <span class="text-xs font-medium">PIX</span>
+                        </div>
+                    </label>
+                    
+                    <!-- Crédito -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="forma_pagamento" value="cartao_credito" x-model="formaPagamento" class="hidden">
+                        <div class="text-center py-3 px-2 rounded-lg border-2 transition-all"
+                             :class="formaPagamento === 'cartao_credito' ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'">
+                            <span class="text-2xl block mb-1">💳</span>
+                            <span class="text-xs font-medium">Crédito</span>
+                        </div>
+                    </label>
+                    
+                    <!-- Débito -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="forma_pagamento" value="cartao_debito" x-model="formaPagamento" class="hidden">
+                        <div class="text-center py-3 px-2 rounded-lg border-2 transition-all"
+                             :class="formaPagamento === 'cartao_debito' ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'">
+                            <span class="text-2xl block mb-1">💳</span>
+                            <span class="text-xs font-medium">Débito</span>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- Troco simplificado -->
+                <div x-show="formaPagamento === 'dinheiro'" x-transition class="mt-3">
+                    <input type="number" 
+                           id="troco_para" 
+                           name="troco_para"
+                           x-model="trocoPara"
+                           step="0.01"
+                           placeholder="Precisa de troco? Digite o valor (ex: 50,00)"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                </div>
+            </div>
+            
+            <!-- Seção de Produtos Simplificada -->
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">🍕 PRODUTOS</h3>
+                
+                <!-- Abas de Categorias Compactas -->
+                <div class="flex gap-1 mb-3 border-b border-gray-200">
+                    <template x-for="(produtos, categoria) in produtosPorCategoria" :key="categoria">
+                        <button type="button"
+                                @click="categoriaAtiva = categoria"
+                                class="px-3 py-2 text-sm font-medium transition-all border-b-2"
+                                :class="categoriaAtiva === categoria ? 
+                                        'text-orange-600 border-orange-600' : 
+                                        'text-gray-500 border-transparent hover:text-gray-700'">
+                            <span x-text="categoria === 'pizzas' ? '🍕 Pizzas' : (categoria === 'bebidas' ? '🥤 Bebidas' : '⭕ Bordas')"></span>
+                            <span class="text-xs" x-text="'(' + produtos.length + ')'">
+                            </span>
+                        </button>
+                    </template>
+                </div>
+                
+                
+                <!-- Lista de Produtos Compacta -->
+                <div class="produtos-container max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+                    <template x-if="produtosFiltrados.length > 0">
+                        <div>
+                            <template x-for="produto in produtosFiltrados" :key="produto.id">
+                                <div>
+                                    <!-- Pizza Lista -->
+                                    <template x-if="categoriaAtiva === 'pizzas'">
+                                        {% include 'pedidos/components/pizza_lista.html' %}
+                                    </template>
+                                    
+                                    <!-- Produto Simples Lista -->
+                                    <template x-if="categoriaAtiva !== 'pizzas'">
+                                        {% include 'pedidos/components/produto_lista.html' %}
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    
+                    <!-- Estado vazio -->
+                    <template x-if="produtosFiltrados.length === 0">
+                        <div class="text-center py-8">
+                            <p class="text-gray-500 text-sm">Nenhum produto nesta categoria</p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- Observações Simplificadas -->
+            <div class="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-200">
+                <textarea id="observacoes" 
+                          name="observacoes"
+                          rows="2"
+                          x-model="observacoes"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder="Observações do pedido (opcional)..."></textarea>
+            </div>
+            
+        </div>
+        
+        <!-- Carrinho Lateral Simplificado -->
+        <div class="lg:w-96">
+            {% include 'pedidos/components/carrinho_simples.html' %}
+        </div>
+        
+    </div>
+    
+    <!-- Modal Meio a Meio Aprimorado -->
+<div x-show="modalMeioAMeioMostrar" 
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 pizza-modal-container"
+     @click.self="fecharModalMeioAMeio()"
+     @keydown.escape.window="fecharModalMeioAMeio()"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modal-title">
+    <div class="bg-white rounded-lg pizza-modal-content"
+         @click.stop
+         x-trap.noscroll.inert="modalMeioAMeioMostrar">
+        
+        <!-- Header Aprimorado -->
+        <div class="pizza-modal-header">
+            <div class="flex items-center justify-between">
+                <h3 id="modal-title">🍕 Monte sua Pizza Meio a Meio</h3>
+                <button @click="fecharModalMeioAMeio()" class="text-white hover:bg-white hover:bg-opacity-20 rounded p-2 transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Body do Modal -->
+        <div class="pizza-modal-body">
+            
+            <!-- Preview Visual da Pizza -->
+            <div class="pizza-preview" x-show="modalMeioAMeioSabor1 || modalMeioAMeioSabor2">
+                <div class="pizza-preview-circle">
+                    <div class="pizza-half pizza-half-left" 
+                         :style="modalMeioAMeioSabor1 ? 'opacity: 1' : 'opacity: 0.5'">
+                        <span x-text="modalMeioAMeioSabor1 ? '🍕' : '?'"></span>
+                    </div>
+                    <div class="pizza-half pizza-half-right"
+                         :style="modalMeioAMeioSabor2 ? 'opacity: 1' : 'opacity: 0.5'">
+                        <span x-text="modalMeioAMeioSabor2 ? '🍕' : '?'"></span>
+                    </div>
+                    <div class="pizza-half-divider"></div>
+                </div>
+            </div>
+            
+            <!-- Seleção de Sabores Aprimorada -->
+            <div class="sabor-selection-grid">
+                
+                <!-- Sabor 1 -->
+                <div class="sabor-section sabor-section-1">
+                    <h4 class="text-orange-600">
+                        <span class="text-2xl">🍕</span>
+                        1º Sabor
+                    </h4>
+                    
+                    <!-- Busca de Sabores -->
+                    <div class="sabor-search">
+                        <input type="text" 
+                               placeholder="Buscar sabor..."
+                               x-model="buscaSabor1"
+                               @input="filtrarSabores(1)">
+                        <svg class="sabor-search-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    
+                    <div class="sabor-list">
+                        <template x-for="pizza in produtosPorCategoria.pizzas.filter(p => !buscaSabor1 || p.nome.toLowerCase().includes(buscaSabor1.toLowerCase()))" :key="'sabor1_' + pizza.id">
+                            <div class="sabor-item"
+                                 :class="modalMeioAMeioSabor1?.id === pizza.id ? 'selected-1' : ''"
+                                 @click="selecionarSabor1(pizza)"
+                                 tabindex="0"
+                                 @keydown.enter="selecionarSabor1(pizza)"
+                                 role="button"
+                                 :aria-selected="modalMeioAMeioSabor1?.id === pizza.id">
+                                <img src="{% static 'images/pizza-placeholder.svg' %}" 
+                                     alt="" 
+                                     class="sabor-item-image"
+                                     onerror="this.style.display='none'">
+                                <div class="sabor-item-content">
+                                    <h5 class="sabor-item-name" x-text="pizza.nome"></h5>
+                                    <p class="sabor-item-description" x-text="pizza.descricao || 'Pizza artesanal deliciosa'"></p>
+                                </div>
+                                <div class="sabor-item-check">
+                                    <svg x-show="modalMeioAMeioSabor1?.id === pizza.id" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <!-- Sabor 2 -->
+                <div class="sabor-section sabor-section-2">
+                    <h4 class="text-red-600">
+                        <span class="text-2xl">🍕</span>
+                        2º Sabor
+                    </h4>
+                    
+                    <!-- Busca de Sabores -->
+                    <div class="sabor-search">
+                        <input type="text" 
+                               placeholder="Buscar sabor..."
+                               x-model="buscaSabor2"
+                               @input="filtrarSabores(2)">
+                        <svg class="sabor-search-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    
+                    <div class="sabor-list">
+                        <template x-for="pizza in produtosPorCategoria.pizzas.filter(p => (!buscaSabor2 || p.nome.toLowerCase().includes(buscaSabor2.toLowerCase())) && p.id !== modalMeioAMeioSabor1?.id)" :key="'sabor2_' + pizza.id">
+                            <div class="sabor-item"
+                                 :class="modalMeioAMeioSabor2?.id === pizza.id ? 'selected-2' : ''"
+                                 @click="selecionarSabor2(pizza)"
+                                 tabindex="0"
+                                 @keydown.enter="selecionarSabor2(pizza)"
+                                 role="button"
+                                 :aria-selected="modalMeioAMeioSabor2?.id === pizza.id">
+                                <img src="{% static 'images/pizza-placeholder.svg' %}" 
+                                     alt="" 
+                                     class="sabor-item-image"
+                                     onerror="this.style.display='none'">
+                                <div class="sabor-item-content">
+                                    <h5 class="sabor-item-name" x-text="pizza.nome"></h5>
+                                    <p class="sabor-item-description" x-text="pizza.descricao || 'Pizza artesanal deliciosa'"></p>
+                                </div>
+                                <div class="sabor-item-check">
+                                    <svg x-show="modalMeioAMeioSabor2?.id === pizza.id" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seleção de Tamanho Aprimorada -->
+            <div class="tamanho-selection">
+                <h4 class="text-lg font-semibold mb-3">Escolha o Tamanho</h4>
+                <div class="tamanho-grid">
+                    <template x-for="tamanho in modalMeioAMeioSabor1?.tamanhos || []" :key="'tamanho_' + tamanho.id">
+                        <div class="tamanho-item"
+                             :class="modalMeioAMeioTamanho?.id === tamanho.id ? 'selected' : ''"
+                             @click="selecionarTamanhoMeioAMeio(tamanho)"
+                             tabindex="0"
+                             @keydown.enter="selecionarTamanhoMeioAMeio(tamanho)"
+                             role="button"
+                             :aria-selected="modalMeioAMeioTamanho?.id === tamanho.id">
+                            <div class="tamanho-item-size">
+                                <span x-text="tamanho.nome === 'P' ? '🍕' : (tamanho.nome === 'M' ? '🍕🍕' : '🍕🍕🍕')"></span>
+                            </div>
+                            <div class="tamanho-item-name" x-text="tamanho.nome === 'P' ? 'Pequena' : (tamanho.nome === 'M' ? 'Média' : 'Grande')"></div>
+                            <div class="tamanho-item-slices" x-text="tamanho.nome === 'P' ? '4 fatias' : (tamanho.nome === 'M' ? '8 fatias' : '12 fatias')"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <!-- Regra de Preço Aprimorada -->
+            <div class="price-rule-selection">
+                <h4 class="text-lg font-semibold mb-3">Como calcular o preço?</h4>
+                <div>
+                    <label class="price-rule-option"
+                           :class="modalMeioAMeioRegra === 'mais_caro' ? 'selected' : ''">
+                        <input type="radio" 
+                               x-model="modalMeioAMeioRegra" 
+                               value="mais_caro" 
+                               @change="calcularPrecoMeioAMeio()" 
+                               class="price-rule-radio">
+                        <div class="price-rule-content">
+                            <div class="price-rule-title">Preço do sabor mais caro</div>
+                            <div class="price-rule-description">Valor padrão recomendado</div>
+                        </div>
+                    </label>
+                    
+                    <label class="price-rule-option"
+                           :class="modalMeioAMeioRegra === 'media' ? 'selected' : ''">
+                        <input type="radio" 
+                               x-model="modalMeioAMeioRegra" 
+                               value="media" 
+                               @change="calcularPrecoMeioAMeio()" 
+                               class="price-rule-radio">
+                        <div class="price-rule-content">
+                            <div class="price-rule-title">Média dos dois preços</div>
+                            <div class="price-rule-description">Opção com desconto</div>
+                        </div>
+                        <div class="price-rule-savings" x-show="modalMeioAMeioEconomia > 0">
+                            -R$ <span x-text="modalMeioAMeioEconomia.toFixed(2)"></span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Resumo Visual Aprimorado -->
+            <div x-show="modalMeioAMeioSabor1 && modalMeioAMeioSabor2 && modalMeioAMeioTamanho" 
+                 class="order-summary"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-90"
+                 x-transition:enter-end="opacity-100 transform scale-100">
+                <div class="order-summary-content">
+                    <h4 class="text-lg font-semibold mb-3">📝 Resumo do Pedido</h4>
+                    <div class="order-summary-item">
+                        <span class="order-summary-label">1º Sabor:</span>
+                        <span class="order-summary-value" x-text="modalMeioAMeioSabor1?.nome"></span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span class="order-summary-label">2º Sabor:</span>
+                        <span class="order-summary-value" x-text="modalMeioAMeioSabor2?.nome"></span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span class="order-summary-label">Tamanho:</span>
+                        <span class="order-summary-value" x-text="modalMeioAMeioTamanho?.nome === 'P' ? 'Pequena' : (modalMeioAMeioTamanho?.nome === 'M' ? 'Média' : 'Grande')"></span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span class="order-summary-label">Total:</span>
+                        <span class="order-summary-total">R$ <span x-text="modalMeioAMeioPreco.toFixed(2)"></span></span>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Botões de Ação -->
+        <div class="modal-actions">
+            <button @click="fecharModalMeioAMeio()" 
+                    class="btn-modal btn-modal-cancel">
+                Cancelar
+            </button>
+            <button @click="adicionarMeioAMeioAoCarrinho()" 
+                    :disabled="!modalMeioAMeioSabor1 || !modalMeioAMeioSabor2 || !modalMeioAMeioTamanho"
+                    class="btn-modal btn-modal-confirm"
+                    :class="{'opacity-50 cursor-not-allowed': !modalMeioAMeioSabor1 || !modalMeioAMeioSabor2 || !modalMeioAMeioTamanho}">
+                🍕 Adicionar ao Carrinho
+            </button>
+        </div>
+        
+        <!-- Loading Overlay -->
+        <div x-show="calculandoPreco" class="loading-overlay">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação Simplificado -->
+<div x-show="mostrarModalConfirmacao" 
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+     @click.self="mostrarModalConfirmacao = false">
+    <div class="bg-white rounded-lg p-4 max-w-sm w-full">
+        <h3 class="text-base font-semibold mb-3">Confirmar Pedido?</h3>
+        
+        <div class="bg-gray-50 rounded p-3 mb-4 text-sm space-y-1">
+            <p><strong>Total:</strong> R$ <span x-text="total.toFixed(2).replace('.', ',')"></span></p>
+            <p><strong>Pagamento:</strong> <span x-text="formaPagamento"></span></p>
+            <p x-show="tipoPedido === 'delivery'"><strong>Entrega:</strong> <span x-text="cliente.endereco_simples"></span></p>
+        </div>
+        
+        <div class="flex gap-2">
+            <button @click="mostrarModalConfirmacao = false"
+                    class="flex-1 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                Cancelar
+            </button>
+            <button @click="finalizarPedido()"
+                    class="flex-1 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pedidos-simples.js' %}"></script>
+{% endblock %}

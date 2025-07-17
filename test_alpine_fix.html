@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Alpine Fix</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body>
+    <div x-data="{
+        mostrarListaSabor1: false,
+        saboresFiltrados1: ['Pizza 1', 'Pizza 2'],
+        message: 'Variables are accessible!'
+    }">
+        <h1>Testing Alpine.js Variable Access</h1>
+        
+        <button @click="mostrarListaSabor1 = !mostrarListaSabor1">
+            Toggle mostrarListaSabor1
+        </button>
+        
+        <div x-show="mostrarListaSabor1 && saboresFiltrados1.length > 0">
+            <p>✅ The expression works! mostrarListaSabor1 is <span x-text="mostrarListaSabor1"></span></p>
+            <p>saboresFiltrados1 has <span x-text="saboresFiltrados1.length"></span> items</p>
+        </div>
+        
+        <p x-text="message"></p>
+    </div>
+</body>
+</html>

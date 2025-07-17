@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Meio a Meio API</title>
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            
+            // Get CSRF token
+            const csrfToken = document.cookie.split(';')
+                .find(c => c.trim().startsWith('csrftoken='))
+                ?.split('=')[1] || '';
+            
+            const data = {
+                sabor_1_id: 1,
+                sabor_2_id: 2,
+                tamanho_id: 1,
+                regra_preco: 'mais_caro'
+            };
+            
+            try {
+                resultDiv.innerHTML = 'Testing API...';
+                
+                const response = await fetch('/api/pedidos/meio-a-meio/calcular-preco/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>Response:</h3>
+                    <p>Status: ${response.status}</p>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Test Meio a Meio API Endpoint</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+</body>
+</html>

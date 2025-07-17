@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Alpine.js Scope</title>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body>
+<div x-data="{
+    carrinho: [],
+    modalAberto: false,
+    
+    adicionarItem() {
+        this.carrinho.push({
+            id: Date.now(),
+            nome: 'Item ' + (this.carrinho.length + 1),
+            preco: Math.random() * 100
+        });
+        console.log('Item adicionado. Carrinho:', this.carrinho);
+    },
+    
+    abrirModal() {
+        console.log('Abrindo modal. Carrinho tem', this.carrinho.length, 'itens');
+        this.modalAberto = true;
+    },
+    
+    enviarPedido() {
+        console.log('Enviando pedido. Carrinho:', this.carrinho);
+        console.log('Número de itens:', this.carrinho.length);
+    }
+}">
+    <div style="padding: 20px;">
+        <h1>Teste de Escopo Alpine.js</h1>
+        
+        <button @click="adicionarItem()" style="padding: 10px; margin: 5px;">
+            Adicionar Item
+        </button>
+        
+        <button @click="abrirModal()" style="padding: 10px; margin: 5px;">
+            Abrir Modal
+        </button>
+        
+        <div>
+            <h2>Carrinho (<span x-text="carrinho.length"></span> itens):</h2>
+            <ul>
+                <template x-for="item in carrinho" :key="item.id">
+                    <li x-text="item.nome + ' - R$ ' + item.preco.toFixed(2)"></li>
+                </template>
+            </ul>
+        </div>
+        
+        <!-- Modal simulado -->
+        <div x-show="modalAberto" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid black;">
+            <h2>Modal</h2>
+            <p>Carrinho tem <span x-text="carrinho.length"></span> itens</p>
+            <button @click="enviarPedido()" style="padding: 10px;">
+                Enviar Pedido
+            </button>
+            <button @click="modalAberto = false" style="padding: 10px;">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

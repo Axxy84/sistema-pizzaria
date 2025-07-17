@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Browser API Issues</title>
+    <script>
+        // Test if the endpoint exists
+        async function testEndpoint() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // First test OPTIONS request to see if endpoint exists
+                const optionsResponse = await fetch('/api/pedidos/meio-a-meio/calcular-preco/', {
+                    method: 'OPTIONS'
+                });
+                
+                console.log('OPTIONS response:', optionsResponse.status);
+                
+                // Then test with actual data
+                const response = await fetch('/api/pedidos/meio-a-meio/calcular-preco/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': 'test-token'
+                    },
+                    body: JSON.stringify({
+                        sabor_1_id: 6,
+                        sabor_2_id: 5,
+                        tamanho_id: 1,
+                        regra_preco: 'mais_caro'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>Success!</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>URL: ${response.url}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Error</h3>
+                    <p style="color: red;">${error.message}</p>
+                    <p>Current URL: ${window.location.href}</p>
+                    <p>Trying to fetch: ${window.location.origin}/api/pedidos/meio-a-meio/calcular-preco/</p>
+                `;
+            }
+        }
+        
+        // Debug function to check what's being sent
+        function debugOriginalFunction() {
+            // Simulate the exact same call from pedidos-simples.js
+            console.log('Testing exact same call from JavaScript...');
+            
+            // Mock the modalPedido object
+            const modalPedido = {
+                sabor1: { id: 6 },
+                sabor2: { id: 5 },
+                tamanhoSelecionado: { id: 1 }
+            };
+            
+            // Exact same code from pedidos-simples.js
+            fetch('/api/pedidos/meio-a-meio/calcular-preco/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': 'test-token'  // Using test token
+                },
+                body: JSON.stringify({
+                    sabor_1_id: modalPedido.sabor1.id,
+                    sabor_2_id: modalPedido.sabor2.id,
+                    tamanho_id: modalPedido.tamanhoSelecionado.id,
+                    regra_preco: 'mais_caro'
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                document.getElementById('debug-result').innerHTML = `
+                    <h4>Debug Success!</h4>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            })
+            .catch(error => {
+                console.error('Debug error:', error);
+                document.getElementById('debug-result').innerHTML = `
+                    <h4>Debug Error</h4>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Debug Browser API Issues</h1>
+    
+    <h2>Test 1: Basic API Test</h2>
+    <button onclick="testEndpoint()">Test Endpoint</button>
+    <div id="result"></div>
+    
+    <h2>Test 2: Exact JavaScript Simulation</h2>
+    <button onclick="debugOriginalFunction()">Debug Original Function</button>
+    <div id="debug-result"></div>
+    
+    <h2>Info</h2>
+    <p>Current URL: <span id="current-url"></span></p>
+    <p>User Agent: <span id="user-agent"></span></p>
+    
+    <script>
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+    </script>
+</body>
+</html>

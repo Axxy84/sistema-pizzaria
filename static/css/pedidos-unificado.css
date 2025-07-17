@@ -1,0 +1,282 @@
+/* CSS para o sistema unificado de pedidos */
+
+/* Animações */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Cards de pizza com hover melhorado */
+.pizza-card {
+    transition: all 0.3s ease;
+}
+
+.pizza-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Botões de tamanho inline */
+.tamanho-inline-btn {
+    min-width: 80px;
+    transition: all 0.2s ease;
+}
+
+.tamanho-inline-btn:hover {
+    transform: scale(1.05);
+}
+
+.tamanho-inline-btn:active {
+    transform: scale(0.95);
+}
+
+/* Campo de busca estilizado */
+.busca-pizza {
+    transition: all 0.3s ease;
+}
+
+.busca-pizza:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Cards de seleção de sabor */
+.sabor-card {
+    animation: slideIn 0.3s ease;
+    transition: all 0.2s ease;
+}
+
+.sabor-card:hover {
+    transform: translateX(5px);
+}
+
+/* Preview visual da pizza */
+.pizza-preview {
+    animation: pulse 2s infinite;
+}
+
+/* Cards de bebida */
+.bebida-card {
+    transition: all 0.2s ease;
+}
+
+.bebida-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Carrinho */
+.carrinho-item {
+    animation: slideIn 0.3s ease;
+}
+
+.carrinho-item:hover .remove-btn {
+    opacity: 1;
+}
+
+.remove-btn {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+/* Resumo fixo */
+.resumo-sticky {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+/* Notificações */
+.notificacao {
+    animation: slideIn 0.3s ease;
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Estados de loading */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Responsividade mobile */
+@media (max-width: 768px) {
+    .resumo-sticky {
+        position: relative;
+        top: 0;
+    }
+    
+    .tamanho-inline-btn {
+        min-width: 60px;
+        padding: 0.5rem;
+    }
+    
+    .busca-pizza {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Badges de quantidade */
+.quantidade-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    background-color: #3B82F6;
+    border-radius: 12px;
+}
+
+/* Melhorias de acessibilidade */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus states */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #DC2626;
+    outline-offset: 2px;
+}
+
+/* Transições suaves */
+* {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+/* Grid responsivo para bebidas */
+@media (max-width: 640px) {
+    .grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 768px) {
+    .md\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* Efeito de seleção */
+.selected-item {
+    position: relative;
+}
+
+.selected-item::after {
+    content: '✓';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 24px;
+    height: 24px;
+    background-color: #10B981;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Melhorias no layout de pizza */
+.pizza-lista-container {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Divisores visuais */
+.section-divider {
+    position: relative;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.section-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #E5E7EB;
+}
+
+.section-divider span {
+    position: relative;
+    padding: 0 1rem;
+    background-color: white;
+    color: #6B7280;
+    font-size: 0.875rem;
+}
+
+/* Botão flutuante de finalizar (mobile) */
+@media (max-width: 768px) {
+    .finalizar-pedido-mobile {
+        position: fixed;
+        bottom: 1rem;
+        left: 1rem;
+        right: 1rem;
+        z-index: 40;
+        box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    }
+}

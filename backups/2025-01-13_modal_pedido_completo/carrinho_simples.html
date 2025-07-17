@@ -1,0 +1,66 @@
+<!-- Carrinho Lateral Simplificado -->
+<div class="carrinho-lateral bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center justify-between">
+        <span>🛒 CARRINHO</span>
+        <span class="text-xs text-gray-500" x-text="'(' + carrinho.length + ' itens)'"></span>
+    </h3>
+    
+    <!-- Lista de itens -->
+    <div class="space-y-2 mb-4 max-h-48 overflow-y-auto">
+        <template x-if="carrinho.length === 0">
+            <p class="text-center text-gray-500 text-sm py-4">Carrinho vazio</p>
+        </template>
+        
+        <template x-for="item in carrinho" :key="item.id">
+            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-800" x-text="item.nome"></p>
+                    <p class="text-xs text-gray-500">
+                        <span x-show="item.tamanho" x-text="'Tamanho ' + item.tamanho + ' • '"></span>
+                        <span>R$ <span x-text="item.preco.toFixed(2).replace('.', ',')"></span></span>
+                    </p>
+                </div>
+                
+                <!-- Controles de quantidade -->
+                <div class="flex items-center gap-1">
+                    <button @click="alterarQuantidade(item.id, -1)" 
+                            class="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 text-gray-600">
+                        -
+                    </button>
+                    <span class="w-8 text-center text-sm" x-text="item.quantidade"></span>
+                    <button @click="alterarQuantidade(item.id, 1)" 
+                            class="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 text-gray-600">
+                        +
+                    </button>
+                    <button @click="removerItem(item.id)" 
+                            class="w-6 h-6 rounded bg-red-100 hover:bg-red-200 text-red-600 ml-1">
+                        ×
+                    </button>
+                </div>
+            </div>
+        </template>
+    </div>
+    
+    <!-- Totais -->
+    <div class="border-t border-gray-200 pt-3 space-y-1">
+        <div class="flex justify-between text-sm">
+            <span>Subtotal:</span>
+            <span>R$ <span x-text="subtotal.toFixed(2).replace('.', ',')"></span></span>
+        </div>
+        <div class="flex justify-between text-sm" x-show="tipoPedido === 'delivery'">
+            <span>Taxa entrega:</span>
+            <span>R$ <span x-text="taxaEntrega.toFixed(2).replace('.', ',')"></span></span>
+        </div>
+        <div class="flex justify-between text-base font-bold text-gray-800 pt-2 border-t">
+            <span>Total:</span>
+            <span class="text-orange-600">R$ <span x-text="total.toFixed(2).replace('.', ',')"></span></span>
+        </div>
+    </div>
+    
+    <!-- Botão finalizar -->
+    <button @click="mostrarModalConfirmacao = true"
+            :disabled="carrinho.length === 0"
+            class="w-full mt-4 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+        Finalizar Pedido
+    </button>
+</div>

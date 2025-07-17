@@ -106,6 +106,46 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         
         return Response(produtos_por_categoria)
     
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def para_pedido_rapido(self, request):
+        """
+        Endpoint otimizado para o novo sistema de pedido rápido
+        Retorna produtos com estrutura simplificada
+        """
+        produtos = []
+        
+        for produto in Produto.objects.filter(ativo=True).prefetch_related('precos', 'categoria'):
+            categoria_key = 'outros'
+            if produto.categoria:
+                categoria_key = self._mapear_categoria_para_aba(produto.categoria.nome)
+            
+            # Preparar preços
+            precos = []
+            for preco in produto.precos.all():
+                precos.append({
+                    'id': preco.id,
+                    'tamanho': preco.tamanho.nome if preco.tamanho else 'Único',
+                    'preco': float(preco.preco_final)
+                })
+            
+            # Se não tiver preços com tamanho, usar preço unitário
+            if not precos and hasattr(produto, 'preco_unitario') and produto.preco_unitario:
+                precos.append({
+                    'id': None,
+                    'tamanho': 'Único',
+                    'preco': float(produto.preco_unitario)
+                })
+            
+            produtos.append({
+                'id': produto.id,
+                'nome': produto.nome,
+                'descricao': produto.descricao,
+                'categoria': categoria_key,
+                'precos': precos
+            })
+        
+        return Response({'produtos': produtos})
+    
     def _mapear_categoria_para_aba(self, categoria_nome):
         """Mapear nome da categoria para aba do frontend"""
         categoria_lower = categoria_nome.lower()
@@ -116,11 +156,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             return 'bebidas'
         elif any(palavra in categoria_lower for palavra in ['borda', 'recheada', 'adicional']):
             return 'bordas'
-        elif any(palavra in categoria_lower for palavra in ['sobremesa', 'doce', 'acompanhamento']):
-            return 'acompanhamentos'
         else:
-            # Se não mapear para nenhuma categoria específica, colocar em pizzas por padrão
-            return 'pizzas'
+            # Sobremesas e outros produtos vão para "outros"
+            return 'outros'
 
 class ProdutoPrecoViewSet(viewsets.ModelViewSet):
     queryset = ProdutoPreco.objects.all()

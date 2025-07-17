@@ -1,0 +1,649 @@
+/* Pizza Modal - Estilos Aprimorados */
+
+/* Variáveis CSS para facilitar manutenção */
+:root {
+    --primary-orange: #f97316;
+    --primary-red: #ef4444;
+    --primary-green: #22c55e;
+    --border-radius: 12px;
+    --transition-speed: 0.3s;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Container do Modal */
+.pizza-modal-container {
+    animation: modalFadeIn var(--transition-speed) ease-out;
+}
+
+.pizza-modal-content {
+    animation: modalSlideIn var(--transition-speed) ease-out;
+    max-width: 1200px;
+    width: 95%;
+    max-height: 95vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header do Modal Aprimorado */
+.pizza-modal-header {
+    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-red) 100%);
+    padding: 1.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.pizza-modal-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+.pizza-modal-header h3 {
+    position: relative;
+    z-index: 1;
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Body do Modal */
+.pizza-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    background: #fafafa;
+}
+
+/* Preview Visual da Pizza */
+.pizza-preview {
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 2rem;
+    position: relative;
+    animation: float 3s ease-in-out infinite;
+}
+
+.pizza-preview-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    background: #f5deb3;
+    border: 8px solid #d4a574;
+}
+
+.pizza-half {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    transition: all var(--transition-speed);
+}
+
+.pizza-half-left {
+    left: 0;
+    background: linear-gradient(90deg, #ffd4a3 0%, #ffb366 100%);
+    clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+}
+
+.pizza-half-right {
+    right: 0;
+    background: linear-gradient(90deg, #ffb366 0%, #ff9933 100%);
+    clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+}
+
+.pizza-half-divider {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #d4a574;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+/* Grid de Seleção de Sabores Aprimorado */
+.sabor-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.sabor-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid transparent;
+    transition: all var(--transition-speed);
+}
+
+.sabor-section-1 {
+    border-color: var(--primary-orange);
+}
+
+.sabor-section-2 {
+    border-color: var(--primary-red);
+}
+
+.sabor-section h4 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Busca e Filtro de Sabores */
+.sabor-search {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.sabor-search input {
+    width: 100%;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all var(--transition-speed);
+}
+
+.sabor-search input:focus {
+    border-color: var(--primary-orange);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.sabor-search-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+/* Lista de Sabores Scrollável */
+.sabor-list {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.sabor-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sabor-list::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+}
+
+.sabor-list::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.sabor-list::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Item de Sabor */
+.sabor-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    background: white;
+}
+
+.sabor-item:hover {
+    border-color: #d1d5db;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.sabor-item.selected-1 {
+    border-color: var(--primary-orange);
+    background: linear-gradient(to right, rgba(249, 115, 22, 0.05), transparent);
+}
+
+.sabor-item.selected-2 {
+    border-color: var(--primary-red);
+    background: linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent);
+}
+
+.sabor-item-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.sabor-item-content {
+    flex: 1;
+}
+
+.sabor-item-name {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.sabor-item-description {
+    font-size: 0.75rem;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.sabor-item-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-speed);
+}
+
+.sabor-item.selected-1 .sabor-item-check {
+    background: var(--primary-orange);
+    color: white;
+}
+
+.sabor-item.selected-2 .sabor-item-check {
+    background: var(--primary-red);
+    color: white;
+}
+
+/* Seleção de Tamanho Aprimorada */
+.tamanho-selection {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.tamanho-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.tamanho-item {
+    text-align: center;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    position: relative;
+    overflow: hidden;
+}
+
+.tamanho-item:hover {
+    border-color: var(--primary-green);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.tamanho-item.selected {
+    border-color: var(--primary-green);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.1) 100%);
+}
+
+.tamanho-item-size {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.tamanho-item-name {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.tamanho-item-slices {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Regra de Preço com Visual Melhorado */
+.price-rule-selection {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.price-rule-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+}
+
+.price-rule-option:hover {
+    border-color: #d1d5db;
+}
+
+.price-rule-option.selected {
+    border-color: var(--primary-orange);
+    background: rgba(249, 115, 22, 0.05);
+}
+
+.price-rule-radio {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary-orange);
+}
+
+.price-rule-content {
+    flex: 1;
+}
+
+.price-rule-title {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.price-rule-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.price-rule-savings {
+    font-size: 0.875rem;
+    color: var(--primary-green);
+    font-weight: 600;
+}
+
+/* Resumo Visual Aprimorado */
+.order-summary {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 2px solid #e5e7eb;
+    position: relative;
+    overflow: hidden;
+}
+
+.order-summary::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.05) 0%, transparent 70%);
+}
+
+.order-summary-content {
+    position: relative;
+    z-index: 1;
+}
+
+.order-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.order-summary-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.order-summary-label {
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.order-summary-value {
+    color: #1f2937;
+}
+
+.order-summary-total {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-green);
+}
+
+/* Botões de Ação Aprimorados */
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-modal {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modal-cancel {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 2px solid transparent;
+}
+
+.btn-modal-cancel:hover {
+    background: #e5e7eb;
+    transform: translateY(-2px);
+}
+
+.btn-modal-confirm {
+    background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-red) 100%);
+    color: white;
+    border: 2px solid transparent;
+}
+
+.btn-modal-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-modal-confirm:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-modal-confirm::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-modal-confirm:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Loading States */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f4f6;
+    border-top-color: var(--primary-orange);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Animações */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.1;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .pizza-modal-content {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+    
+    .pizza-modal-body {
+        padding: 1rem;
+    }
+    
+    .pizza-preview {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .sabor-selection-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .sabor-list {
+        max-height: 250px;
+    }
+    
+    .tamanho-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .modal-actions {
+        padding: 1rem;
+    }
+    
+    .btn-modal {
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Modo Escuro (futuro) */
+@media (prefers-color-scheme: dark) {
+    /* Implementar no futuro se necessário */
+}
+
+/* Acessibilidade */
+.sabor-item:focus,
+.tamanho-item:focus,
+.price-rule-option:focus,
+.btn-modal:focus {
+    outline: 3px solid var(--primary-orange);
+    outline-offset: 2px;
+}
+
+/* Transições suaves para mudanças de estado */
+* {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}

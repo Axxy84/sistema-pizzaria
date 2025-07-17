@@ -1,0 +1,1038 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Novo Pedido Rápido - Pizzaria{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Layout principal */
+    .pedido-rapido {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 1.5rem;
+        height: calc(100vh - 200px);
+    }
+    
+    /* Área de busca e produtos */
+    .produtos-area {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    /* Busca instantânea */
+    .busca-rapida {
+        position: relative;
+    }
+    
+    .busca-input {
+        width: 100%;
+        padding: 1rem 3rem 1rem 1rem;
+        font-size: 1.125rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+    
+    .busca-input:focus {
+        outline: none;
+        border-color: #DC2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    
+    .busca-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+    }
+    
+    /* Filtros rápidos */
+    .filtros-rapidos {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .filtro-chip {
+        padding: 0.5rem 1rem;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.875rem;
+    }
+    
+    .filtro-chip:hover {
+        background: #e5e7eb;
+    }
+    
+    .filtro-chip.ativo {
+        background: #DC2626;
+        color: white;
+        border-color: #DC2626;
+    }
+    
+    /* Lista de produtos */
+    .produtos-lista {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+    
+    .produto-card {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .produto-card:hover {
+        border-color: #DC2626;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .produto-imagem {
+        width: 80px;
+        height: 80px;
+        background: #f3f4f6;
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .produto-info {
+        flex: 1;
+    }
+    
+    .produto-nome {
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+    
+    .produto-descricao {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+    
+    .produto-precos {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .preco-opcao {
+        padding: 0.25rem 0.75rem;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .preco-opcao:hover {
+        background: #DC2626;
+        color: white;
+        border-color: #DC2626;
+    }
+    
+    /* Carrinho lateral compacto */
+    .carrinho-area {
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        height: calc(100vh - 200px);
+    }
+    
+    /* Header novo com total */
+    .carrinho-header-novo {
+        padding: 0.75rem 1rem;
+        background: #DC2626;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Dados do pedido fixos no topo */
+    .dados-pedido-compacto {
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .campo-compacto {
+        margin-bottom: 0.75rem;
+    }
+    
+    .campo-compacto:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Botões compactos */
+    .opcao-btn-compacto {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.125rem;
+        padding: 0.375rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .opcao-btn-compacto:hover {
+        background: #f3f4f6;
+    }
+    
+    .opcao-btn-compacto.selecionado {
+        background: #DC2626;
+        color: white;
+        border-color: #DC2626;
+    }
+    
+    /* Input compacto */
+    .input-compacto {
+        padding: 0.375rem 0.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .input-compacto:focus {
+        outline: none;
+        border-color: #DC2626;
+        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+    }
+    
+    /* Lista de itens scrollável */
+    .carrinho-itens-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+        min-height: 150px;
+    }
+    
+    /* Item compacto */
+    .item-compacto {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        background: #f9fafb;
+        border-radius: 0.375rem;
+        margin-bottom: 0.375rem;
+    }
+    
+    .item-info-compacto {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .item-acoes-compacto {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .btn-qty-compacto {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+    
+    .btn-qty-compacto:hover {
+        background: #f3f4f6;
+    }
+    
+    .qty-compacto {
+        font-weight: 500;
+        min-width: 16px;
+        text-align: center;
+        font-size: 0.75rem;
+    }
+    
+    .btn-remove-compacto {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.25rem;
+        line-height: 1;
+        color: #ef4444;
+    }
+    
+    /* Footer compacto */
+    .carrinho-footer-compacto {
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .resumo-compacto {
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-finalizar-compacto {
+        width: 100%;
+        padding: 0.75rem;
+        background: #DC2626;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-finalizar-compacto:hover:not(:disabled) {
+        background: #b91c1c;
+    }
+    
+    .btn-finalizar-compacto:disabled {
+        background: #e5e7eb;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+    
+    /* Modal rápido de pizza meio a meio */
+    .modal-rapido {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    /* Responsivo */
+    @media (max-width: 1024px) {
+        .pedido-rapido {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        
+        .carrinho-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60vh;
+            z-index: 30;
+            border-radius: 1rem 1rem 0 0;
+            box-shadow: 0 -4px 6px rgba(0,0,0,0.1);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="pedidoRapido()">
+    {% csrf_token %}
+    
+    <!-- Header -->
+    <div class="mb-4">
+        <h1 class="text-2xl font-bold text-gray-800">Novo Pedido Rápido</h1>
+        <p class="text-gray-600">Busque e adicione produtos instantaneamente</p>
+    </div>
+    
+    <!-- Layout Principal -->
+    <div class="pedido-rapido">
+        
+        <!-- Área de Produtos -->
+        <div class="produtos-area">
+            
+            <!-- Busca Instantânea -->
+            <div class="busca-rapida">
+                <input type="text" 
+                       x-model="busca"
+                       @input="buscarProdutos()"
+                       placeholder="🔍 Buscar pizza, bebida ou produto..."
+                       class="busca-input"
+                       autofocus>
+                <svg class="busca-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            
+            <!-- Filtros Rápidos -->
+            <div class="filtros-rapidos">
+                <button @click="filtroCategoria = ''; buscarProdutos()" 
+                        class="filtro-chip" 
+                        :class="{'ativo': filtroCategoria === ''}">
+                    Todos
+                </button>
+                <button @click="filtroCategoria = 'pizzas'; buscarProdutos()" 
+                        class="filtro-chip" 
+                        :class="{'ativo': filtroCategoria === 'pizzas'}">
+                    🍕 Pizzas
+                </button>
+                <button @click="filtroCategoria = 'bebidas'; buscarProdutos()" 
+                        class="filtro-chip" 
+                        :class="{'ativo': filtroCategoria === 'bebidas'}">
+                    🥤 Bebidas
+                </button>
+                <button @click="filtroCategoria = 'bordas'; buscarProdutos()" 
+                        class="filtro-chip" 
+                        :class="{'ativo': filtroCategoria === 'bordas'}">
+                    🧀 Bordas
+                </button>
+                <button @click="filtroCategoria = 'outros'; buscarProdutos()" 
+                        class="filtro-chip" 
+                        :class="{'ativo': filtroCategoria === 'outros'}">
+                    🍟 Outros
+                </button>
+                <button @click="abrirModalMeioAMeio()" 
+                        class="filtro-chip" 
+                        style="background: #fef3c7; border-color: #f59e0b;">
+                    ⚡ Pizza Meio a Meio
+                </button>
+            </div>
+            
+            <!-- Lista de Produtos -->
+            <div class="produtos-lista">
+                <template x-for="produto in produtosFiltrados" :key="produto.id">
+                    <div class="produto-card">
+                        <div class="produto-imagem">
+                            <span x-text="produto.categoria === 'pizzas' ? '🍕' : 
+                                         (produto.categoria === 'bebidas' ? '🥤' : 
+                                         (produto.categoria === 'bordas' ? '🧀' : '🍟'))"></span>
+                        </div>
+                        <div class="produto-info">
+                            <h3 class="produto-nome" x-text="produto.nome"></h3>
+                            <p class="produto-descricao" x-text="produto.descricao || 'Delicioso produto artesanal'"></p>
+                            <div class="produto-precos">
+                                <template x-for="preco in produto.precos" :key="preco.id">
+                                    <button @click="adicionarAoCarrinho(produto, preco)"
+                                            class="preco-opcao">
+                                        <span x-text="preco.tamanho"></span> - 
+                                        R$ <span x-text="preco.preco.toFixed(2).replace('.', ',')"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Estado vazio -->
+                <div x-show="produtosFiltrados.length === 0" class="text-center py-8">
+                    <p class="text-gray-500">Nenhum produto encontrado</p>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Carrinho Lateral Compacto -->
+        <div class="carrinho-area">
+            <!-- Header com Total -->
+            <div class="carrinho-header-novo">
+                <div>
+                    <span class="text-white font-semibold">🛒 Carrinho</span>
+                    <span class="text-white text-sm opacity-90" x-text="'(' + carrinho.length + ' itens)'"></span>
+                </div>
+                <div class="text-white text-right">
+                    <div class="text-xs opacity-90">Total</div>
+                    <div class="text-lg font-bold">R$ <span x-text="total.toFixed(2).replace('.', ',')"></span></div>
+                </div>
+            </div>
+            
+            <!-- Dados do Pedido (Fixo no topo) -->
+            <div class="dados-pedido-compacto">
+                <!-- Tipo de pedido -->
+                <div class="campo-compacto">
+                    <label class="text-xs font-semibold text-gray-700 mb-1 block">Como receber?</label>
+                    <div class="grid grid-cols-3 gap-1">
+                        <button @click="tipoPedido = 'balcao'" 
+                                class="opcao-btn-compacto" 
+                                :class="{'selecionado': tipoPedido === 'balcao'}">
+                            <span class="text-base">🏪</span>
+                            <span class="text-xs">Balcão</span>
+                        </button>
+                        <button @click="tipoPedido = 'delivery'" 
+                                class="opcao-btn-compacto" 
+                                :class="{'selecionado': tipoPedido === 'delivery'}">
+                            <span class="text-base">🚚</span>
+                            <span class="text-xs">Delivery</span>
+                        </button>
+                        <button @click="tipoPedido = 'mesa'" 
+                                class="opcao-btn-compacto" 
+                                :class="{'selecionado': tipoPedido === 'mesa'}">
+                            <span class="text-base">🍽️</span>
+                            <span class="text-xs">Mesa</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cliente -->
+                <div class="campo-compacto">
+                    <label class="text-xs font-semibold text-gray-700 mb-1 block">Cliente</label>
+                    <input type="text" 
+                           x-model="cliente.nome"
+                           placeholder="Nome do cliente"
+                           class="input-compacto w-full">
+                    <div class="grid grid-cols-2 gap-1 mt-1" x-show="tipoPedido === 'delivery'">
+                        <input type="text" 
+                               x-model="cliente.telefone"
+                               placeholder="Telefone"
+                               class="input-compacto">
+                        <input type="text" 
+                               x-model="cliente.endereco"
+                               placeholder="Endereço"
+                               class="input-compacto">
+                    </div>
+                </div>
+                
+                <!-- Forma de pagamento -->
+                <div class="campo-compacto">
+                    <label class="text-xs font-semibold text-gray-700 mb-1 block">Pagamento</label>
+                    <div class="grid grid-cols-3 gap-1">
+                        <button @click="formaPagamento = 'dinheiro'" 
+                                class="opcao-btn-compacto" 
+                                :class="{'selecionado': formaPagamento === 'dinheiro'}">
+                            <span class="text-base">💰</span>
+                            <span class="text-xs">Dinheiro</span>
+                        </button>
+                        <button @click="formaPagamento = 'pix'" 
+                                class="opcao-btn-compacto" 
+                                :class="{'selecionado': formaPagamento === 'pix'}">
+                            <span class="text-base">📱</span>
+                            <span class="text-xs">PIX</span>
+                        </button>
+                        <button @click="formaPagamento = 'cartao'" 
+                                class="opcao-btn-compacto" 
+                                :class="{'selecionado': formaPagamento === 'cartao'}">
+                            <span class="text-base">💳</span>
+                            <span class="text-xs">Cartão</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lista de Itens (Scrollável) -->
+            <div class="carrinho-itens-scroll">
+                <template x-if="carrinho.length > 0">
+                    <div>
+                        <template x-for="(item, index) in carrinho" :key="index">
+                            <div class="item-compacto">
+                                <div class="item-info-compacto">
+                                    <div class="text-sm font-medium" x-text="item.nome"></div>
+                                    <div class="text-xs text-gray-500">
+                                        <span x-text="item.tamanho"></span> • 
+                                        R$ <span x-text="item.preco.toFixed(2).replace('.', ',')"></span>
+                                    </div>
+                                </div>
+                                <div class="item-acoes-compacto">
+                                    <button @click="diminuirQuantidade(index)" class="btn-qty-compacto">-</button>
+                                    <span class="qty-compacto" x-text="item.quantidade"></span>
+                                    <button @click="aumentarQuantidade(index)" class="btn-qty-compacto">+</button>
+                                    <button @click="removerDoCarrinho(index)" class="btn-remove-compacto">×</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                
+                <!-- Carrinho vazio -->
+                <template x-if="carrinho.length === 0">
+                    <div class="text-center py-8 text-gray-400">
+                        <p class="text-sm">Carrinho vazio</p>
+                        <p class="text-xs mt-1">Adicione produtos</p>
+                    </div>
+                </template>
+            </div>
+            
+            <!-- Footer com Resumo e Botão -->
+            <div class="carrinho-footer-compacto">
+                <div class="resumo-compacto">
+                    <div class="flex justify-between text-sm">
+                        <span>Subtotal</span>
+                        <span>R$ <span x-text="subtotal.toFixed(2).replace('.', ',')"></span></span>
+                    </div>
+                    <div class="flex justify-between text-sm" x-show="tipoPedido === 'delivery'">
+                        <span>Entrega</span>
+                        <span>R$ 5,00</span>
+                    </div>
+                    <div class="flex justify-between font-bold pt-2 border-t">
+                        <span>Total</span>
+                        <span>R$ <span x-text="total.toFixed(2).replace('.', ',')"></span></span>
+                    </div>
+                </div>
+                
+                <button @click="finalizarPedido()" 
+                        :disabled="!podeFinalizarPedido()"
+                        class="btn-finalizar-compacto">
+                    <span x-text="carrinho.length === 0 ? 'Adicione produtos' : 'Finalizar Pedido'"></span>
+                </button>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Modal Meio a Meio Melhorada -->
+    <div x-show="modalMeioAMeio" 
+         x-cloak 
+         class="modal-rapido" 
+         @click.self="modalMeioAMeio = false"
+         x-data="{
+             busca1: '',
+             busca2: '',
+             pizzasFiltradas1() {
+                 if (!this.busca1) return pizzas;
+                 return pizzas.filter(p => p.nome.toLowerCase().includes(this.busca1.toLowerCase()));
+             },
+             pizzasFiltradas2() {
+                 if (!this.busca2) return pizzas;
+                 return pizzas.filter(p => p.nome.toLowerCase().includes(this.busca2.toLowerCase()));
+             }
+         }">
+        <div class="modal-content" style="max-width: 800px; width: 95%;">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800">🍕 Monte sua Pizza Meio a Meio</h3>
+                <button @click="modalMeioAMeio = false" 
+                        class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Seleção dos sabores -->
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <!-- Primeiro Sabor -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                        <span class="text-orange-600">🍕</span> 1º Sabor
+                    </label>
+                    
+                    <!-- Campo de busca -->
+                    <div class="relative mb-3">
+                        <input type="text" 
+                               x-model="busca1"
+                               placeholder="Buscar sabor..."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                        <svg class="absolute right-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Lista de pizzas -->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden" style="max-height: 250px; overflow-y: auto;">
+                        <template x-for="pizza in pizzasFiltradas1()" :key="'sabor1_' + pizza.id">
+                            <div @click="meioAMeio.sabor1 = pizza.id; meioAMeio.sabor1Nome = pizza.nome"
+                                 class="px-3 py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100"
+                                 :class="{'bg-orange-50 border-orange-300': meioAMeio.sabor1 === pizza.id}">
+                                <div class="font-medium text-sm" x-text="pizza.nome"></div>
+                                <div class="text-xs text-gray-500" x-show="meioAMeio.sabor1 === pizza.id">✓ Selecionado</div>
+                            </div>
+                        </template>
+                        <div x-show="pizzasFiltradas1().length === 0" class="px-3 py-4 text-center text-gray-500 text-sm">
+                            Nenhuma pizza encontrada
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Segundo Sabor -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                        <span class="text-red-600">🍕</span> 2º Sabor
+                    </label>
+                    
+                    <!-- Campo de busca -->
+                    <div class="relative mb-3">
+                        <input type="text" 
+                               x-model="busca2"
+                               placeholder="Buscar sabor..."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <svg class="absolute right-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Lista de pizzas -->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden" style="max-height: 250px; overflow-y: auto;">
+                        <template x-for="pizza in pizzasFiltradas2()" :key="'sabor2_' + pizza.id">
+                            <div @click="meioAMeio.sabor2 = pizza.id; meioAMeio.sabor2Nome = pizza.nome"
+                                 class="px-3 py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100"
+                                 :class="{'bg-red-50 border-red-300': meioAMeio.sabor2 === pizza.id}">
+                                <div class="font-medium text-sm" x-text="pizza.nome"></div>
+                                <div class="text-xs text-gray-500" x-show="meioAMeio.sabor2 === pizza.id">✓ Selecionado</div>
+                            </div>
+                        </template>
+                        <div x-show="pizzasFiltradas2().length === 0" class="px-3 py-4 text-center text-gray-500 text-sm">
+                            Nenhuma pizza encontrada
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resumo da seleção -->
+            <div x-show="meioAMeio.sabor1 && meioAMeio.sabor2" 
+                 class="bg-gray-50 rounded-lg p-3 mb-4">
+                <div class="text-sm text-gray-600">Sua pizza:</div>
+                <div class="font-semibold">
+                    <span x-text="meioAMeio.sabor1Nome"></span> + <span x-text="meioAMeio.sabor2Nome"></span>
+                </div>
+            </div>
+            
+            <!-- Tamanho -->
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-3">Escolha o Tamanho</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button @click="meioAMeio.tamanho = 'P'" 
+                            class="p-3 border rounded-lg text-center transition-all"
+                            :class="meioAMeio.tamanho === 'P' ? 'bg-red-600 text-white border-red-600' : 'border-gray-300 hover:border-gray-400'">
+                        <div class="text-lg">🍕</div>
+                        <div class="text-sm font-medium">Pequena</div>
+                        <div class="text-xs opacity-75">4 fatias</div>
+                    </button>
+                    <button @click="meioAMeio.tamanho = 'M'" 
+                            class="p-3 border rounded-lg text-center transition-all"
+                            :class="meioAMeio.tamanho === 'M' ? 'bg-red-600 text-white border-red-600' : 'border-gray-300 hover:border-gray-400'">
+                        <div class="text-lg">🍕🍕</div>
+                        <div class="text-sm font-medium">Média</div>
+                        <div class="text-xs opacity-75">8 fatias</div>
+                    </button>
+                    <button @click="meioAMeio.tamanho = 'G'" 
+                            class="p-3 border rounded-lg text-center transition-all"
+                            :class="meioAMeio.tamanho === 'G' ? 'bg-red-600 text-white border-red-600' : 'border-gray-300 hover:border-gray-400'">
+                        <div class="text-lg">🍕🍕🍕</div>
+                        <div class="text-sm font-medium">Grande</div>
+                        <div class="text-xs opacity-75">12 fatias</div>
+                    </button>
+                    <button @click="meioAMeio.tamanho = 'F'" 
+                            class="p-3 border rounded-lg text-center transition-all"
+                            :class="meioAMeio.tamanho === 'F' ? 'bg-red-600 text-white border-red-600' : 'border-gray-300 hover:border-gray-400'">
+                        <div class="text-lg">🍕🍕🍕🍕</div>
+                        <div class="text-sm font-medium">Família</div>
+                        <div class="text-xs opacity-75">16 fatias</div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Ações -->
+            <div class="flex gap-3">
+                <button @click="modalMeioAMeio = false; busca1 = ''; busca2 = ''" 
+                        class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
+                    Cancelar
+                </button>
+                <button @click="adicionarMeioAMeio(); busca1 = ''; busca2 = ''" 
+                        :disabled="!meioAMeio.sabor1 || !meioAMeio.sabor2 || !meioAMeio.tamanho"
+                        class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    🍕 Adicionar ao Carrinho
+                </button>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function pedidoRapido() {
+    return {
+        // Estado
+        busca: '',
+        filtroCategoria: '',
+        produtos: [],
+        produtosFiltrados: [],
+        pizzas: [],
+        carrinho: [],
+        tipoPedido: 'balcao',
+        formaPagamento: 'dinheiro',
+        cliente: {
+            nome: '',
+            telefone: '',
+            endereco: ''
+        },
+        modalMeioAMeio: false,
+        meioAMeio: {
+            sabor1: '',
+            sabor1Nome: '',
+            sabor2: '',
+            sabor2Nome: '',
+            tamanho: ''
+        },
+        
+        // Inicialização
+        init() {
+            this.carregarProdutos();
+        },
+        
+        // Carregar produtos
+        async carregarProdutos() {
+            try {
+                const response = await fetch('/api/produtos/produtos/para_pedido_rapido/');
+                const data = await response.json();
+                
+                this.produtos = data.produtos.map(p => ({
+                    ...p,
+                    precos: p.precos.map(preco => ({
+                        ...preco,
+                        preco: parseFloat(preco.preco)
+                    }))
+                }));
+                
+                this.pizzas = this.produtos.filter(p => p.categoria === 'pizzas');
+                
+                // Debug
+                console.log('Produtos carregados:', this.produtos.length);
+                console.log('Por categoria:', {
+                    pizzas: this.produtos.filter(p => p.categoria === 'pizzas').length,
+                    bebidas: this.produtos.filter(p => p.categoria === 'bebidas').length,
+                    bordas: this.produtos.filter(p => p.categoria === 'bordas').length,
+                    outros: this.produtos.filter(p => p.categoria === 'outros').length
+                });
+                
+                this.buscarProdutos();
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+            }
+        },
+        
+        // Buscar e filtrar produtos
+        buscarProdutos() {
+            let filtrados = this.produtos;
+            
+            // Filtro por categoria
+            if (this.filtroCategoria) {
+                filtrados = filtrados.filter(p => p.categoria === this.filtroCategoria);
+            }
+            
+            // Filtro por busca
+            if (this.busca) {
+                const termo = this.busca.toLowerCase();
+                filtrados = filtrados.filter(p => 
+                    p.nome.toLowerCase().includes(termo) ||
+                    (p.descricao && p.descricao.toLowerCase().includes(termo))
+                );
+            }
+            
+            this.produtosFiltrados = filtrados;
+            console.log('Produtos filtrados:', this.produtosFiltrados.length, 'Categoria:', this.filtroCategoria || 'Todos');
+        },
+        
+        // Adicionar ao carrinho
+        adicionarAoCarrinho(produto, preco) {
+            const itemExistente = this.carrinho.find(item => 
+                item.produto_id === produto.id && 
+                item.preco_id === preco.id
+            );
+            
+            if (itemExistente) {
+                itemExistente.quantidade++;
+            } else {
+                this.carrinho.push({
+                    produto_id: produto.id,
+                    preco_id: preco.id,
+                    nome: produto.nome,
+                    tamanho: preco.tamanho,
+                    preco: preco.preco,
+                    quantidade: 1
+                });
+            }
+            
+            // Feedback visual
+            this.mostrarNotificacao('Produto adicionado!', 'success');
+        },
+        
+        // Quantidade no carrinho
+        aumentarQuantidade(index) {
+            this.carrinho[index].quantidade++;
+        },
+        
+        diminuirQuantidade(index) {
+            if (this.carrinho[index].quantidade > 1) {
+                this.carrinho[index].quantidade--;
+            }
+        },
+        
+        removerDoCarrinho(index) {
+            this.carrinho.splice(index, 1);
+        },
+        
+        // Modal meio a meio
+        abrirModalMeioAMeio() {
+            this.modalMeioAMeio = true;
+            this.meioAMeio = { 
+                sabor1: '', 
+                sabor1Nome: '',
+                sabor2: '', 
+                sabor2Nome: '',
+                tamanho: '' 
+            };
+        },
+        
+        adicionarMeioAMeio() {
+            const sabor1 = this.pizzas.find(p => p.id == this.meioAMeio.sabor1);
+            const sabor2 = this.pizzas.find(p => p.id == this.meioAMeio.sabor2);
+            
+            if (!sabor1 || !sabor2) return;
+            
+            // Mapear tamanho para buscar preço correto
+            const tamanhoMap = {
+                'P': 'Pequena',
+                'M': 'Média', 
+                'G': 'Grande',
+                'F': 'Família'
+            };
+            
+            // Calcular preço (maior valor)
+            const preco1 = sabor1.precos.find(p => p.tamanho === tamanhoMap[this.meioAMeio.tamanho]);
+            const preco2 = sabor2.precos.find(p => p.tamanho === tamanhoMap[this.meioAMeio.tamanho]);
+            
+            const precoFinal = Math.max(preco1?.preco || 0, preco2?.preco || 0);
+            
+            this.carrinho.push({
+                nome: `${this.meioAMeio.sabor1Nome} + ${this.meioAMeio.sabor2Nome}`,
+                tamanho: tamanhoMap[this.meioAMeio.tamanho],
+                preco: precoFinal,
+                quantidade: 1,
+                meio_a_meio: true,
+                sabor1_id: sabor1.id,
+                sabor2_id: sabor2.id
+            });
+            
+            this.modalMeioAMeio = false;
+            
+            // Mostrar notificação
+            this.mostrarNotificacao('Pizza meio a meio adicionada!', 'success');
+        },
+        
+        // Cálculos
+        get subtotal() {
+            return this.carrinho.reduce((total, item) => 
+                total + (item.preco * item.quantidade), 0
+            );
+        },
+        
+        get total() {
+            let total = this.subtotal;
+            if (this.tipoPedido === 'delivery') {
+                total += 5; // Taxa de entrega
+            }
+            return total;
+        },
+        
+        // Validação
+        podeFinalizarPedido() {
+            if (this.carrinho.length === 0) return false;
+            if (!this.cliente.nome) return false;
+            if (this.tipoPedido === 'delivery' && (!this.cliente.telefone || !this.cliente.endereco)) return false;
+            return true;
+        },
+        
+        // Mostrar notificação
+        mostrarNotificacao(mensagem, tipo = 'info') {
+            // Criar elemento de notificação
+            const notificacao = document.createElement('div');
+            notificacao.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all ${
+                tipo === 'success' ? 'bg-green-500 text-white' : 
+                tipo === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notificacao.textContent = mensagem;
+            
+            // Adicionar ao body
+            document.body.appendChild(notificacao);
+            
+            // Remover após 3 segundos
+            setTimeout(() => {
+                notificacao.remove();
+            }, 3000);
+        },
+        
+        // Finalizar pedido
+        async finalizarPedido() {
+            if (!this.podeFinalizarPedido()) return;
+            
+            const pedido = {
+                tipo: this.tipoPedido,
+                forma_pagamento: this.formaPagamento,
+                cliente_nome: this.cliente.nome,
+                cliente_telefone: this.cliente.telefone,
+                endereco_entrega: this.cliente.endereco,
+                itens: this.carrinho.map(item => ({
+                    produto_preco_id: item.preco_id,
+                    quantidade: item.quantidade,
+                    observacoes: item.meio_a_meio ? 
+                        `Meio a meio: ${item.nome}` : ''
+                })),
+                taxa_entrega: this.tipoPedido === 'delivery' ? 5 : 0,
+                total: this.total
+            };
+            
+            try {
+                const response = await fetch('/pedidos/api/criar-rapido/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify(pedido)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    this.mostrarNotificacao('Pedido criado com sucesso!', 'success');
+                    
+                    // Limpar carrinho
+                    this.carrinho = [];
+                    this.cliente = { nome: '', telefone: '', endereco: '' };
+                    
+                    // Redirecionar para detalhes do pedido
+                    setTimeout(() => {
+                        window.location.href = `/pedidos/${data.pedido_id}/`;
+                    }, 1000);
+                } else {
+                    throw new Error('Erro ao criar pedido');
+                }
+            } catch (error) {
+                this.mostrarNotificacao('Erro ao criar pedido', 'error');
+                console.error(error);
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

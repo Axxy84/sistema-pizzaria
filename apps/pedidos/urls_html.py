@@ -10,6 +10,7 @@ urlpatterns = [
     
     # CRUD
     path('novo/', views_html.PedidoCreateView.as_view(), name='pedido_create'),
+    path('rapido/', views_html.PedidoRapidoView.as_view(), name='pedido_rapido'),
     path('test-produtos/', TemplateView.as_view(template_name='pedidos/test_produtos.html'), name='test_produtos'),
     path('<int:pk>/', views_html.PedidoDetailView.as_view(), name='pedido_detail'),
     path('<int:pk>/confirmacao/', views_html.PedidoDetailView.as_view(), name='pedido_confirmacao'),
@@ -28,4 +29,7 @@ urlpatterns = [
     path('ajax/buscar-produtos/', views_html.ajax_buscar_produtos, name='ajax_buscar_produtos'),
     path('ajax/calcular-taxa-entrega/', views_html.ajax_calcular_taxa_entrega, name='ajax_calcular_taxa_entrega'),
     path('ajax/cliente/<int:cliente_id>/enderecos/', views_html.ajax_cliente_enderecos, name='ajax_cliente_enderecos'),
+    
+    # API do pedido rápido
+    path('api/criar-rapido/', views_html.api_criar_pedido_rapido, name='api_criar_pedido_rapido'),
 ]

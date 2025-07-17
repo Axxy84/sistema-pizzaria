@@ -130,7 +130,7 @@
             <div class="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 md:gap-6 lg:grid-cols-4 xl:gap-8 mb-8">
                 
                 <!-- 1. Novo Pedido (Verde) -->
-                <a href="{% url 'pedidos:pedido_create' %}" class="group relative bg-white p-4 sm:p-6 rounded-xl shadow-soft hover:shadow-xl border border-gray-100 hover:border-green-200 transition-all duration-300 transform hover:-translate-y-1">
+                <a href="{% url 'pedidos:pedido_rapido' %}" class="group relative bg-white p-4 sm:p-6 rounded-xl shadow-soft hover:shadow-xl border border-gray-100 hover:border-green-200 transition-all duration-300 transform hover:-translate-y-1">
                     <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4 group-hover:bg-green-200 transition-colors duration-300">
                         <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M8 11v6h8v-6M8 11H6a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2h-2"/>
@@ -356,7 +356,7 @@
                         </svg>
                         <p>Nenhum pedido encontrado. Que tal criar o primeiro?</p>
                         <div class="mt-4">
-                            <a href="{% url 'pedidos:pedido_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700">
+                            <a href="{% url 'pedidos:pedido_rapido' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700">
                                 Criar Novo Pedido
                             </a>
                         </div>

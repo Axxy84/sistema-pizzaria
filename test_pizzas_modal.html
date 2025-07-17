@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Pizzas Modal</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body>
+    <div x-data="testPizzas()">
+        <h1>Teste de Carregamento de Pizzas</h1>
+        
+        <button @click="carregarProdutos()" style="padding: 10px; background: blue; color: white;">
+            Carregar Produtos
+        </button>
+        
+        <div style="margin-top: 20px;">
+            <h2>Produtos Carregados:</h2>
+            <div>
+                <strong>Total de Pizzas:</strong> <span x-text="produtosPorCategoria.pizzas?.length || 0"></span>
+            </div>
+            
+            <h3>Lista de Pizzas:</h3>
+            <ul>
+                <template x-for="pizza in produtosPorCategoria.pizzas" :key="pizza.id">
+                    <li>
+                        <strong x-text="pizza.nome"></strong> (ID: <span x-text="pizza.id"></span>)
+                        <br>
+                        Descrição: <span x-text="pizza.descricao || 'Sem descrição'"></span>
+                    </li>
+                </template>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 20px; border: 1px solid #ccc; padding: 10px;">
+            <h3>Teste de Busca</h3>
+            <input type="text" 
+                   x-model="busca"
+                   @input="filtrar()"
+                   placeholder="Digite para buscar..."
+                   style="padding: 5px; width: 300px;">
+            
+            <div>
+                <strong>Resultados encontrados:</strong> <span x-text="resultados.length"></span>
+            </div>
+            
+            <ul>
+                <template x-for="pizza in resultados" :key="pizza.id">
+                    <li x-text="pizza.nome"></li>
+                </template>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+    function testPizzas() {
+        return {
+            produtosPorCategoria: {
+                pizzas: [],
+                bebidas: [],
+                bordas: []
+            },
+            busca: '',
+            resultados: [],
+            
+            async carregarProdutos() {
+                try {
+                    console.log('Iniciando carregamento...');
+                    const response = await fetch('/api/produtos/produtos/para_pedido/');
+                    const data = await response.json();
+                    
+                    console.log('Resposta da API:', data);
+                    
+                    if (data) {
+                        this.produtosPorCategoria = {
+                            pizzas: data.pizzas || [],
+                            bebidas: data.bebidas || [],
+                            bordas: data.bordas || []
+                        };
+                        
+                        console.log('Pizzas carregadas:', this.produtosPorCategoria.pizzas);
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                }
+            },
+            
+            filtrar() {
+                const busca = this.busca.toLowerCase().trim();
+                
+                if (!busca) {
+                    this.resultados = this.produtosPorCategoria.pizzas;
+                } else {
+                    this.resultados = this.produtosPorCategoria.pizzas.filter(pizza => {
+                        const nomeMatch = pizza.nome.toLowerCase().includes(busca);
+                        const descMatch = pizza.descricao && pizza.descricao.toLowerCase().includes(busca);
+                        return nomeMatch || descMatch;
+                    });
+                }
+                
+                console.log('Busca:', busca);
+                console.log('Resultados:', this.resultados);
+            },
+            
+            init() {
+                this.carregarProdutos();
+            }
+        }
+    }
+    </script>
+</body>
+</html>

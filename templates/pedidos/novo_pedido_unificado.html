@@ -1,0 +1,369 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Novo Pedido - Pizzaria{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pedidos-unificado.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/pizza-modal.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6" x-data="pedidoUnificado()">
+    
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-primary">🍕 Novo Pedido</h1>
+        <p class="text-secondary mt-1">Selecione pizzas e adicione ao carrinho rapidamente</p>
+    </div>
+    
+    <!-- Layout Principal -->
+    <div class="flex flex-col lg:flex-row gap-6">
+        
+        <!-- Área Principal - Seleção de Pizzas -->
+        <div class="flex-1">
+            
+            <!-- Card de Seleção Rápida -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                
+                <!-- Header do Card -->
+                <div class="bg-gradient-to-r from-red-600 to-orange-600 text-white p-4 rounded-t-lg">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-bold">1️⃣ Escolha sua Pizza</h2>
+                        
+                        <!-- Campo de Busca -->
+                        <div class="relative">
+                            <input type="text" 
+                                   x-model="buscaPizza"
+                                   @input="filtrarPizzas()"
+                                   placeholder="🔍 Buscar pizza..."
+                                   class="w-64 px-4 py-2 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white">
+                            <svg class="absolute right-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Body do Card -->
+                <div class="p-6">
+                    
+                    <!-- Tipo de Pizza -->
+                    <div class="mb-6">
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" 
+                                       x-model="tipoPizza" 
+                                       value="inteira" 
+                                       class="sr-only peer">
+                                <div class="p-4 border-2 rounded-lg text-center transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                                    <div class="text-2xl mb-1">🍕</div>
+                                    <div class="font-semibold">Pizza Inteira</div>
+                                    <div class="text-sm text-gray-600">Um sabor completo</div>
+                                </div>
+                            </label>
+                            
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" 
+                                       x-model="tipoPizza" 
+                                       value="meio-a-meio"
+                                       class="sr-only peer">
+                                <div class="p-4 border-2 rounded-lg text-center transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                                    <div class="text-2xl mb-1">🍕🍕</div>
+                                    <div class="font-semibold">Meio a Meio</div>
+                                    <div class="text-sm text-gray-600">Dois sabores</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Lista de Pizzas com Seleção Inline -->
+                    <div class="space-y-4 max-h-96 overflow-y-auto">
+                        <!-- Pizza Inteira -->
+                        <template x-if="tipoPizza === 'inteira'">
+                            <div>
+                                <template x-for="pizza in pizzasFiltradas" :key="pizza.id">
+                                    <div class="border rounded-lg p-4 hover:shadow-md transition-all"
+                                         :class="pizzaSelecionada?.id === pizza.id ? 'border-red-500 bg-red-50' : 'border-gray-200'">
+                                        
+                                        <div class="flex items-start gap-4">
+                                            <!-- Info da Pizza -->
+                                            <div class="flex-1">
+                                                <h3 class="font-bold text-lg" x-text="pizza.nome"></h3>
+                                                <p class="text-sm text-gray-600" x-text="pizza.descricao || 'Pizza artesanal deliciosa'"></p>
+                                            </div>
+                                            
+                                            <!-- Tamanhos Inline -->
+                                            <div class="flex gap-2">
+                                                <template x-for="tamanho in pizza.tamanhos" :key="tamanho.id">
+                                                    <button @click="selecionarPizza(pizza, tamanho)"
+                                                            class="px-4 py-2 rounded-lg border-2 transition-all text-center"
+                                                            :class="(pizzaSelecionada?.id === pizza.id && tamanhoSelecionado?.id === tamanho.id) ? 
+                                                                    'border-green-500 bg-green-500 text-white' : 
+                                                                    'border-gray-300 hover:border-green-500 hover:bg-green-50'">
+                                                        <div class="text-xs font-bold" x-text="tamanho.nome"></div>
+                                                        <div class="text-sm font-bold">R$ <span x-text="tamanho.preco.toFixed(0)"></span></div>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                        
+                        <!-- Pizza Meio a Meio -->
+                        <template x-if="tipoPizza === 'meio-a-meio'">
+                            <div class="space-y-6">
+                                <!-- Seleção Sabor 1 -->
+                                <div>
+                                    <h4 class="font-semibold text-orange-600 mb-3">🍕 Primeiro Sabor</h4>
+                                    <div class="space-y-2">
+                                        <template x-for="pizza in pizzasFiltradas" :key="'sabor1_' + pizza.id">
+                                            <div @click="selecionarSabor1(pizza)"
+                                                 class="border rounded-lg p-3 cursor-pointer transition-all"
+                                                 :class="sabor1?.id === pizza.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'">
+                                                <div class="flex items-center justify-between">
+                                                    <div>
+                                                        <h5 class="font-semibold" x-text="pizza.nome"></h5>
+                                                        <p class="text-xs text-gray-600" x-text="pizza.descricao || 'Deliciosa pizza artesanal'"></p>
+                                                    </div>
+                                                    <div x-show="sabor1?.id === pizza.id" class="text-orange-600">
+                                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <!-- Seleção Sabor 2 -->
+                                <div x-show="sabor1">
+                                    <h4 class="font-semibold text-red-600 mb-3">🍕 Segundo Sabor</h4>
+                                    <div class="space-y-2">
+                                        <template x-for="pizza in pizzasFiltradas.filter(p => p.id !== sabor1?.id)" :key="'sabor2_' + pizza.id">
+                                            <div @click="selecionarSabor2(pizza)"
+                                                 class="border rounded-lg p-3 cursor-pointer transition-all"
+                                                 :class="sabor2?.id === pizza.id ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-red-300'">
+                                                <div class="flex items-center justify-between">
+                                                    <div>
+                                                        <h5 class="font-semibold" x-text="pizza.nome"></h5>
+                                                        <p class="text-xs text-gray-600" x-text="pizza.descricao || 'Deliciosa pizza artesanal'"></p>
+                                                    </div>
+                                                    <div x-show="sabor2?.id === pizza.id" class="text-red-600">
+                                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <!-- Seleção de Tamanho para Meio a Meio -->
+                                <div x-show="sabor1 && sabor2">
+                                    <h4 class="font-semibold text-gray-700 mb-3">📏 Escolha o Tamanho</h4>
+                                    <div class="flex gap-3">
+                                        <template x-for="tamanho in sabor1?.tamanhos || []" :key="'tam_' + tamanho.id">
+                                            <button @click="selecionarTamanhoMeioAMeio(tamanho)"
+                                                    class="flex-1 p-4 rounded-lg border-2 transition-all text-center"
+                                                    :class="tamanhoSelecionado?.id === tamanho.id ? 
+                                                            'border-green-500 bg-green-500 text-white' : 
+                                                            'border-gray-300 hover:border-green-500 hover:bg-green-50'">
+                                                <div class="text-lg font-bold" x-text="tamanho.nome === 'P' ? 'Pequena' : (tamanho.nome === 'M' ? 'Média' : 'Grande')"></div>
+                                                <div class="text-2xl font-bold">R$ <span x-text="calcularPrecoMeioAMeio(tamanho).toFixed(0)"></span></div>
+                                                <div class="text-xs" x-text="tamanho.nome === 'P' ? '4 fatias' : (tamanho.nome === 'M' ? '8 fatias' : '12 fatias')"></div>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. Borda Recheada (Opcional) -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 mt-6" x-show="pizzaSelecionada || (sabor1 && sabor2 && tamanhoSelecionado)">
+                <div class="p-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                        <span>2️⃣</span>
+                        Quer Borda Recheada? (Opcional)
+                    </h3>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" x-model="bordaSelecionada" value="" class="sr-only peer">
+                            <div class="p-3 border-2 rounded-lg text-center transition-all peer-checked:border-green-500 peer-checked:bg-green-50">
+                                <div class="font-medium">Sem Borda</div>
+                                <div class="text-sm text-gray-600">Tradicional</div>
+                            </div>
+                        </label>
+                        
+                        <template x-for="borda in bordas" :key="borda.id">
+                            <label class="cursor-pointer">
+                                <input type="radio" x-model="bordaSelecionada" :value="borda.id" class="sr-only peer">
+                                <div class="p-3 border-2 rounded-lg text-center transition-all peer-checked:border-green-500 peer-checked:bg-green-50">
+                                    <div class="font-medium" x-text="borda.nome"></div>
+                                    <div class="text-sm font-bold text-green-600">+R$ <span x-text="borda.preco.toFixed(0)"></span></div>
+                                </div>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3. Bebidas (Opcional) -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 mt-6" x-show="pizzaSelecionada || (sabor1 && sabor2 && tamanhoSelecionado)">
+                <div class="p-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                        <span>3️⃣</span>
+                        Adicionar Bebidas? (Opcional)
+                    </h3>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <template x-for="bebida in bebidas" :key="bebida.id">
+                            <div @click="toggleBebida(bebida)"
+                                 class="p-3 border-2 rounded-lg cursor-pointer transition-all text-center"
+                                 :class="bebidasSelecionadas.find(b => b.id === bebida.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'">
+                                <div class="text-2xl mb-1">🥤</div>
+                                <div class="font-medium text-sm" x-text="bebida.nome"></div>
+                                <div class="text-sm font-bold text-blue-600">R$ <span x-text="bebida.preco.toFixed(2)"></span></div>
+                                <div x-show="bebidasSelecionadas.find(b => b.id === bebida.id)" 
+                                     class="mt-2 flex items-center justify-center gap-2">
+                                    <button @click.stop="diminuirQuantidadeBebida(bebida)" class="w-6 h-6 bg-blue-500 text-white rounded">-</button>
+                                    <span class="font-bold" x-text="bebidasSelecionadas.find(b => b.id === bebida.id)?.quantidade || 0"></span>
+                                    <button @click.stop="aumentarQuantidadeBebida(bebida)" class="w-6 h-6 bg-blue-500 text-white rounded">+</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 4. Observações -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 mt-6" x-show="pizzaSelecionada || (sabor1 && sabor2 && tamanhoSelecionado)">
+                <div class="p-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                        <span>4️⃣</span>
+                        Observações (Opcional)
+                    </h3>
+                </div>
+                <div class="p-4">
+                    <textarea x-model="observacoes"
+                              rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                              placeholder="Ex: Sem cebola, bem assada, etc..."></textarea>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Sidebar - Resumo e Carrinho -->
+        <div class="lg:w-96">
+            <!-- Resumo do Pedido Atual -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4 sticky top-4"
+                 x-show="pizzaSelecionada || (sabor1 && sabor2 && tamanhoSelecionado)">
+                <h3 class="font-semibold mb-3">📝 Resumo do Item</h3>
+                
+                <div class="space-y-2 text-sm">
+                    <!-- Pizza -->
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Pizza:</span>
+                        <span class="font-medium" x-text="tipoPizza === 'inteira' ? pizzaSelecionada?.nome : (sabor1?.nome + ' / ' + sabor2?.nome)"></span>
+                    </div>
+                    
+                    <!-- Tamanho -->
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tamanho:</span>
+                        <span class="font-medium" x-text="tamanhoSelecionado?.nome === 'P' ? 'Pequena' : (tamanhoSelecionado?.nome === 'M' ? 'Média' : 'Grande')"></span>
+                    </div>
+                    
+                    <!-- Borda -->
+                    <div class="flex justify-between" x-show="bordaSelecionada">
+                        <span class="text-gray-600">Borda:</span>
+                        <span class="font-medium" x-text="bordas.find(b => b.id == bordaSelecionada)?.nome"></span>
+                    </div>
+                    
+                    <!-- Bebidas -->
+                    <template x-for="bebida in bebidasSelecionadas" :key="'resumo_' + bebida.id">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600" x-text="bebida.nome + ' (' + bebida.quantidade + 'x)'"></span>
+                            <span class="font-medium">R$ <span x-text="(bebida.preco * bebida.quantidade).toFixed(2)"></span></span>
+                        </div>
+                    </template>
+                    
+                    <!-- Total -->
+                    <div class="pt-2 mt-2 border-t border-gray-200">
+                        <div class="flex justify-between text-lg font-bold">
+                            <span>Total:</span>
+                            <span class="text-green-600">R$ <span x-text="calcularTotalItem().toFixed(2)"></span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botão Adicionar -->
+                <button @click="adicionarAoCarrinho()"
+                        class="w-full mt-4 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-bold hover:from-green-700 hover:to-green-800 transition-all">
+                    🛒 Adicionar ao Carrinho
+                </button>
+            </div>
+            
+            <!-- Carrinho -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <h3 class="font-semibold mb-3 flex items-center justify-between">
+                    <span>🛒 Carrinho</span>
+                    <span class="text-sm font-normal text-gray-600">(<span x-text="carrinho.length"></span> itens)</span>
+                </h3>
+                
+                <div class="space-y-3 max-h-96 overflow-y-auto">
+                    <template x-for="(item, index) in carrinho" :key="index">
+                        <div class="border rounded-lg p-3 relative">
+                            <button @click="removerDoCarrinho(index)"
+                                    class="absolute top-2 right-2 text-red-500 hover:text-red-700">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                            
+                            <div class="pr-6">
+                                <div class="font-medium" x-text="item.nome"></div>
+                                <div class="text-sm text-gray-600" x-text="item.detalhes"></div>
+                                <div class="text-sm font-bold text-green-600 mt-1">R$ <span x-text="item.preco.toFixed(2)"></span></div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <div x-show="carrinho.length === 0" class="text-center py-8 text-gray-500">
+                        Carrinho vazio
+                    </div>
+                </div>
+                
+                <!-- Total e Finalizar -->
+                <div x-show="carrinho.length > 0" class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="flex justify-between text-xl font-bold mb-4">
+                        <span>Total Geral:</span>
+                        <span class="text-green-600">R$ <span x-text="calcularTotalCarrinho().toFixed(2)"></span></span>
+                    </div>
+                    
+                    <button @click="finalizarPedido()"
+                            class="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 rounded-lg font-bold hover:from-orange-700 hover:to-red-700 transition-all">
+                        ✅ Finalizar Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pedidos-unificado.js' %}?v=1.0"></script>
+{% endblock %}

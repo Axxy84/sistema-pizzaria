@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Cálculo de Borda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto" x-data="testeBorda()">
+        <h1 class="text-2xl font-bold mb-6">Teste de Cálculo com Borda</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="font-bold mb-4">Selecione uma Borda:</h2>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <label class="cursor-pointer">
+                    <input type="radio" x-model="borda" :value="null" @change="calcular()" class="sr-only peer">
+                    <div class="p-4 border-2 rounded-lg transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                        <div class="text-center">
+                            <div class="text-2xl mb-1">🍕</div>
+                            <div class="font-medium">Sem Borda</div>
+                            <div class="text-sm text-gray-600">Pizza tradicional</div>
+                        </div>
+                    </div>
+                </label>
+                
+                <label class="cursor-pointer">
+                    <input type="radio" x-model="borda" :value="{id: 1, nome: 'Catupiry', preco: 8.00}" @change="calcular()" class="sr-only peer">
+                    <div class="p-4 border-2 rounded-lg transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                        <div class="text-center">
+                            <div class="text-2xl mb-1">🧀</div>
+                            <div class="font-medium">Catupiry</div>
+                            <div class="text-sm text-green-600 font-semibold">+R$ 8,00</div>
+                        </div>
+                    </div>
+                </label>
+                
+                <label class="cursor-pointer">
+                    <input type="radio" x-model="borda" :value="{id: 2, nome: 'Cheddar', preco: 8.00}" @change="calcular()" class="sr-only peer">
+                    <div class="p-4 border-2 rounded-lg transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                        <div class="text-center">
+                            <div class="text-2xl mb-1">🧈</div>
+                            <div class="font-medium">Cheddar</div>
+                            <div class="text-sm text-green-600 font-semibold">+R$ 8,00</div>
+                        </div>
+                    </div>
+                </label>
+                
+                <label class="cursor-pointer">
+                    <input type="radio" x-model="borda" :value="{id: 3, nome: 'Alho', preco: 6.00}" @change="calcular()" class="sr-only peer">
+                    <div class="p-4 border-2 rounded-lg transition-all peer-checked:border-red-500 peer-checked:bg-red-50">
+                        <div class="text-center">
+                            <div class="text-2xl mb-1">🧄</div>
+                            <div class="font-medium">Alho</div>
+                            <div class="text-sm text-green-600 font-semibold">+R$ 6,00</div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+            
+            <div class="border-t pt-4">
+                <h3 class="font-bold mb-2">Resumo do Cálculo:</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Pizza (base):</span>
+                        <span>R$ 50,00</span>
+                    </div>
+                    <div x-show="borda" class="flex justify-between text-green-600">
+                        <span>Borda <span x-text="borda?.nome"></span>:</span>
+                        <span>+R$ <span x-text="(borda?.preco || 0).toFixed(2)"></span></span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg border-t pt-2">
+                        <span>TOTAL:</span>
+                        <span class="text-red-600">R$ <span x-text="total.toFixed(2)"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="font-bold mb-2">Console de Debug:</h3>
+            <pre class="bg-gray-100 p-4 rounded text-xs overflow-x-auto" x-text="debug"></pre>
+        </div>
+    </div>
+    
+    <script>
+        function testeBorda() {
+            return {
+                borda: null,
+                total: 50.00,
+                debug: 'Selecione uma borda para testar...',
+                
+                calcular() {
+                    let log = '=== CÁLCULO DO PREÇO ===\n';
+                    log += `Pizza base: R$ 50.00\n`;
+                    
+                    let total = 50.00;
+                    
+                    if (this.borda) {
+                        const precoBorda = this.borda.preco || this.borda.preco_unitario || 0;
+                        log += `\nBorda selecionada: ${this.borda.nome}\n`;
+                        log += `Objeto borda: ${JSON.stringify(this.borda, null, 2)}\n`;
+                        log += `Preço da borda: R$ ${precoBorda.toFixed(2)}\n`;
+                        total += precoBorda;
+                    } else {
+                        log += `\nSem borda selecionada\n`;
+                    }
+                    
+                    log += `\nTOTAL CALCULADO: R$ ${total.toFixed(2)}`;
+                    
+                    this.total = total;
+                    this.debug = log;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

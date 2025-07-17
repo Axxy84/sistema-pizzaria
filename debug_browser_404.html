@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug 404 - Meio a Meio API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Debug 404 - API Meio a Meio</h1>
+    
+    <div id="status"></div>
+    
+    <h2>Testes</h2>
+    <button onclick="testWithFetch()">Teste com Fetch</button>
+    <button onclick="testWithXHR()">Teste com XMLHttpRequest</button>
+    <button onclick="debugCurrentPage()">Debug Página Atual</button>
+    <button onclick="clearCacheAndReload()">Limpar Cache e Recarregar</button>
+    
+    <h2>Resultados</h2>
+    <div id="results"></div>
+    
+    <script>
+        const API_URL = '/api/pedidos/meio-a-meio/calcular-preco/';
+        const TEST_DATA = {
+            sabor_1_id: 6,
+            sabor_2_id: 5,
+            tamanho_id: 1,
+            regra_preco: 'mais_caro'
+        };
+        
+        function log(message, type = 'info') {
+            const div = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            div.innerHTML += `<p class="${type}">[${timestamp}] ${message}</p>`;
+            div.scrollTop = div.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            document.getElementById('status').innerHTML = `<p class="${type}">${message}</p>`;
+        }
+        
+        async function testWithFetch() {
+            log('Iniciando teste com Fetch API...', 'info');
+            updateStatus('Testando com Fetch...', 'info');
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(TEST_DATA)
+                });
+                
+                log(`Fetch Status: ${response.status}`, response.ok ? 'success' : 'error');
+                log(`Fetch URL: ${response.url}`, 'info');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`Fetch Success: ${JSON.stringify(data, null, 2)}`, 'success');
+                    updateStatus('✅ Fetch funcionou!', 'success');
+                } else {
+                    const text = await response.text();
+                    log(`Fetch Error: ${text}`, 'error');
+                    updateStatus(`❌ Fetch falhou: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`Fetch Exception: ${error.message}`, 'error');
+                updateStatus(`❌ Fetch exceção: ${error.message}`, 'error');
+            }
+        }
+        
+        function testWithXHR() {
+            log('Iniciando teste com XMLHttpRequest...', 'info');
+            updateStatus('Testando com XMLHttpRequest...', 'info');
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', API_URL, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('X-CSRFToken', getCsrfToken());
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    log(`XHR Status: ${xhr.status}`, xhr.status === 200 ? 'success' : 'error');
+                    
+                    if (xhr.status === 200) {
+                        log(`XHR Success: ${xhr.responseText}`, 'success');
+                        updateStatus('✅ XHR funcionou!', 'success');
+                    } else {
+                        log(`XHR Error: ${xhr.responseText}`, 'error');
+                        updateStatus(`❌ XHR falhou: ${xhr.status}`, 'error');
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                log('XHR Network Error', 'error');
+                updateStatus('❌ XHR erro de rede', 'error');
+            };
+            
+            xhr.send(JSON.stringify(TEST_DATA));
+        }
+        
+        function debugCurrentPage() {
+            log('=== DEBUG INFO ===', 'info');
+            log(`Current URL: ${window.location.href}`, 'info');
+            log(`Origin: ${window.location.origin}`, 'info');
+            log(`User Agent: ${navigator.userAgent}`, 'info');
+            log(`CSRF Token: ${getCsrfToken() || 'NÃO ENCONTRADO'}`, 'info');
+            
+            // Testar se consegue acessar outras APIs
+            fetch('/api/produtos/produtos/para_pedido/')
+                .then(response => {
+                    log(`API Produtos Status: ${response.status}`, response.ok ? 'success' : 'error');
+                })
+                .catch(error => {
+                    log(`API Produtos Error: ${error.message}`, 'error');
+                });
+        }
+        
+        function getCsrfToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    return value;
+                }
+            }
+            return '';
+        }
+        
+        function clearCacheAndReload() {
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) caches.delete(name);
+                    log('Cache limpo!', 'success');
+                    setTimeout(() => window.location.reload(true), 1000);
+                });
+            } else {
+                log('Cache API não disponível, forçando reload...', 'info');
+                window.location.reload(true);
+            }
+        }
+        
+        // Auto-executar debug na carga da página
+        window.onload = function() {
+            debugCurrentPage();
+            log('Página carregada. Execute os testes acima.', 'info');
+        };
+    </script>
+</body>
+</html>

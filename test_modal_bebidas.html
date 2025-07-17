@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Modal Bebidas Melhorado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/pizza-modal.css">
+    <style>
+        /* Simular estilos de teste */
+        .bebida-card { transition: all 0.3s ease; }
+        .btn-finalizar-pedido { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Teste das Melhorias do Modal</h1>
+        
+        <!-- Prévia da Seção de Bebidas -->
+        <div class="bg-white rounded-lg p-6 shadow-lg mb-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <span class="text-xl">3️⃣</span>
+                Adicionar Bebidas
+                <span class="ml-auto text-sm bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                    3 selecionadas
+                </span>
+            </h3>
+            
+            <!-- Botão Limpar -->
+            <div class="mb-4">
+                <button class="text-sm text-red-600 hover:text-red-700 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Limpar todas as bebidas
+                </button>
+            </div>
+            
+            <!-- REFRIGERANTES -->
+            <div class="mb-6">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <span>REFRIGERANTES</span>
+                    <div class="flex-1 h-px bg-gray-300"></div>
+                </h4>
+                <div class="grid gap-3">
+                    <!-- Card Selecionado -->
+                    <div class="flex items-center justify-between p-4 bg-white border-2 rounded-lg border-red-400 bg-red-50">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🥤</span>
+                            <div>
+                                <div class="font-medium">Coca-Cola 2L</div>
+                                <div class="text-sm text-gray-600">R$ 12,00</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-sm font-medium text-red-600">
+                                R$ 24,00
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
+                                </button>
+                                <span class="w-8 text-center font-medium">2</span>
+                                <button class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card Normal -->
+                    <div class="flex items-center justify-between p-4 bg-white border-2 rounded-lg border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🥤</span>
+                            <div>
+                                <div class="font-medium">Guaraná Antarctica</div>
+                                <div class="text-sm text-gray-600">R$ 5,00</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2">
+                                <button disabled class="w-8 h-8 rounded-full bg-gray-200 opacity-50 cursor-not-allowed">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
+                                </button>
+                                <span class="w-8 text-center font-medium">0</span>
+                                <button class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CERVEJAS -->
+            <div class="mb-6">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <span>CERVEJAS</span>
+                    <div class="flex-1 h-px bg-gray-300"></div>
+                </h4>
+                <div class="grid gap-3">
+                    <div class="flex items-center justify-between p-4 bg-white border-2 rounded-lg border-red-400 bg-red-50">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🍺</span>
+                            <div>
+                                <div class="font-medium">Heineken Long Neck</div>
+                                <div class="text-sm text-gray-600">R$ 8,00</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-sm font-medium text-red-600">
+                                R$ 8,00
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
+                                </button>
+                                <span class="w-8 text-center font-medium">1</span>
+                                <button class="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 text-white">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Prévia do Resumo e Botões -->
+        <div class="bg-gray-100 p-6 rounded-lg">
+            <!-- Resumo -->
+            <div class="mb-4 p-4 bg-white rounded-lg shadow-sm">
+                <h4 class="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <span>💰</span>
+                    Resumo do Pedido
+                </h4>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span>Pizza Camarão Premium (G)</span>
+                        <span class="font-medium">R$ 65,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>2x Coca-Cola 2L</span>
+                        <span class="font-medium">R$ 24,00</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>1x Heineken</span>
+                        <span class="font-medium">R$ 8,00</span>
+                    </div>
+                    <div class="pt-2 mt-2 border-t border-gray-200 flex justify-between font-bold text-base">
+                        <span>TOTAL:</span>
+                        <span class="text-red-600">R$ 97,00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botões -->
+            <div class="flex gap-3">
+                <button class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-lg transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Cancelar
+                </button>
+                <button class="flex-1 px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span>Finalizar Pedido - R$ 97,00</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Comparação Antes/Depois -->
+        <div class="mt-8 grid md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="font-bold mb-3">❌ Antes (Layout Simples)</h3>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="space-y-2">
+                        <div class="flex justify-between p-2 bg-gray-50">
+                            <span>🥤 Coca-Cola 2L - R$ 12,00</span>
+                            <span>[-] 0 [+]</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-gray-50">
+                            <span>🥤 Guaraná - R$ 5,00</span>
+                            <span>[-] 0 [+]</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="font-bold mb-3">✅ Depois (Layout Melhorado)</h3>
+                <ul class="text-sm space-y-1 text-green-700">
+                    <li>✓ Categorização por tipo de bebida</li>
+                    <li>✓ Cards visuais com destaque quando selecionado</li>
+                    <li>✓ Subtotal por item visível</li>
+                    <li>✓ Contador de bebidas selecionadas</li>
+                    <li>✓ Botão limpar todas as bebidas</li>
+                    <li>✓ Botão Finalizar verde destacado com valor total</li>
+                    <li>✓ Ícones específicos por categoria</li>
+                    <li>✓ Layout responsivo e moderno</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

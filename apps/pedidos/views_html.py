@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 from django.db.models import Q, Sum, Count
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -90,7 +92,7 @@ class PedidoCreateView(LoginRequiredMixin, CreateView):
     """Criar novo pedido com wizard"""
     model = Pedido
     form_class = PedidoForm
-    template_name = 'pedidos/pedido_form_otimizado.html'
+    template_name = 'pedidos/pedido_rapido.html'
     success_url = reverse_lazy('pedido_list')
     
     def get_context_data(self, **kwargs):
@@ -149,7 +151,7 @@ class PedidoUpdateView(LoginRequiredMixin, UpdateView):
     """Editar pedido existente"""
     model = Pedido
     form_class = PedidoForm
-    template_name = 'pedidos/pedido_form_otimizado.html'
+    template_name = 'pedidos/pedido_rapido.html'
     success_url = reverse_lazy('pedido_list')
     
     def get_context_data(self, **kwargs):
@@ -395,3 +397,96 @@ def ajax_cliente_enderecos(request, cliente_id):
         })
     
     return JsonResponse({'enderecos': enderecos})
+
+
+class PedidoRapidoView(LoginRequiredMixin, TemplateView):
+    """View para novo sistema de pedido rápido unificado"""
+    template_name = 'pedidos/pedido_rapido.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+@login_required
+def api_criar_pedido_rapido(request):
+    """API para criar pedido do sistema rápido"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método não permitido'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        
+        # Criar ou buscar cliente
+        cliente = None
+        if data.get('cliente_nome'):
+            # Buscar por telefone se fornecido
+            if data.get('cliente_telefone'):
+                cliente = Cliente.objects.filter(
+                    telefone=data['cliente_telefone']
+                ).first()
+            
+            # Se não encontrar, criar novo
+            if not cliente:
+                cliente = Cliente.objects.create(
+                    nome=data['cliente_nome'],
+                    telefone=data.get('cliente_telefone', ''),
+                    email=data.get('cliente_email', '')
+                )
+                
+                # Criar endereço se for delivery
+                if data.get('tipo') == 'delivery' and data.get('endereco_entrega'):
+                    Endereco.objects.create(
+                        cliente=cliente,
+                        tipo='residencial',
+                        logradouro=data['endereco_entrega'],
+                        principal=True
+                    )
+        
+        # Criar pedido
+        pedido = Pedido.objects.create(
+            cliente=cliente,
+            usuario=request.user,
+            tipo=data.get('tipo', 'balcao'),
+            forma_pagamento=data.get('forma_pagamento', 'dinheiro'),
+            taxa_entrega=Decimal(str(data.get('taxa_entrega', 0))),
+            observacoes=data.get('observacoes', '')
+        )
+        
+        # Adicionar itens
+        for item_data in data.get('itens', []):
+            # Tratamento especial para pizza meio a meio
+            if item_data.get('meio_a_meio'):
+                observacao = item_data.get('observacoes', '')
+            else:
+                observacao = item_data.get('observacoes', '')
+            
+            # Buscar produto_preco
+            produto_preco = None
+            if item_data.get('produto_preco_id'):
+                produto_preco = ProdutoPreco.objects.filter(
+                    id=item_data['produto_preco_id']
+                ).first()
+            
+            if produto_preco:
+                ItemPedido.objects.create(
+                    pedido=pedido,
+                    produto_preco=produto_preco,
+                    quantidade=item_data.get('quantidade', 1),
+                    observacoes=observacao
+                )
+        
+        # Calcular total
+        pedido.calcular_total()
+        
+        return JsonResponse({
+            'success': True,
+            'pedido_id': pedido.id,
+            'numero': pedido.numero,
+            'total': float(pedido.total)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Erro ao criar pedido: {str(e)}'
+        }, status=400)

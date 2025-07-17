@@ -1,0 +1,191 @@
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+Bad Request: /api/pedidos/pedidos/criar_pedido_seguro/
+[15/Jul/2025 20:26:00] "POST /api/pedidos/pedidos/criar_pedido_seguro/ HTTP/1.1" 400 108
+[15/Jul/2025 20:26:24] "POST /api/pedidos/pedidos/criar_pedido_seguro/ HTTP/1.1" 201 124
+/home/labdev/Documentos/DjangoProject/apps/pedidos/utils.py changed, reloading.
+Performing system checks...
+
+July 15, 2025 - 20:25:24
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/utils.py changed, reloading.
+Performing system checks...
+
+July 15, 2025 - 22:28:30
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/views_html.py changed, reloading.
+Performing system checks...
+
+July 15, 2025 - 22:28:57
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/urls_html.py changed, reloading.
+Performing system checks...
+
+July 15, 2025 - 22:36:17
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/views_html.py changed, reloading.
+Performing system checks...
+
+July 15, 2025 - 22:36:51
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/urls_html.py changed, reloading.
+Performing system checks...
+
+July 16, 2025 - 00:10:09
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/views_html.py changed, reloading.
+Performing system checks...
+
+July 16, 2025 - 00:10:34
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/views_html.py changed, reloading.
+Performing system checks...
+
+July 17, 2025 - 16:21:52
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/views_html.py changed, reloading.
+Performing system checks...
+
+July 17, 2025 - 16:29:29
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).
+/home/labdev/Documentos/DjangoProject/apps/pedidos/urls_html.py changed, reloading.
+Performing system checks...
+
+July 17, 2025 - 16:30:01
+Django version 5.2.4, using settings 'DjangoProject.settings'
+Starting development server at http://127.0.0.1:8080/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+Watching for file changes with StatReloader
+System check identified some issues:
+
+WARNINGS:
+?: (debug_toolbar.W003) debug_toolbar.middleware.DebugToolbarMiddleware occurs before django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+	HINT: Move debug_toolbar.middleware.DebugToolbarMiddleware to after django.middleware.gzip.GZipMiddleware in MIDDLEWARE.
+
+System check identified 1 issue (0 silenced).

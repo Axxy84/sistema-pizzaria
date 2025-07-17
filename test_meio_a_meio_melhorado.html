@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nova Interface Meio a Meio</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #DC2626; 
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .feature {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        .feature h3 {
+            margin-top: 0;
+            color: #111827;
+        }
+        .screenshot {
+            margin: 20px 0;
+            padding: 20px;
+            background: #fffbeb;
+            border: 2px dashed #f59e0b;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            background: #DC2626;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background: #b91c1c;
+        }
+        .improvements {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .improvements ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .improvements li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍕 Nova Interface Pizza Meio a Meio</h1>
+        
+        <div class="improvements">
+            <h2>✨ Melhorias Implementadas:</h2>
+            <ul>
+                <li>✅ <strong>2 campos de busca separados</strong> - Um para cada sabor</li>
+                <li>✅ <strong>Layout lado a lado</strong> - Mais intuitivo e visual</li>
+                <li>✅ <strong>Lista scrollável</strong> - Fácil navegação entre sabores</li>
+                <li>✅ <strong>Seleção visual clara</strong> - Cores diferentes para cada sabor</li>
+                <li>✅ <strong>Resumo em tempo real</strong> - Mostra a combinação selecionada</li>
+                <li>✅ <strong>4 tamanhos disponíveis</strong> - P, M, G e Família</li>
+                <li>✅ <strong>Visual com ícones</strong> - Mais amigável e intuitivo</li>
+            </ul>
+        </div>
+        
+        <div class="feature">
+            <h3>🔍 Como funciona a busca:</h3>
+            <p>1. Digite parte do nome da pizza no campo de busca</p>
+            <p>2. A lista filtra automaticamente enquanto você digita</p>
+            <p>3. Clique na pizza desejada para selecionar</p>
+            <p>4. Repita para o segundo sabor</p>
+        </div>
+        
+        <div class="feature">
+            <h3>🎨 Visual melhorado:</h3>
+            <ul>
+                <li><strong>Laranja</strong> para o primeiro sabor</li>
+                <li><strong>Vermelho</strong> para o segundo sabor</li>
+                <li>Indicação visual clara dos itens selecionados</li>
+                <li>Resumo mostra: "Calabresa + Margherita"</li>
+            </ul>
+        </div>
+        
+        <div class="feature">
+            <h3>📱 Responsivo:</h3>
+            <p>A interface se adapta perfeitamente para telas menores, mantendo a usabilidade em dispositivos móveis.</p>
+        </div>
+        
+        <div class="screenshot">
+            <h3>📸 Para testar:</h3>
+            <p>1. Acesse o sistema de pedidos</p>
+            <p>2. Clique no botão <strong>"⚡ Pizza Meio a Meio"</strong></p>
+            <p>3. Use os campos de busca para encontrar suas pizzas favoritas</p>
+            <p>4. Selecione o tamanho desejado</p>
+            <p>5. Clique em "Adicionar ao Carrinho"</p>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="http://127.0.0.1:8080/pedidos/rapido/" class="button" target="_blank">
+                Testar Nova Interface
+            </a>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #f3f4f6; border-radius: 8px;">
+            <h4>💡 Dica:</h4>
+            <p>Experimente buscar por "Cala" para encontrar Calabresa, ou "Marg" para Margherita. A busca é case-insensitive!</p>
+        </div>
+    </div>
+</body>
+</html>

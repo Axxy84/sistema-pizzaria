@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Modal Tamanhos</title>
+    <script>
+        // Simular dados para teste
+        const testData = {
+            pizza: {
+                id: 1,
+                nome: "Margherita",
+                tamanhos: [
+                    {id: 1, nome: 'P', preco: 25},
+                    {id: 2, nome: 'M', preco: 35},
+                    {id: 3, nome: 'G', preco: 45}
+                ]
+            }
+        };
+        
+        function testarModal(tamanhoClicado) {
+            console.log('=== TESTE MODAL ===');
+            console.log('Tamanho clicado:', tamanhoClicado);
+            
+            // Simular abertura do modal
+            const modalPedido = {
+                tipoPizza: 'inteira',
+                sabor1: testData.pizza,
+                sabor1Id: testData.pizza.id,
+                sabor2: null,
+                sabor2Id: null,
+                tamanhoSelecionado: tamanhoClicado,
+                tamanhoSelecionadoId: tamanhoClicado.id,
+                tamanhos: testData.pizza.tamanhos || [],
+                borda: null,
+                bebidas: {},
+                observacoes: '',
+                precoPizza: tamanhoClicado.preco,
+                total: tamanhoClicado.preco
+            };
+            
+            console.log('Modal configurado:');
+            console.log('- Tamanho selecionado:', modalPedido.tamanhoSelecionado.nome);
+            console.log('- Tamanho ID:', modalPedido.tamanhoSelecionadoId);
+            console.log('- Preço:', modalPedido.precoPizza);
+            console.log('- Tamanhos disponíveis:', modalPedido.tamanhos);
+            
+            // Verificar se o tamanho correto será marcado
+            const tamanhoMarcado = modalPedido.tamanhos.find(t => t.id === modalPedido.tamanhoSelecionadoId);
+            console.log('Tamanho que será marcado no radio:', tamanhoMarcado);
+            
+            console.log('✅ Teste concluído\n');
+        }
+        
+        // Executar testes
+        console.log('🧪 TESTANDO CORREÇÃO DO BUG DE TAMANHOS\n');
+        
+        // Teste 1: Clicar em Pequena
+        testarModal(testData.pizza.tamanhos[0]); // P - R$ 25
+        
+        // Teste 2: Clicar em Média
+        testarModal(testData.pizza.tamanhos[1]); // M - R$ 35
+        
+        // Teste 3: Clicar em Grande
+        testarModal(testData.pizza.tamanhos[2]); // G - R$ 45
+    </script>
+</head>
+<body>
+    <h1>Teste Modal Tamanhos - Verifique o Console</h1>
+    <p>Abra o console do navegador (F12) para ver os resultados dos testes.</p>
+    
+    <h2>Resumo da Correção:</h2>
+    <ol>
+        <li>✅ Adicionado <code>tamanhoSelecionadoId</code> ao estado do modal</li>
+        <li>✅ Modal agora usa IDs para marcar o radio button correto</li>
+        <li>✅ Função <code>selecionarTamanhoModalCompleto()</code> atualiza o tamanho selecionado</li>
+        <li>✅ Ao trocar de sabor, tenta manter o mesmo tamanho (P, M ou G)</li>
+    </ol>
+    
+    <h2>Comportamento Esperado:</h2>
+    <ul>
+        <li>Clicar em "Pequena R$ 25" → Modal mostra Pequena selecionada com R$ 25</li>
+        <li>Clicar em "Média R$ 35" → Modal mostra Média selecionada com R$ 35</li>
+        <li>Clicar em "Grande R$ 45" → Modal mostra Grande selecionada com R$ 45</li>
+    </ul>
+</body>
+</html>

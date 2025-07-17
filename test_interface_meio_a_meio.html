@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Interface Meio a Meio</title>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; }
+        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .sabor-item { padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; }
+        .sabor-item.selected { border-color: #007bff; background: #e7f3ff; }
+    </style>
+</head>
+<body>
+    <div x-data="{
+        modalMeioAMeioMostrar: false,
+        modalMeioAMeioSabor1: null,
+        modalMeioAMeioSabor2: null,
+        
+        pizzas: [
+            {id: 1, nome: 'Margherita'},
+            {id: 2, nome: 'Calabresa'},
+            {id: 3, nome: 'Portuguesa'}
+        ],
+        
+        abrirModalMeioAMeio() {
+            console.log('Abrindo modal meio a meio');
+            this.modalMeioAMeioMostrar = true;
+        },
+        
+        fecharModalMeioAMeio() {
+            this.modalMeioAMeioMostrar = false;
+        },
+        
+        selecionarSabor1(pizza) {
+            this.modalMeioAMeioSabor1 = pizza;
+            console.log('Sabor 1 selecionado:', pizza.nome);
+        },
+        
+        selecionarSabor2(pizza) {
+            this.modalMeioAMeioSabor2 = pizza;
+            console.log('Sabor 2 selecionado:', pizza.nome);
+        }
+    }">
+        
+        <h1>Teste Interface Meio a Meio</h1>
+        
+        <button @click="abrirModalMeioAMeio()" class="btn btn-primary">
+            🍕 Abrir Modal Meio a Meio
+        </button>
+        
+        <!-- Modal -->
+        <div x-show="modalMeioAMeioMostrar" class="modal">
+            <div class="modal-content">
+                <h2>Monte sua Pizza Meio a Meio</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- Sabor 1 -->
+                    <div>
+                        <h3>1º Sabor</h3>
+                        <template x-for="pizza in pizzas" :key="'sabor1_' + pizza.id">
+                            <div class="sabor-item"
+                                 :class="modalMeioAMeioSabor1?.id === pizza.id ? 'selected' : ''"
+                                 @click="selecionarSabor1(pizza)"
+                                 x-text="pizza.nome">
+                            </div>
+                        </template>
+                        <p>Selecionado: <span x-text="modalMeioAMeioSabor1?.nome || 'Nenhum'"></span></p>
+                    </div>
+                    
+                    <!-- Sabor 2 -->
+                    <div>
+                        <h3>2º Sabor</h3>
+                        <template x-for="pizza in pizzas" :key="'sabor2_' + pizza.id">
+                            <div class="sabor-item"
+                                 :class="modalMeioAMeioSabor2?.id === pizza.id ? 'selected' : ''"
+                                 @click="selecionarSabor2(pizza)"
+                                 x-show="pizza.id !== modalMeioAMeioSabor1?.id"
+                                 x-text="pizza.nome">
+                            </div>
+                        </template>
+                        <p>Selecionado: <span x-text="modalMeioAMeioSabor2?.nome || 'Nenhum'"></span></p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button @click="fecharModalMeioAMeio()" class="btn btn-secondary">Fechar</button>
+                    <button class="btn btn-primary" 
+                            :disabled="!modalMeioAMeioSabor1 || !modalMeioAMeioSabor2">
+                        Adicionar ao Carrinho
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</body>
+</html>
