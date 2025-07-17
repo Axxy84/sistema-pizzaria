@@ -63,6 +63,25 @@ class Pedido(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
     
+    # Novo campo para número da mesa
+    mesa_numero = models.CharField(max_length=10, blank=True, help_text='Número da mesa para pedidos de mesa')
+    
+    @property
+    def tempo_desde_criacao(self):
+        """Retorna o tempo decorrido desde a criação do pedido"""
+        from django.utils import timezone
+        delta = timezone.now() - self.criado_em
+        
+        if delta.days > 0:
+            return f"{delta.days} dia{'s' if delta.days > 1 else ''}"
+        
+        hours = delta.seconds // 3600
+        if hours > 0:
+            return f"{hours} hora{'s' if hours > 1 else ''}"
+        
+        minutes = (delta.seconds % 3600) // 60
+        return f"{minutes} minuto{'s' if minutes != 1 else ''}"
+    
     class Meta:
         verbose_name = 'Pedido'
         verbose_name_plural = 'Pedidos'

@@ -1,0 +1,124 @@
+<!-- Card especial para pedidos de mesa -->
+<div class="pedido-card p-4 bg-white">
+    <div class="flex items-start justify-between mb-3">
+        <div>
+            <div class="flex items-center space-x-2">
+                <h4 class="text-lg font-bold text-gray-900">Mesa {{ pedido.mesa_numero|default:"--" }}</h4>
+                <span class="tipo-badge tipo-mesa">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                    Mesa
+                </span>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Pedido #{{ pedido.numero }}</p>
+        </div>
+        <span class="status-badge status-{{ pedido.status }}">
+            {{ pedido.get_status_display }}
+        </span>
+    </div>
+    
+    <!-- Tempo de espera -->
+    <div class="mb-3">
+        <p class="text-sm text-gray-600">
+            <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Há {{ pedido.tempo_desde_criacao }}
+        </p>
+    </div>
+    
+    <!-- Itens do pedido (resumido) -->
+    <div class="border-t pt-3 mb-3">
+        <p class="text-sm font-medium text-gray-700 mb-1">Itens:</p>
+        {% for item in pedido.itens.all|slice:":3" %}
+            <p class="text-xs text-gray-600">
+                {{ item.quantidade }}x {{ item.produto.nome }}
+                {% if item.observacoes %}
+                    <span class="text-gray-400">({{ item.observacoes|truncatewords:5 }})</span>
+                {% endif %}
+            </p>
+        {% endfor %}
+        {% if pedido.itens.count > 3 %}
+            <p class="text-xs text-gray-500 italic">
+                + {{ pedido.itens.count|add:"-3" }} item(ns)
+            </p>
+        {% endif %}
+    </div>
+    
+    <!-- Total e ações -->
+    <div class="flex items-center justify-between border-t pt-3">
+        <p class="text-lg font-bold text-gray-900">
+            R$ {{ pedido.total|floatformat:2 }}
+        </p>
+        
+        <div class="flex space-x-2">
+            <!-- Botão de ações rápidas -->
+            <div x-data="{ open: false }" class="relative">
+                <button @click="open = !open" 
+                        class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                    </svg>
+                </button>
+                
+                <div x-show="open" 
+                     @click.away="open = false"
+                     x-transition
+                     class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+                    <div class="py-1">
+                        <a href="{% url 'pedidos:pedido_detail' pedido.pk %}" 
+                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Ver Detalhes
+                        </a>
+                        {% if pedido.status == 'recebido' %}
+                            <button onclick="updateStatus({{ pedido.pk }}, 'preparando')"
+                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                Iniciar Preparo
+                            </button>
+                        {% elif pedido.status == 'preparando' %}
+                            <button onclick="updateStatus({{ pedido.pk }}, 'pronto')"
+                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                Marcar como Pronto
+                            </button>
+                        {% elif pedido.status == 'pronto' %}
+                            <button onclick="updateStatus({{ pedido.pk }}, 'entregue')"
+                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                Finalizar
+                            </button>
+                        {% endif %}
+                        <button onclick="imprimirComanda({{ pedido.pk }})"
+                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            Imprimir Comanda
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatus(pedidoId, novoStatus) {
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/api/pedidos/${pedidoId}/atualizar_status/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({ status: novoStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
+function imprimirComanda(pedidoId) {
+    window.open(`/pedidos/${pedidoId}/imprimir/`, '_blank');
+}
+</script>

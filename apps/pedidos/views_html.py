@@ -79,6 +79,11 @@ class PedidoListView(LoginRequiredMixin, ListView):
             count=Count('id')
         ).order_by('status')
         
+        # Contadores por tipo para as abas
+        pedidos_ativos = Pedido.objects.exclude(status__in=['entregue', 'cancelado'])
+        context['pedidos_mesa_count'] = pedidos_ativos.filter(tipo='mesa').count()
+        context['pedidos_delivery_count'] = pedidos_ativos.filter(tipo='delivery').count()
+        
         # Filtros ativos
         context['filtro_status'] = self.request.GET.get('status', 'todos')
         context['filtro_tipo'] = self.request.GET.get('tipo', '')
