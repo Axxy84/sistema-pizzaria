@@ -4,8 +4,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
-from django.shortcuts import render, get_object_or_404
-from .models import Pedido, ItemPedido
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
+from .models import Pedido, ItemPedido, Mesa
+from .models_mesa import Mesa as MesaModel
 from .serializers import (
     PedidoListSerializer, PedidoDetailSerializer,
     PedidoCreateSerializer, PedidoStatusSerializer
@@ -72,6 +77,71 @@ class PedidoViewSet(viewsets.ModelViewSet):
         em_prep = self.queryset.filter(status__in=['confirmado', 'preparando'])
         serializer = PedidoListSerializer(em_prep, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def novos(self, request):
+        """Verificar novos pedidos desde um timestamp"""
+        from django.utils import timezone
+        from datetime import datetime
+        from django.db.models import Count, Sum
+        
+        # Pegar timestamp da query string
+        desde = request.GET.get('desde')
+        
+        try:
+            if desde:
+                # Converter ISO string para datetime, tratando diferentes formatos
+                # Remove microsegundos e timezone info para simplificar
+                desde_clean = desde.split('.')[0]  # Remove microsegundos
+                desde_clean = desde_clean.replace('Z', '')  # Remove Z
+                desde_clean = desde_clean.replace('+00:00', '')  # Remove timezone
+                
+                try:
+                    # Tenta parse sem timezone
+                    desde_dt = datetime.fromisoformat(desde_clean)
+                    # Adiciona timezone UTC
+                    desde_dt = timezone.make_aware(desde_dt, timezone.utc)
+                except:
+                    # Se falhar, tenta com replace direto
+                    desde_dt = datetime.fromisoformat(desde.replace('Z', '+00:00').split('.')[0] + '+00:00')
+            else:
+                # Se não fornecer, usar últimos 5 minutos
+                desde_dt = timezone.now() - timezone.timedelta(minutes=5)
+            
+            # Garantir que está timezone-aware
+            if timezone.is_naive(desde_dt):
+                desde_dt = timezone.make_aware(desde_dt)
+            
+            # Buscar novos pedidos
+            novos_pedidos = self.queryset.filter(criado_em__gt=desde_dt)
+            novos_count = novos_pedidos.count()
+            
+            # Estatísticas atualizadas
+            hoje = timezone.now().date()
+            pedidos_hoje = Pedido.objects.filter(criado_em__date=hoje)
+            
+            total_hoje = pedidos_hoje.count()
+            vendas_hoje = pedidos_hoje.aggregate(total=Sum('total'))['total'] or 0
+            
+            # Contadores por tipo (apenas ativos)
+            pedidos_ativos = Pedido.objects.exclude(status__in=['entregue', 'cancelado'])
+            pedidos_mesa_count = pedidos_ativos.filter(tipo='mesa').count()
+            pedidos_delivery_count = pedidos_ativos.filter(tipo='delivery').count()
+            
+            return Response({
+                'novos_pedidos': novos_count,
+                'timestamp': timezone.now().isoformat(),
+                'total_hoje': total_hoje,
+                'vendas_hoje': float(vendas_hoje),
+                'pedidos_mesa_count': pedidos_mesa_count,
+                'pedidos_delivery_count': pedidos_delivery_count,
+                'pedidos': PedidoListSerializer(novos_pedidos[:10], many=True).data if novos_count > 0 else []
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': f'Erro ao verificar novos pedidos: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
     
     
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
@@ -317,3 +387,126 @@ def pedido_confirmacao_view(request, pedido_id):
     """View para exibir a página de confirmação do pedido"""
     pedido = get_object_or_404(Pedido, id=pedido_id)
     return render(request, 'pedidos/confirmacao.html', {'pedido': pedido})
+
+
+@login_required
+def mesas_abertas_view(request):
+    """View principal para gerenciar mesas abertas"""
+    mesas = Mesa.objects.filter(status='aberta').order_by('numero')
+    
+    # Estatísticas
+    total_mesas_abertas = mesas.count()
+    total_consumo = sum(mesa.total_pedidos for mesa in mesas)
+    
+    context = {
+        'mesas': mesas,
+        'total_mesas_abertas': total_mesas_abertas,
+        'total_consumo': total_consumo,
+    }
+    
+    return render(request, 'pedidos/mesas_abertas.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def abrir_mesa_view(request):
+    """View para abrir uma nova mesa"""
+    numero = request.POST.get('numero')
+    responsavel = request.POST.get('responsavel', '')
+    
+    if not numero:
+        messages.error(request, 'Número da mesa é obrigatório!')
+        return redirect('pedidos:mesas_abertas')
+    
+    # Verificar se a mesa já existe
+    mesa_existente = Mesa.objects.filter(numero=numero).first()
+    
+    if mesa_existente:
+        if mesa_existente.status == 'aberta':
+            messages.warning(request, f'Mesa {numero} já está aberta!')
+        else:
+            # Reabrir mesa fechada
+            mesa_existente.reabrir_mesa()
+            mesa_existente.responsavel = responsavel
+            mesa_existente.save()
+            messages.success(request, f'Mesa {numero} reaberta com sucesso!')
+    else:
+        # Criar nova mesa
+        Mesa.objects.create(
+            numero=numero,
+            responsavel=responsavel,
+            status='aberta'
+        )
+        messages.success(request, f'Mesa {numero} aberta com sucesso!')
+    
+    return redirect('pedidos:mesas_abertas')
+
+
+@login_required
+@require_http_methods(["POST"])
+def fechar_mesa_view(request, mesa_id):
+    """View para fechar uma mesa"""
+    mesa = get_object_or_404(Mesa, id=mesa_id)
+    
+    if mesa.status != 'aberta':
+        messages.warning(request, f'Mesa {mesa.numero} não está aberta!')
+        return redirect('pedidos:mesas_abertas')
+    
+    # Verificar se há pedidos pendentes
+    pedidos_pendentes = mesa.pedidos_ativos.exclude(status='entregue').count()
+    
+    if pedidos_pendentes > 0 and not request.POST.get('forcar_fechamento'):
+        messages.warning(
+            request, 
+            f'Mesa {mesa.numero} possui {pedidos_pendentes} pedido(s) pendente(s). '
+            'Marque a opção de forçar fechamento para continuar.'
+        )
+        return redirect('pedidos:mesas_abertas')
+    
+    mesa.fechar_mesa()
+    messages.success(request, f'Mesa {mesa.numero} fechada com sucesso! Total: R$ {mesa.total_consumido}')
+    
+    return redirect('pedidos:mesas_abertas')
+
+
+@login_required
+def mesa_detalhes_view(request, mesa_id):
+    """View para exibir detalhes de uma mesa"""
+    mesa = get_object_or_404(Mesa, id=mesa_id)
+    pedidos = mesa.pedidos_ativos
+    
+    context = {
+        'mesa': mesa,
+        'pedidos': pedidos,
+        'comanda': mesa.get_comanda_completa()
+    }
+    
+    return render(request, 'pedidos/mesa_detalhes.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def adicionar_pedido_mesa_view(request, mesa_id):
+    """View para adicionar um pedido rápido a uma mesa"""
+    mesa = get_object_or_404(Mesa, id=mesa_id)
+    
+    if mesa.status != 'aberta':
+        return JsonResponse({'error': 'Mesa não está aberta'}, status=400)
+    
+    # Redirecionar para o formulário de pedido com a mesa pré-selecionada
+    return redirect(f'/pedidos/novo/?mesa={mesa.numero}')
+
+
+@login_required
+def imprimir_comanda_view(request, mesa_id):
+    """View para imprimir a comanda de uma mesa"""
+    mesa = get_object_or_404(Mesa, id=mesa_id)
+    comanda = mesa.get_comanda_completa()
+    
+    context = {
+        'mesa': mesa,
+        'comanda': comanda,
+        'imprimir': True
+    }
+    
+    return render(request, 'pedidos/comanda_impressao.html', context)

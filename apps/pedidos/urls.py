@@ -5,6 +5,8 @@ from . import views
 router = DefaultRouter()
 router.register(r'pedidos', views.PedidoViewSet)
 
+app_name = 'pedidos'
+
 urlpatterns = [
     path('', include(router.urls)),
     
@@ -15,4 +17,12 @@ urlpatterns = [
     
     # Página de confirmação
     path('<int:pedido_id>/confirmacao/', views.pedido_confirmacao_view, name='pedido_confirmacao'),
+    
+    # URLs para mesas
+    path('mesas/', views.mesas_abertas_view, name='mesas_abertas'),
+    path('mesas/abrir/', views.abrir_mesa_view, name='abrir_mesa'),
+    path('mesas/<int:mesa_id>/fechar/', views.fechar_mesa_view, name='fechar_mesa'),
+    path('mesas/<int:mesa_id>/detalhes/', views.mesa_detalhes_view, name='mesa_detalhes'),
+    path('mesas/<int:mesa_id>/adicionar-pedido/', views.adicionar_pedido_mesa_view, name='adicionar_pedido_mesa'),
+    path('mesas/<int:mesa_id>/imprimir/', views.imprimir_comanda_view, name='imprimir_comanda'),
 ]
