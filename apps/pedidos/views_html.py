@@ -261,7 +261,15 @@ def pedido_atualizar_status(request, pk):
             
             messages.error(request, error_msg)
     
-    return redirect('pedidos:pedido_detail', pk=pk)
+    # Só redireciona se não for AJAX
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return redirect('pedidos:pedido_detail', pk=pk)
+    
+    # Se chegou aqui e é AJAX, retorna erro genérico
+    return JsonResponse({
+        'success': False,
+        'message': 'Erro ao processar requisição'
+    }, status=400)
 
 
 @login_required
@@ -277,6 +285,90 @@ def pedido_cancelar(request, pk):
         messages.error(request, 'Este pedido não pode ser cancelado')
     
     return redirect('pedido_list')
+
+
+@login_required
+def pedido_cancelar_com_senha(request, pk):
+    """Cancelar pedido com verificação de senha admin"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'}, status=405)
+    
+    pedido = get_object_or_404(Pedido, pk=pk)
+    password = request.POST.get('password', '')
+    
+    # Verificar se o pedido pode ser cancelado
+    if pedido.status in ['entregue', 'cancelado']:
+        return JsonResponse({
+            'success': False,
+            'message': 'Este pedido não pode ser cancelado'
+        })
+    
+    # Verificar a senha do usuário admin
+    # Você pode usar diferentes métodos de verificação:
+    # 1. Senha do superusuário atual
+    # 2. Senha específica configurada no settings
+    # 3. Senha de qualquer superusuário
+    
+    # Método 1: Verificar se é a senha do usuário atual (se for superusuário)
+    if request.user.is_superuser and request.user.check_password(password):
+        pedido.status = 'cancelado'
+        pedido.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'Pedido #{pedido.numero} cancelado com sucesso'
+            })
+        
+        messages.success(request, f'Pedido #{pedido.numero} cancelado com sucesso')
+        return redirect('pedidos:pedido_detail', pk=pk)
+    
+    # Método 2: Verificar contra uma senha específica (configurável)
+    # from django.conf import settings
+    # ADMIN_CANCEL_PASSWORD = getattr(settings, 'ADMIN_CANCEL_PASSWORD', '123456')
+    # if password == ADMIN_CANCEL_PASSWORD:
+    #     ...
+    
+    # Método 3: Verificar contra qualquer superusuário
+    from django.contrib.auth import authenticate
+    from django.contrib.auth.models import User
+    
+    # Tentar autenticar com email/username de superusuários
+    superusers = User.objects.filter(is_superuser=True)
+    authenticated = False
+    
+    for superuser in superusers:
+        # Tentar com username
+        if authenticate(username=superuser.username, password=password):
+            authenticated = True
+            break
+        # Tentar com email
+        if superuser.email and authenticate(username=superuser.email, password=password):
+            authenticated = True
+            break
+    
+    if authenticated:
+        pedido.status = 'cancelado'
+        pedido.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'Pedido #{pedido.numero} cancelado com sucesso'
+            })
+        
+        messages.success(request, f'Pedido #{pedido.numero} cancelado com sucesso')
+        return redirect('pedidos:pedido_detail', pk=pk)
+    
+    # Senha incorreta
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': False,
+            'message': 'Senha incorreta!'
+        })
+    
+    messages.error(request, 'Senha incorreta!')
+    return redirect('pedidos:pedido_detail', pk=pk)
 
 
 @login_required

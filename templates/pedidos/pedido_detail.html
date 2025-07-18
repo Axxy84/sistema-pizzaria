@@ -1,52 +1,53 @@
 {% extends 'layouts/dashboard.html' %}
 {% load static %}
 
-{% block title %}Pedido #{{ pedido.numero }} - Pizzaria{% endblock %}
+{% block title %}Pedido #{{ pedido.numero }}{% endblock %}
 
-{% block extra_css %}
+{% block extra_head %}
 <style>
     .status-badge {
-        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
     }
-    .status-pendente { @apply bg-blue-100 text-blue-800; }
-    .status-confirmado { @apply bg-indigo-100 text-indigo-800; }
-    .status-preparando { @apply bg-yellow-100 text-yellow-800; }
-    .status-saiu_entrega { @apply bg-orange-100 text-orange-800; }
-    .status-entregue { @apply bg-gray-100 text-gray-800; }
+    .status-recebido { @apply bg-yellow-100 text-yellow-800; }
+    .status-preparando { @apply bg-blue-100 text-blue-800; }
+    .status-saindo { @apply bg-purple-100 text-purple-800; }
+    .status-entregue { @apply bg-green-100 text-green-800; }
     .status-cancelado { @apply bg-red-100 text-red-800; }
     
+    /* Timeline styles */
     .timeline-item {
         @apply relative pb-8;
     }
     .timeline-item:last-child {
         @apply pb-0;
     }
-    .timeline-line {
-        @apply absolute left-5 top-5 h-full w-0.5 bg-gray-200;
+    .timeline-item::before {
+        content: '';
+        @apply absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200;
     }
-    .timeline-item:last-child .timeline-line {
+    .timeline-item:last-child::before {
         @apply hidden;
     }
-    .timeline-dot {
-        @apply relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-2;
+    .timeline-icon {
+        @apply relative z-10 flex h-8 w-8 items-center justify-center rounded-full;
     }
-    .timeline-dot-active {
-        @apply bg-pizza-600 border-pizza-600 text-white;
+    .timeline-icon-pending {
+        @apply bg-white border-2 border-gray-300;
     }
-    .timeline-dot-completed {
-        @apply bg-green-600 border-green-600 text-white;
+    .timeline-icon-completed {
+        @apply bg-green-500 text-white;
     }
-    .timeline-dot-pending {
-        @apply bg-white border-gray-300 text-gray-400;
+    .timeline-icon-current {
+        @apply bg-blue-500 text-white animate-pulse;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div x-data="pedidoDetailApp()">
-    <!-- Header -->
-    <div class="mb-6">
-        <div class="flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-8">
             <div>
                 <nav class="flex" aria-label="Breadcrumb">
                     <ol role="list" class="flex items-center space-x-4">
@@ -98,13 +99,50 @@
             <!-- Ações -->
             <div class="flex space-x-3">
                 {% if pedido.status not in 'entregue,cancelado' %}
-                <button @click="abrirModalStatus()"
-                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
-                    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Atualizar Status
-                </button>
+                <div class="relative inline-block text-left" x-data="{ open: false }">
+                    <button @click="open = !open" 
+                            :disabled="isUpdating"
+                            :class="{'opacity-50 cursor-not-allowed': isUpdating}"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
+                        <svg x-show="!isUpdating" class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <svg x-show="isUpdating" class="animate-spin mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span x-text="isUpdating ? 'Atualizando...' : 'Atualizar Status'"></span>
+                        <svg x-show="!isUpdating" class="-mr-1 ml-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    
+                    <div x-show="open" 
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                         style="display: none;">
+                        <div class="py-1" role="menu">
+                            <template x-for="opcao in opcoesStatus">
+                                <button type="button"
+                                   @click="atualizarStatus(opcao.value); open = false"
+                                   class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                   role="menuitem"
+                                   x-text="opcao.label"></button>
+                            </template>
+                            <template x-if="opcoesStatus.length === 0">
+                                <span class="block px-4 py-2 text-sm text-gray-500">
+                                    Nenhuma transição disponível
+                                </span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
                 
                 <a href="{% url 'pedidos:pedido_update' pedido.pk %}"
@@ -126,7 +164,7 @@
                 
                 <a href="{% url 'pedidos:pedido_comanda_cozinha' pedido.pk %}"
                    target="_blank"
-                   class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                   class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
                     <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -134,371 +172,293 @@
                 </a>
             </div>
         </div>
-    </div>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Informações do Pedido -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Dados do Cliente -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Dados do Cliente
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Nome</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ pedido.cliente.nome }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Telefone</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ pedido.cliente.telefone }}</dd>
-                        </div>
-                        {% if pedido.cliente.email %}
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">E-mail</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ pedido.cliente.email }}</dd>
-                        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Coluna Esquerda -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Dados do Cliente -->
+                <div class="bg-white shadow-soft rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">Dados do Cliente</h2>
+                    </div>
+                    <div class="px-6 py-4">
+                        {% if pedido.cliente %}
+                        <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Nome</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ pedido.cliente.nome }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Telefone</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ pedido.cliente.telefone|default:"Não informado" }}</dd>
+                            </div>
+                        </dl>
+                        {% else %}
+                        <p class="text-sm text-gray-500">Cliente não informado</p>
                         {% endif %}
-                        <div>
+                        
+                        <div class="mt-4">
                             <dt class="text-sm font-medium text-gray-500">Tipo de Pedido</dt>
                             <dd class="mt-1 text-sm text-gray-900">
                                 {% if pedido.tipo == 'delivery' %}
-                                    📦 Delivery
+                                    🚚 {{ pedido.get_tipo_display }}
                                 {% elif pedido.tipo == 'balcao' %}
-                                    🏪 Balcão
+                                    🏪 {{ pedido.get_tipo_display }}
                                 {% else %}
-                                    🍽️ Mesa {{ pedido.mesa }}
+                                    🪑 {{ pedido.get_tipo_display }} - Mesa {{ pedido.mesa|default:"N/A" }}
+                                {% endif %}
+                            </dd>
+                        </div>
+                        
+                        {% if pedido.tipo == 'delivery' and pedido.endereco_entrega %}
+                        <div class="mt-4">
+                            <dt class="text-sm font-medium text-gray-500">Endereço de Entrega</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {{ pedido.endereco_entrega.rua }}, {{ pedido.endereco_entrega.numero }}<br>
+                                {% if pedido.endereco_entrega.complemento %}{{ pedido.endereco_entrega.complemento }}<br>{% endif %}
+                                {{ pedido.endereco_entrega.bairro }}<br>
+                                {{ pedido.endereco_entrega.cidade }}/{{ pedido.endereco_entrega.estado }} - CEP: {{ pedido.endereco_entrega.cep }}
+                                {% if pedido.endereco_entrega.referencia %}<br>Referência: {{ pedido.endereco_entrega.referencia }}{% endif %}
+                            </dd>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Itens do Pedido -->
+                <div class="bg-white shadow-soft rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">Itens do Pedido</h2>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div class="space-y-4">
+                            {% for item in pedido.itens.all %}
+                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="text-sm font-medium text-gray-900">
+                                            {% if item.produto %}
+                                                {% if item.produto.categoria.nome == 'Pizza' %}
+                                                    🍕
+                                                {% elif item.produto.categoria.nome == 'Bebida' %}
+                                                    🥤
+                                                {% elif item.produto.categoria.nome == 'Sobremesa' %}
+                                                    🍰
+                                                {% else %}
+                                                    🍴
+                                                {% endif %}
+                                                {{ item.produto.nome }}
+                                            {% else %}
+                                                Produto não encontrado
+                                            {% endif %}
+                                        </h4>
+                                        <p class="text-sm text-gray-500 mt-1">
+                                            R$ {{ item.preco_unitario|floatformat:2 }}
+                                            {% if item.produto_preco and item.produto_preco.tamanho %}
+                                                <br>Tamanho: {{ item.produto_preco.tamanho.nome }}
+                                            {% endif %}
+                                        </p>
+                                        {% if item.observacoes %}
+                                            <p class="text-sm text-gray-600 mt-2 italic">
+                                                📝 {{ item.observacoes }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-right ml-4">
+                                        <p class="text-sm text-gray-500">Qtd: {{ item.quantidade }}</p>
+                                        <p class="text-sm font-medium text-gray-900">R$ {{ item.subtotal|floatformat:2 }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-sm text-gray-500">Nenhum item no pedido</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna Direita -->
+            <div class="space-y-8">
+                <!-- Resumo Financeiro -->
+                <div class="bg-white shadow-soft rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">Resumo Financeiro</h2>
+                    </div>
+                    <div class="px-6 py-4">
+                        <dl class="space-y-3">
+                            <div class="flex justify-between">
+                                <dt class="text-sm text-gray-500">Subtotal</dt>
+                                <dd class="text-sm font-medium text-gray-900">R$ {{ pedido.subtotal|floatformat:2 }}</dd>
+                            </div>
+                            {% if pedido.taxa_entrega > 0 %}
+                            <div class="flex justify-between">
+                                <dt class="text-sm text-gray-500">Taxa de Entrega</dt>
+                                <dd class="text-sm font-medium text-gray-900">R$ {{ pedido.taxa_entrega|floatformat:2 }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if pedido.desconto > 0 %}
+                            <div class="flex justify-between">
+                                <dt class="text-sm text-gray-500">Desconto</dt>
+                                <dd class="text-sm font-medium text-red-600">- R$ {{ pedido.desconto|floatformat:2 }}</dd>
+                            </div>
+                            {% endif %}
+                            <div class="pt-3 border-t border-gray-200">
+                                <div class="flex justify-between">
+                                    <dt class="text-base font-medium text-gray-900">Total</dt>
+                                    <dd class="text-base font-medium text-gray-900">R$ {{ pedido.total|floatformat:2 }}</dd>
+                                </div>
+                            </div>
+                        </dl>
+                        
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <dt class="text-sm font-medium text-gray-500">Forma de Pagamento</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                {% if pedido.forma_pagamento == 'dinheiro' %}
+                                    💵 {{ pedido.get_forma_pagamento_display }}
+                                    {% if pedido.precisa_troco and pedido.troco_para %}
+                                        <br><span class="text-xs text-gray-600">Troco para R$ {{ pedido.troco_para|floatformat:2 }}</span>
+                                    {% endif %}
+                                {% elif pedido.forma_pagamento == 'pix' %}
+                                    📱 {{ pedido.get_forma_pagamento_display }}
+                                {% elif pedido.forma_pagamento == 'cartao_credito' %}
+                                    💳 {{ pedido.get_forma_pagamento_display }}
+                                {% elif pedido.forma_pagamento == 'cartao_debito' %}
+                                    💳 {{ pedido.get_forma_pagamento_display }}
+                                {% else %}
+                                    🎫 {{ pedido.get_forma_pagamento_display }}
                                 {% endif %}
                             </dd>
                         </div>
                     </div>
-                    
-                    {% if pedido.endereco_entrega %}
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <dt class="text-sm font-medium text-gray-500">Endereço de Entrega</dt>
-                        <dd class="mt-1 text-sm text-gray-900">
-                            {{ pedido.endereco_entrega.logradouro }}, {{ pedido.endereco_entrega.numero }}
-                            {% if pedido.endereco_entrega.complemento %}, {{ pedido.endereco_entrega.complemento }}{% endif %}<br>
-                            {{ pedido.endereco_entrega.bairro }} - {{ pedido.endereco_entrega.cidade }}/{{ pedido.endereco_entrega.estado }}
-                            {% if pedido.endereco_entrega.referencia %}
-                            <br><span class="text-gray-500">Ref: {{ pedido.endereco_entrega.referencia }}</span>
-                            {% endif %}
-                        </dd>
-                    </div>
-                    {% endif %}
                 </div>
-            </div>
-            
-            <!-- Itens do Pedido -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Itens do Pedido
-                    </h3>
-                    <div class="flow-root">
-                        <ul class="-my-6 divide-y divide-gray-200">
-                            {% for item in pedido.itens.all %}
-                            <li class="py-6">
-                                <div class="flex items-center">
-                                    <div class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                                        {% if item.produto_preco.produto.imagem %}
-                                        <img src="{{ item.produto_preco.produto.imagem.url }}" 
-                                             alt="{{ item.produto_preco.produto.nome }}"
-                                             class="h-full w-full object-cover object-center">
-                                        {% else %}
-                                        <div class="h-full w-full bg-gray-200 flex items-center justify-center">
-                                            <span class="text-2xl">
-                                                {% if item.produto_preco.produto.categoria.nome == 'Pizza' %}🍕
-                                                {% elif item.produto_preco.produto.categoria.nome == 'Bebida' %}🥤
-                                                {% elif item.produto_preco.produto.categoria.nome == 'Sobremesa' %}🍰
-                                                {% else %}🍴{% endif %}
-                                            </span>
+
+                <!-- Timeline do Pedido -->
+                <div class="bg-white shadow-soft rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">Timeline do Pedido</h2>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div class="flow-root">
+                            <ul class="-mb-8">
+                                <!-- Recebido -->
+                                <li class="timeline-item">
+                                    <div class="relative flex items-start">
+                                        <div class="timeline-icon {% if pedido.status == 'recebido' %}timeline-icon-current{% else %}timeline-icon-completed{% endif %}">
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
                                         </div>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <div class="ml-4 flex flex-1 flex-col">
-                                        <div>
-                                            <div class="flex justify-between text-base font-medium text-gray-900">
-                                                <h3>{{ item.produto_preco.produto.nome }}</h3>
-                                                <p class="ml-4">R$ {{ item.subtotal|floatformat:2 }}</p>
-                                            </div>
-                                            <p class="mt-1 text-sm text-gray-500">
-                                                {% if item.produto_preco.tamanho %}
-                                                    Tamanho: {{ item.produto_preco.tamanho.nome }}
+                                        <div class="ml-4 min-w-0 flex-1">
+                                            <p class="text-sm font-medium text-gray-900">Recebido</p>
+                                            <p class="text-xs text-gray-500">
+                                                {% if pedido.criado_em %}
+                                                    {{ pedido.criado_em|date:"d/m/Y H:i" }}
+                                                {% else %}
+                                                    Data não disponível
                                                 {% endif %}
                                             </p>
-                                            {% if item.observacoes %}
-                                            <p class="mt-1 text-sm text-gray-500">
-                                                <span class="font-medium">Obs:</span> {{ item.observacoes }}
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <!-- Preparando -->
+                                <li class="timeline-item">
+                                    <div class="relative flex items-start">
+                                        <div class="timeline-icon {% if pedido.status == 'preparando' %}timeline-icon-current{% elif pedido.status in 'saindo,entregue' %}timeline-icon-completed{% else %}timeline-icon-pending{% endif %}">
+                                            {% if pedido.status in 'preparando,saindo,entregue' %}
+                                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% else %}
+                                                <div class="h-2 w-2 bg-gray-300 rounded-full"></div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-4 min-w-0 flex-1">
+                                            <p class="text-sm {% if pedido.status in 'preparando,saindo,entregue' %}font-medium text-gray-900{% else %}text-gray-500{% endif %}">
+                                                Preparando
                                             </p>
+                                            {% if pedido.status in 'preparando,saindo,entregue' %}
+                                                <p class="text-xs text-gray-500">
+                                                    {{ pedido.atualizado_em|date:"d/m/Y H:i" }}
+                                                </p>
                                             {% endif %}
                                         </div>
-                                        <div class="flex flex-1 items-end justify-between text-sm">
-                                            <p class="text-gray-500">Qtd: {{ item.quantidade }}</p>
-                                            <p class="text-gray-500">Unit: R$ {{ item.preco_unitario|floatformat:2 }}</p>
+                                    </div>
+                                </li>
+
+                                <!-- Saiu para Entrega -->
+                                {% if pedido.tipo == 'delivery' %}
+                                <li class="timeline-item">
+                                    <div class="relative flex items-start">
+                                        <div class="timeline-icon {% if pedido.status == 'saindo' %}timeline-icon-current{% elif pedido.status == 'entregue' %}timeline-icon-completed{% else %}timeline-icon-pending{% endif %}">
+                                            {% if pedido.status in 'saindo,entregue' %}
+                                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% else %}
+                                                <div class="h-2 w-2 bg-gray-300 rounded-full"></div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-4 min-w-0 flex-1">
+                                            <p class="text-sm {% if pedido.status in 'saindo,entregue' %}font-medium text-gray-900{% else %}text-gray-500{% endif %}">
+                                                Saiu para Entrega
+                                            </p>
+                                            {% if pedido.status in 'saindo,entregue' %}
+                                                <p class="text-xs text-gray-500">
+                                                    {{ pedido.atualizado_em|date:"d/m/Y H:i" }}
+                                                </p>
+                                            {% endif %}
                                         </div>
                                     </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Observações -->
-            {% if pedido.observacoes %}
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Observações
-                    </h3>
-                    <p class="text-sm text-gray-700">{{ pedido.observacoes }}</p>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        
-        <!-- Sidebar -->
-        <div class="space-y-6">
-            <!-- Resumo Financeiro -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Resumo Financeiro
-                    </h3>
-                    <dl class="space-y-3">
-                        <div class="flex justify-between">
-                            <dt class="text-sm text-gray-500">Subtotal</dt>
-                            <dd class="text-sm font-medium text-gray-900">R$ {{ pedido.subtotal|floatformat:2 }}</dd>
-                        </div>
-                        
-                        {% if pedido.taxa_entrega > 0 %}
-                        <div class="flex justify-between">
-                            <dt class="text-sm text-gray-500">Taxa de entrega</dt>
-                            <dd class="text-sm font-medium text-gray-900">R$ {{ pedido.taxa_entrega|floatformat:2 }}</dd>
-                        </div>
-                        {% endif %}
-                        
-                        {% if pedido.desconto > 0 %}
-                        <div class="flex justify-between">
-                            <dt class="text-sm text-gray-500">Desconto</dt>
-                            <dd class="text-sm font-medium text-green-600">-R$ {{ pedido.desconto|floatformat:2 }}</dd>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="flex justify-between pt-3 border-t border-gray-200">
-                            <dt class="text-base font-medium text-gray-900">Total</dt>
-                            <dd class="text-base font-medium text-pizza-600">R$ {{ pedido.total|floatformat:2 }}</dd>
-                        </div>
-                    </dl>
-                    
-                    <!-- Forma de Pagamento -->
-                    <div class="mt-6 pt-6 border-t border-gray-200">
-                        <h4 class="text-sm font-medium text-gray-900 mb-2">Forma de Pagamento</h4>
-                        <p class="text-sm text-gray-700">
-                            {% if pedido.forma_pagamento == 'dinheiro' %}
-                                💵 Dinheiro
-                                {% if pedido.precisa_troco %}
-                                <br><span class="text-gray-500">Troco para: R$ {{ pedido.troco_para|floatformat:2 }}</span>
-                                <br><span class="text-gray-500">Troco: R$ {{ pedido.troco_para|add:pedido.total|floatformat:2 }}</span>
+                                </li>
                                 {% endif %}
-                            {% elif pedido.forma_pagamento == 'pix' %}
-                                📱 PIX
-                            {% elif pedido.forma_pagamento == 'cartao_credito' %}
-                                💳 Cartão de Crédito
-                            {% elif pedido.forma_pagamento == 'cartao_debito' %}
-                                💳 Cartão de Débito
-                            {% elif pedido.forma_pagamento == 'vale_refeicao' %}
-                                🎫 Vale Refeição
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Timeline de Status -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                        Timeline do Pedido
-                    </h3>
-                    
-                    <div class="flow-root">
-                        <ul class="-mb-8">
-                            {% if pedido.status == 'recebido' %}
-                            <li class="timeline-item">
-                                <div class="timeline-line"></div>
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="timeline-dot timeline-dot-completed">
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-900">Recebido</p>
-                                            <p class="text-xs text-gray-500">{{ pedido.criado_em|date:"d/m/Y H:i" }}</p>
+
+                                <!-- Entregue -->
+                                <li class="timeline-item">
+                                    <div class="relative flex items-start">
+                                        <div class="timeline-icon {% if pedido.status == 'entregue' %}timeline-icon-completed{% elif pedido.status == 'cancelado' %}bg-red-500 text-white{% else %}timeline-icon-pending{% endif %}">
+                                            {% if pedido.status == 'entregue' %}
+                                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% elif pedido.status == 'cancelado' %}
+                                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% else %}
+                                                <div class="h-2 w-2 bg-gray-300 rounded-full"></div>
+                                            {% endif %}
                                         </div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endif %}
-                            
-                            {% if pedido.status in 'preparando,saindo,entregue' %}
-                            <li class="timeline-item">
-                                <div class="timeline-line"></div>
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="timeline-dot {% if pedido.status == 'preparando' %}timeline-dot-active{% else %}timeline-dot-completed{% endif %}">
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-900">Preparando</p>
-                                            {% if pedido.status == 'preparando' %}
-                                            <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
+                                        <div class="ml-4 min-w-0 flex-1">
+                                            <p class="text-sm {% if pedido.status in 'entregue,cancelado' %}font-medium {% if pedido.status == 'cancelado' %}text-red-600{% else %}text-gray-900{% endif %}{% else %}text-gray-500{% endif %}">
+                                                {% if pedido.status == 'cancelado' %}Cancelado{% else %}Entregue{% endif %}
+                                            </p>
+                                            {% if pedido.status in 'entregue,cancelado' %}
+                                                <p class="text-xs text-gray-500">
+                                                    {{ pedido.atualizado_em|date:"d/m/Y H:i" }}
+                                                </p>
                                             {% endif %}
                                         </div>
                                     </div>
-                                </div>
-                            </li>
-                            {% endif %}
-                            
-                            {% if pedido.status in 'saindo,entregue' %}
-                            <li class="timeline-item">
-                                <div class="timeline-line"></div>
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="timeline-dot {% if pedido.status == 'saindo' %}timeline-dot-active{% else %}timeline-dot-completed{% endif %}">
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-900">Saiu para Entrega</p>
-                                            {% if pedido.status == 'saindo' %}
-                                            <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endif %}
-                            
-                            {% if pedido.status == 'entregue' %}
-                            <li class="timeline-item">
-                                <div class="timeline-line"></div>
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="timeline-dot timeline-dot-active">
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-900">Entregue</p>
-                                            <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endif %}
-                            
-                            {% if pedido.status == 'cancelado' %}
-                            <li class="timeline-item">
-                                <div class="relative flex space-x-3">
-                                    <div>
-                                        <span class="timeline-dot timeline-dot-active bg-red-600 border-red-600">
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-900">Cancelado</p>
-                                            <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de atualização de status -->
-    <div x-show="modalStatus" 
-         x-cloak
-         class="fixed z-10 inset-0 overflow-y-auto">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div x-show="modalStatus" 
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-
-            <div x-show="modalStatus" 
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full">
-                <form method="post" action="{% url 'pedidos:pedido_update_status' pedido.pk %}">
-                    {% csrf_token %}
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">
-                            Atualizar Status do Pedido
-                        </h3>
-                        <div class="mt-4">
-                            <label for="status" class="block text-sm font-medium text-gray-700">
-                                Novo Status
-                            </label>
-                            <select name="status" 
-                                    id="status"
-                                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pizza-500 focus:border-pizza-500 sm:text-sm rounded-md"
-                                    x-model="novoStatus">
-                                <option value="">Selecione...</option>
-                                <template x-for="opcao in opcoesStatus">
-                                    <option :value="opcao.value" x-text="opcao.label"></option>
-                                </template>
-                            </select>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="submit"
-                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pizza-600 text-base font-medium text-white hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500 sm:ml-3 sm:w-auto sm:text-sm">
-                            Atualizar
-                        </button>
-                        <button type="button"
-                                @click="modalStatus = false"
-                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                            Cancelar
-                        </button>
+                </div>
+
+                <!-- Observações -->
+                {% if pedido.observacoes %}
+                <div class="bg-white shadow-soft rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">Observações</h2>
                     </div>
-                </form>
+                    <div class="px-6 py-4">
+                        <p class="text-sm text-gray-700">{{ pedido.observacoes|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -509,9 +469,8 @@
 <script>
 function pedidoDetailApp() {
     return {
-        modalStatus: false,
-        novoStatus: '',
         opcoesStatus: [],
+        isUpdating: false,
         
         transicoesValidas: {
             'recebido': [
@@ -528,11 +487,69 @@ function pedidoDetailApp() {
             ]
         },
         
-        abrirModalStatus() {
+        init() {
             const statusAtual = '{{ pedido.status }}';
             this.opcoesStatus = this.transicoesValidas[statusAtual] || [];
-            this.novoStatus = '';
-            this.modalStatus = true;
+        },
+        
+        async atualizarStatus(novoStatus) {
+            if (this.isUpdating) return;
+            
+            this.isUpdating = true;
+            
+            try {
+                const response = await fetch('{% url "pedidos:pedido_update_status" pedido.pk %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams({
+                        'status': novoStatus
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Mostrar toast de sucesso
+                    Alpine.store('app').showToast(data.message, 'success', 3000);
+                    
+                    // Atualizar apenas os elementos necessários sem recarregar a página
+                    // Atualizar badge de status
+                    const statusBadge = document.querySelector('.status-badge');
+                    if (statusBadge) {
+                        statusBadge.className = 'ml-4 status-badge status-' + data.new_status;
+                        statusBadge.textContent = data.status_display;
+                    }
+                    
+                    // Atualizar opções de status disponíveis
+                    const statusAtual = data.new_status;
+                    this.opcoesStatus = this.transicoesValidas[statusAtual] || [];
+                    
+                    // Se o status for final (entregue/cancelado), esconder o botão de atualizar
+                    if (['entregue', 'cancelado'].includes(data.new_status)) {
+                        // Esconder o botão de atualizar status
+                        const updateButton = this.$el.closest('.relative');
+                        if (updateButton) {
+                            updateButton.style.display = 'none';
+                        }
+                        
+                        // Aguardar mais tempo antes de recarregar para ver o toast
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000);
+                    }
+                } else {
+                    Alpine.store('app').showToast(data.message || 'Erro ao atualizar status', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                Alpine.store('app').showToast('Erro ao conectar com o servidor', 'error');
+            } finally {
+                this.isUpdating = false;
+            }
         }
     }
 }

@@ -19,6 +19,7 @@ urlpatterns = [
     
     # Atualização de status
     path('<int:pk>/status/', views_html.pedido_atualizar_status, name='pedido_update_status'),
+    path('<int:pk>/cancelar-com-senha/', views_html.pedido_cancelar_com_senha, name='pedido_cancelar_com_senha'),
     
     # Views especiais
     path('<int:pk>/imprimir/', views_html.pedido_imprimir, name='pedido_print'),
