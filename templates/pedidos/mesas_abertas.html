@@ -1,0 +1,589 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Mesas Abertas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mesa-card {
+        transition: all 0.3s ease;
+        min-height: 320px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .mesa-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .mesa-aberta {
+        border-left: 4px solid #10b981;
+    }
+    .mesa-fechada {
+        border-left: 4px solid #6b7280;
+    }
+    .tempo-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 9999px;
+        white-space: nowrap;
+    }
+    
+    /* Responsividade dos botões */
+    @media (max-width: 640px) {
+        .mesa-card {
+            min-height: 300px;
+        }
+    }
+    
+    /* Garantir que os botões não quebrem o layout */
+    .mesa-card button {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Mesas Abertas</h1>
+                <p class="text-gray-600 mt-1">{{ total_mesas_abertas }} mesa{{ total_mesas_abertas|pluralize }} aberta{{ total_mesas_abertas|pluralize }}</p>
+            </div>
+            <button onclick="abrirModalNovaMesa()" class="bg-pizza-red text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Abrir Mesa
+            </button>
+        </div>
+    </div>
+
+    <!-- Mesas Abertas -->
+    <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Mesas Abertas</h2>
+        {% if mesas_abertas %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {% for mesa in mesas_abertas %}
+                <div class="mesa-card mesa-aberta bg-white rounded-lg shadow p-4 hover:shadow-lg">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-bold text-gray-900">Mesa {{ mesa.numero }}</h3>
+                            <span class="tempo-badge bg-green-100 text-green-800 text-xs">
+                                {{ mesa.tempo_aberta }}
+                            </span>
+                        </div>
+                        
+                        {% if mesa.responsavel %}
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-medium">Responsável:</span> {{ mesa.responsavel }}
+                        </p>
+                        {% endif %}
+                        
+                        <div class="mt-auto pt-3 border-t border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Total:</span>
+                                <span class="text-lg font-bold text-pizza-red">R$ {{ mesa.total_pedidos|floatformat:2 }}</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-1">
+                                <span class="text-sm text-gray-600">Pedidos:</span>
+                                <span class="text-sm font-medium">{{ mesa.pedidos_ativos.count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botões de Ação Rápida -->
+                    <div class="mt-3 pt-3 border-t border-gray-200 space-y-2">
+                        <button onclick="event.stopPropagation(); abrirModalAdicionarItem({{ mesa.id }}, '{{ mesa.numero }}')" 
+                                class="w-full bg-green-600 text-white px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-green-700 flex items-center justify-center gap-2 transition-colors shadow-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Adicionar Item
+                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="event.stopPropagation(); window.location.href='{% url 'pedidos:detalhes_mesa' mesa.id %}'" 
+                                    class="flex-1 bg-gray-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors flex items-center justify-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Detalhes
+                            </button>
+                            <button onclick="event.stopPropagation(); fecharMesaDireto({{ mesa.id }}, '{{ mesa.numero }}')" 
+                                    class="flex-1 bg-pizza-red text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-gray-50 rounded-lg p-8 text-center">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-gray-600">Nenhuma mesa aberta no momento</p>
+                <button onclick="abrirModalNovaMesa()" class="mt-4 text-pizza-red hover:text-red-700 font-medium">
+                    Abrir primeira mesa
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Mesas Fechadas Recentemente -->
+    {% if mesas_fechadas %}
+    <div>
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Mesas Fechadas Recentemente</h2>
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mesa</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechada em</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for mesa in mesas_fechadas %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            Mesa {{ mesa.numero }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {{ mesa.responsavel|default:"-" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {{ mesa.fechada_em|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            R$ {{ mesa.total_consumido|floatformat:2 }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <a href="{% url 'pedidos:imprimir_comanda_mesa' mesa.id %}" class="text-pizza-red hover:text-red-700">
+                                Reimprimir
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Adicionar Item Rápido -->
+<div id="modalAdicionarItem" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Adicionar Item - Mesa <span id="mesaNumeroModal"></span></h3>
+                <button onclick="fecharModalAdicionarItem()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Lista de Produtos para Seleção Rápida -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Buscar Produto</label>
+                <input type="text" id="buscarProduto" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-pizza-red focus:border-pizza-red"
+                       placeholder="Digite para buscar..." onkeyup="filtrarProdutosModal()">
+            </div>
+            
+            <!-- Lista de Produtos -->
+            <div id="listaProdutosModal" class="max-h-96 overflow-y-auto space-y-2 mb-4">
+                <!-- Produtos serão carregados via AJAX -->
+            </div>
+            
+            <!-- Carrinho do Modal -->
+            <div class="border-t pt-4">
+                <h4 class="font-semibold text-gray-900 mb-2">Itens Selecionados</h4>
+                <div id="carrinhoModal" class="space-y-2 max-h-40 overflow-y-auto mb-4">
+                    <p class="text-gray-500 text-sm">Nenhum item selecionado</p>
+                </div>
+                
+                <div class="flex justify-between items-center mb-4">
+                    <span class="font-semibold">Total:</span>
+                    <span class="text-lg font-bold text-pizza-red" id="totalModal">R$ 0,00</span>
+                </div>
+                
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="fecharModalAdicionarItem()"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="confirmarAdicionarItens()"
+                            class="px-4 py-2 bg-pizza-red text-white rounded-md hover:bg-red-700">
+                        Adicionar à Mesa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Fechar Mesa Rápido -->
+<div id="modalFecharMesaRapido" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Fechar Mesa <span id="mesaNumeroFechar"></span></h3>
+            <p class="text-gray-600 mb-4">Selecione a forma de pagamento:</p>
+            
+            <form id="formFecharMesaRapido" method="post">
+                {% csrf_token %}
+                <div class="space-y-2 mb-4">
+                    <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="forma_pagamento" value="dinheiro" class="mr-3" checked>
+                        <span>Dinheiro</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="forma_pagamento" value="pix" class="mr-3">
+                        <span>PIX</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="forma_pagamento" value="cartao_credito" class="mr-3">
+                        <span>Cartão de Crédito</span>
+                    </label>
+                    <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="forma_pagamento" value="cartao_debito" class="mr-3">
+                        <span>Cartão de Débito</span>
+                    </label>
+                </div>
+                
+                <div class="flex items-center gap-2 mb-4">
+                    <input type="checkbox" name="imprimir_comanda" value="1" checked
+                           class="text-pizza-red focus:ring-pizza-red rounded">
+                    <label class="text-gray-700">Imprimir comanda automaticamente</label>
+                </div>
+                
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="document.getElementById('modalFecharMesaRapido').classList.add('hidden')"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-pizza-red text-white rounded-md hover:bg-red-700">
+                        Fechar Mesa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Abrir Mesa -->
+<div id="modalNovaMesa" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Abrir Nova Mesa</h3>
+            <form method="post" action="{% url 'pedidos:abrir_mesa' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Número da Mesa</label>
+                    <input type="text" name="numero" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-pizza-red focus:border-pizza-red"
+                           placeholder="Ex: 1, 2, 3...">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Responsável (opcional)</label>
+                    <input type="text" name="responsavel"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-pizza-red focus:border-pizza-red"
+                           placeholder="Nome do responsável">
+                </div>
+                
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="fecharModalNovaMesa()"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-pizza-red text-white rounded-md hover:bg-red-700">
+                        Abrir Mesa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variáveis globais
+let mesaAtualId = null;
+let carrinhoModalItens = [];
+let produtosDisponiveis = [];
+
+function abrirModalNovaMesa() {
+    document.getElementById('modalNovaMesa').classList.remove('hidden');
+}
+
+function fecharModalNovaMesa() {
+    document.getElementById('modalNovaMesa').classList.add('hidden');
+}
+
+// Funções do Modal Adicionar Item
+function abrirModalAdicionarItem(mesaId, mesaNumero) {
+    mesaAtualId = mesaId;
+    document.getElementById('mesaNumeroModal').textContent = mesaNumero;
+    document.getElementById('modalAdicionarItem').classList.remove('hidden');
+    carrinhoModalItens = [];
+    atualizarCarrinhoModal();
+    
+    // Carregar produtos disponíveis
+    carregarProdutosModal();
+}
+
+function fecharModalAdicionarItem() {
+    document.getElementById('modalAdicionarItem').classList.add('hidden');
+    document.getElementById('buscarProduto').value = '';
+    carrinhoModalItens = [];
+}
+
+function carregarProdutosModal() {
+    fetch('/api/produtos/produtos/para_mesa/')
+        .then(response => response.json())
+        .then(data => {
+            produtosDisponiveis = data;
+            renderizarProdutosModal(data);
+        })
+        .catch(error => {
+            console.error('Erro ao carregar produtos:', error);
+            document.getElementById('listaProdutosModal').innerHTML = '<p class="text-red-600">Erro ao carregar produtos</p>';
+        });
+}
+
+function renderizarProdutosModal(produtos) {
+    const container = document.getElementById('listaProdutosModal');
+    container.innerHTML = '';
+    
+    produtos.forEach(produto => {
+        produto.precos.forEach(preco => {
+            const item = document.createElement('div');
+            item.className = 'flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer';
+            item.innerHTML = `
+                <div>
+                    <span class="font-medium">${produto.nome}</span>
+                    <span class="text-sm text-gray-600 ml-2">(${preco.tamanho})</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-pizza-red">R$ ${preco.preco.toFixed(2)}</span>
+                    <button onclick="adicionarItemCarrinhoModal(${preco.produto_preco_id}, '${produto.nome}', '${preco.tamanho}', ${preco.preco})"
+                            class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                        Adicionar
+                    </button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    });
+}
+
+function filtrarProdutosModal() {
+    const termo = document.getElementById('buscarProduto').value.toLowerCase();
+    const produtosFiltrados = produtosDisponiveis.filter(produto => 
+        produto.nome.toLowerCase().includes(termo) ||
+        produto.categoria.toLowerCase().includes(termo)
+    );
+    renderizarProdutosModal(produtosFiltrados);
+}
+
+function adicionarItemCarrinhoModal(produtoPrecoId, nome, tamanho, preco) {
+    const itemExistente = carrinhoModalItens.find(item => item.produto_preco_id === produtoPrecoId);
+    
+    if (itemExistente) {
+        itemExistente.quantidade++;
+    } else {
+        carrinhoModalItens.push({
+            produto_preco_id: produtoPrecoId,
+            nome: nome,
+            tamanho: tamanho,
+            preco: preco,
+            quantidade: 1
+        });
+    }
+    
+    atualizarCarrinhoModal();
+}
+
+function removerItemCarrinhoModal(index) {
+    carrinhoModalItens.splice(index, 1);
+    atualizarCarrinhoModal();
+}
+
+function alterarQuantidadeModal(index, delta) {
+    carrinhoModalItens[index].quantidade += delta;
+    if (carrinhoModalItens[index].quantidade <= 0) {
+        removerItemCarrinhoModal(index);
+    } else {
+        atualizarCarrinhoModal();
+    }
+}
+
+function atualizarCarrinhoModal() {
+    const container = document.getElementById('carrinhoModal');
+    const totalElement = document.getElementById('totalModal');
+    
+    if (carrinhoModalItens.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-sm">Nenhum item selecionado</p>';
+        totalElement.textContent = 'R$ 0,00';
+        return;
+    }
+    
+    let total = 0;
+    container.innerHTML = '';
+    
+    carrinhoModalItens.forEach((item, index) => {
+        const subtotal = item.preco * item.quantidade;
+        total += subtotal;
+        
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'flex justify-between items-center p-2 bg-gray-50 rounded';
+        itemDiv.innerHTML = `
+            <div class="flex-1">
+                <span class="font-medium">${item.nome}</span>
+                <span class="text-sm text-gray-600"> (${item.tamanho})</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="alterarQuantidadeModal(${index}, -1)" 
+                        class="w-6 h-6 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                    </svg>
+                </button>
+                <span class="font-medium w-8 text-center">${item.quantidade}</span>
+                <button onclick="alterarQuantidadeModal(${index}, 1)" 
+                        class="w-6 h-6 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </button>
+                <span class="font-bold text-gray-900 ml-2">R$ ${subtotal.toFixed(2)}</span>
+                <button onclick="removerItemCarrinhoModal(${index})" class="text-red-600 hover:text-red-800 ml-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        container.appendChild(itemDiv);
+    });
+    
+    totalElement.textContent = `R$ ${total.toFixed(2)}`;
+}
+
+function confirmarAdicionarItens() {
+    if (carrinhoModalItens.length === 0) {
+        alert('Adicione pelo menos um item ao carrinho');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('itens', JSON.stringify(carrinhoModalItens));
+    formData.append('observacoes', '');
+    
+    fetch(`/pedidos/mesas/${mesaAtualId}/adicionar-pedido/`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fecharModalAdicionarItem();
+            location.reload(); // Recarregar para atualizar os totais
+        } else {
+            alert('Erro ao adicionar itens: ' + (data.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao processar pedido');
+    });
+}
+
+// Funções de Fechar Mesa Rápido
+function fecharMesaDireto(mesaId, mesaNumero) {
+    mesaAtualId = mesaId;
+    document.getElementById('mesaNumeroFechar').textContent = mesaNumero;
+    document.getElementById('modalFecharMesaRapido').classList.remove('hidden');
+    
+    // Configurar action do form
+    document.getElementById('formFecharMesaRapido').action = `/pedidos/mesas/${mesaId}/fechar/`;
+}
+
+// Interceptar submit do form de fechar mesa
+document.getElementById('formFecharMesaRapido').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const imprimirComanda = formData.get('imprimir_comanda') === '1';
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            if (imprimirComanda) {
+                // Abrir comanda em nova janela para impressão
+                const urlComanda = `/pedidos/mesas/${mesaAtualId}/imprimir-comanda/?auto_print=1`;
+                const janelaImpressao = window.open(urlComanda, '_blank');
+                
+                // Aguardar um pouco e recarregar a página
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                location.reload();
+            }
+        } else {
+            alert('Erro ao fechar mesa');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao processar fechamento');
+    });
+});
+
+// Fechar modais ao clicar fora
+document.getElementById('modalNovaMesa').addEventListener('click', function(e) {
+    if (e.target === this) {
+        fecharModalNovaMesa();
+    }
+});
+
+document.getElementById('modalAdicionarItem').addEventListener('click', function(e) {
+    if (e.target === this) {
+        fecharModalAdicionarItem();
+    }
+});
+
+document.getElementById('modalFecharMesaRapido').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.add('hidden');
+    }
+});
+
+// Auto-atualizar a página a cada 30 segundos
+setInterval(() => {
+    location.reload();
+}, 30000);
+</script>
+{% endblock %}

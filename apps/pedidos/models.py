@@ -4,6 +4,7 @@ from apps.clientes.models import Cliente, Endereco
 from apps.produtos.models import Produto, ProdutoPreco
 from decimal import Decimal
 import json
+from .models_mesa import Mesa
 
 class Pedido(models.Model):
     STATUS_CHOICES = [

@@ -1,0 +1,161 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Fechar Mesa {{ mesa.numero }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .forma-pagamento-card {
+        cursor: pointer;
+        border: 2px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+    .forma-pagamento-card:hover {
+        border-color: #DC2626;
+    }
+    .forma-pagamento-card.selected {
+        border-color: #DC2626;
+        background-color: #FEF2F2;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'pedidos:detalhes_mesa' mesa.id %}" class="text-gray-600 hover:text-gray-900">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-900">Fechar Mesa {{ mesa.numero }}</h1>
+        </div>
+    </div>
+
+    <!-- Resumo da Conta -->
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Resumo da Conta</h2>
+        </div>
+        
+        <div class="p-6">
+            <!-- Informações da Mesa -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm text-gray-600">Mesa</p>
+                    <p class="font-semibold text-gray-900">{{ mesa.numero }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Responsável</p>
+                    <p class="font-semibold text-gray-900">{{ mesa.responsavel|default:"Não informado" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Tempo de Permanência</p>
+                    <p class="font-semibold text-gray-900">{{ mesa.tempo_aberta }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Total de Pedidos</p>
+                    <p class="font-semibold text-gray-900">{{ pedidos.count }}</p>
+                </div>
+            </div>
+
+            <!-- Lista de Pedidos -->
+            <div class="border-t pt-4">
+                <h3 class="font-medium text-gray-900 mb-3">Detalhamento dos Pedidos</h3>
+                
+                {% for pedido in pedidos %}
+                <div class="mb-4 pb-4 border-b last:border-0">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="font-medium">Pedido #{{ pedido.numero }}</span>
+                            <span class="text-sm text-gray-600 ml-2">{{ pedido.criado_em|date:"H:i" }}</span>
+                        </div>
+                        <span class="font-medium">R$ {{ pedido.total|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="ml-4 space-y-1">
+                        {% for item in pedido.itens.all %}
+                        <div class="flex justify-between text-sm text-gray-700">
+                            <span>{{ item.quantidade }}x {{ item.get_descricao_completa }}</span>
+                            <span>R$ {{ item.subtotal|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Total Geral -->
+            <div class="border-t pt-4 mt-4">
+                <div class="flex justify-between items-center text-xl font-bold">
+                    <span>Total Geral:</span>
+                    <span class="text-pizza-red">R$ {{ total|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forma de Pagamento -->
+    <form method="post" action="{% url 'pedidos:fechar_mesa' mesa.id %}">
+        {% csrf_token %}
+        
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">Forma de Pagamento</h2>
+            </div>
+            
+            <div class="p-6">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for value, label in formas_pagamento %}
+                    <label class="forma-pagamento-card p-4 rounded-lg flex items-center gap-3">
+                        <input type="radio" name="forma_pagamento" value="{{ value }}" required
+                               class="text-pizza-red focus:ring-pizza-red">
+                        <span class="font-medium">{{ label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações -->
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <input type="checkbox" name="imprimir_comanda" value="1" checked
+                       class="text-pizza-red focus:ring-pizza-red rounded">
+                <label class="text-gray-700">Imprimir comanda após fechar</label>
+            </div>
+            
+            <div class="flex gap-3">
+                <a href="{% url 'pedidos:detalhes_mesa' mesa.id %}" 
+                   class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-6 py-2 bg-pizza-red text-white rounded-lg hover:bg-red-700">
+                    Fechar Mesa
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Adicionar classe selected ao clicar na forma de pagamento
+document.querySelectorAll('.forma-pagamento-card').forEach(card => {
+    card.addEventListener('click', function() {
+        document.querySelectorAll('.forma-pagamento-card').forEach(c => {
+            c.classList.remove('selected');
+        });
+        this.classList.add('selected');
+    });
+});
+
+// Selecionar o primeiro por padrão
+document.querySelector('.forma-pagamento-card input').checked = true;
+document.querySelector('.forma-pagamento-card').classList.add('selected');
+</script>
+{% endblock %}

@@ -1,0 +1,296 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Adicionar Pedido - Mesa {{ mesa.numero }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .produto-card {
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    .produto-card:hover {
+        border-color: #DC2626;
+        transform: translateY(-2px);
+    }
+    .produto-selecionado {
+        border-color: #DC2626;
+        background-color: #FEF2F2;
+    }
+    .carrinho-item {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.75rem 0;
+    }
+    .carrinho-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'pedidos:detalhes_mesa' mesa.id %}" class="text-gray-600 hover:text-gray-900">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-900">Adicionar Pedido - Mesa {{ mesa.numero }}</h1>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Produtos -->
+        <div class="lg:col-span-2">
+            <!-- Filtro por Categoria -->
+            <div class="mb-4">
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="filtrarCategoria('todas')" 
+                            class="categoria-btn px-4 py-2 rounded-lg bg-pizza-red text-white">
+                        Todas
+                    </button>
+                    {% for categoria in categorias %}
+                    <button onclick="filtrarCategoria('{{ categoria.id }}')" 
+                            class="categoria-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">
+                        {{ categoria.nome }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Lista de Produtos -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="produtos-lista">
+                {% for produto in produtos %}
+                <div class="produto-card bg-white rounded-lg shadow p-4" data-categoria="{{ produto.categoria.id }}">
+                    <h3 class="font-semibold text-gray-900 mb-2">{{ produto.nome }}</h3>
+                    <p class="text-sm text-gray-600 mb-3">{{ produto.descricao|truncatewords:10 }}</p>
+                    
+                    {% if produto.precos.exists %}
+                        <div class="space-y-2">
+                            {% for preco in produto.precos.all %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-700">{{ preco.tamanho.nome }}</span>
+                                <button onclick="adicionarAoCarrinho({{ preco.id }}, '{{ produto.nome }}', '{{ preco.tamanho.nome }}', {{ preco.preco_final }})"
+                                        class="bg-pizza-red text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                                    R$ {{ preco.preco_final|floatformat:2 }}
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Carrinho -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow p-6 sticky top-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Carrinho - Mesa {{ mesa.numero }}</h2>
+                
+                <div id="carrinho-vazio" class="text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <p>Carrinho vazio</p>
+                </div>
+                
+                <div id="carrinho-itens" class="hidden space-y-3 mb-4 max-h-96 overflow-y-auto">
+                    <!-- Itens serão adicionados aqui via JavaScript -->
+                </div>
+                
+                <div id="carrinho-total" class="hidden border-t pt-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="font-semibold text-gray-900">Total:</span>
+                        <span class="text-xl font-bold text-pizza-red" id="total-valor">R$ 0,00</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Observações do Pedido</label>
+                        <textarea id="observacoes-pedido" rows="3" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-pizza-red focus:border-pizza-red"
+                                  placeholder="Observações gerais do pedido..."></textarea>
+                    </div>
+                    
+                    <button onclick="finalizarPedido()" 
+                            class="w-full bg-pizza-red text-white py-3 rounded-lg hover:bg-red-700 font-medium">
+                        Finalizar Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let carrinho = [];
+let carrinhoTotal = 0;
+
+function filtrarCategoria(categoriaId) {
+    // Atualizar botões
+    document.querySelectorAll('.categoria-btn').forEach(btn => {
+        btn.classList.remove('bg-pizza-red', 'text-white');
+        btn.classList.add('bg-gray-200', 'text-gray-700');
+    });
+    event.target.classList.remove('bg-gray-200', 'text-gray-700');
+    event.target.classList.add('bg-pizza-red', 'text-white');
+    
+    // Filtrar produtos
+    document.querySelectorAll('.produto-card').forEach(card => {
+        if (categoriaId === 'todas' || card.dataset.categoria === categoriaId) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function adicionarAoCarrinho(produtoPrecoId, nome, tamanho, preco) {
+    // Verificar se já existe no carrinho
+    const itemExistente = carrinho.find(item => item.produto_preco_id === produtoPrecoId);
+    
+    if (itemExistente) {
+        itemExistente.quantidade++;
+    } else {
+        carrinho.push({
+            produto_preco_id: produtoPrecoId,
+            nome: nome,
+            tamanho: tamanho,
+            preco: preco,
+            quantidade: 1,
+            observacoes: ''
+        });
+    }
+    
+    atualizarCarrinho();
+}
+
+function removerDoCarrinho(index) {
+    carrinho.splice(index, 1);
+    atualizarCarrinho();
+}
+
+function alterarQuantidade(index, delta) {
+    carrinho[index].quantidade += delta;
+    if (carrinho[index].quantidade <= 0) {
+        removerDoCarrinho(index);
+    } else {
+        atualizarCarrinho();
+    }
+}
+
+function atualizarObservacaoItem(index, observacao) {
+    carrinho[index].observacoes = observacao;
+}
+
+function atualizarCarrinho() {
+    const carrinhoVazio = document.getElementById('carrinho-vazio');
+    const carrinhoItens = document.getElementById('carrinho-itens');
+    const carrinhoTotalDiv = document.getElementById('carrinho-total');
+    
+    if (carrinho.length === 0) {
+        carrinhoVazio.classList.remove('hidden');
+        carrinhoItens.classList.add('hidden');
+        carrinhoTotalDiv.classList.add('hidden');
+        return;
+    }
+    
+    carrinhoVazio.classList.add('hidden');
+    carrinhoItens.classList.remove('hidden');
+    carrinhoTotalDiv.classList.remove('hidden');
+    
+    // Limpar e reconstruir itens
+    carrinhoItens.innerHTML = '';
+    carrinhoTotal = 0;
+    
+    carrinho.forEach((item, index) => {
+        const subtotal = item.preco * item.quantidade;
+        carrinhoTotal += subtotal;
+        
+        const itemHtml = `
+            <div class="carrinho-item">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex-1">
+                        <h4 class="font-medium text-gray-900">${item.nome}</h4>
+                        <p class="text-sm text-gray-600">${item.tamanho}</p>
+                    </div>
+                    <button onclick="removerDoCarrinho(${index})" class="text-red-600 hover:text-red-800">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <button onclick="alterarQuantidade(${index}, -1)" 
+                                class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                            </svg>
+                        </button>
+                        <span class="font-medium w-8 text-center">${item.quantidade}</span>
+                        <button onclick="alterarQuantidade(${index}, 1)" 
+                                class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="font-medium text-gray-900">R$ ${subtotal.toFixed(2)}</span>
+                </div>
+                
+                <input type="text" placeholder="Observações do item..." 
+                       onchange="atualizarObservacaoItem(${index}, this.value)"
+                       value="${item.observacoes}"
+                       class="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-pizza-red">
+            </div>
+        `;
+        
+        carrinhoItens.insertAdjacentHTML('beforeend', itemHtml);
+    });
+    
+    // Atualizar total
+    document.getElementById('total-valor').textContent = `R$ ${carrinhoTotal.toFixed(2)}`;
+}
+
+function finalizarPedido() {
+    if (carrinho.length === 0) {
+        alert('Adicione itens ao carrinho antes de finalizar o pedido');
+        return;
+    }
+    
+    const observacoes = document.getElementById('observacoes-pedido').value;
+    
+    // Preparar dados para envio
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('itens', JSON.stringify(carrinho));
+    formData.append('observacoes', observacoes);
+    
+    // Enviar pedido
+    fetch("{% url 'pedidos:adicionar_pedido_mesa' mesa.id %}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirecionar para detalhes da mesa
+            window.location.href = "{% url 'pedidos:detalhes_mesa' mesa.id %}";
+        } else {
+            alert('Erro ao adicionar pedido: ' + (data.error || 'Erro desconhecido'));
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao processar pedido');
+    });
+}
+</script>
+{% endblock %}

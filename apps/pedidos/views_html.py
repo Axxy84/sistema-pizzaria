@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, TemplateView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.db.models import Q, Sum, Count
@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from .models import Pedido, ItemPedido
+from .models_mesa import Mesa
 from .forms import PedidoForm, ItemPedidoFormSet, StatusUpdateForm
 from apps.clientes.models import Cliente, Endereco
 from apps.produtos.models import Produto, ProdutoPreco
@@ -25,6 +26,10 @@ class PedidoListView(LoginRequiredMixin, ListView):
     context_object_name = 'pedidos'
     paginate_by = 20
     
+    def get(self, request, *args, **kwargs):
+        # Não fazer redirecionamento, processar diretamente
+        return super().get(request, *args, **kwargs)
+    
     def get_queryset(self):
         queryset = super().get_queryset()
         
@@ -33,10 +38,18 @@ class PedidoListView(LoginRequiredMixin, ListView):
         if status and status != 'todos':
             queryset = queryset.filter(status=status)
         
-        # Filtro por tipo
+        # Filtro por tipo - apenas aplica se for uma view específica
+        view = self.request.GET.get('view')
         tipo = self.request.GET.get('tipo')
-        if tipo:
+        
+        # Se está em uma view específica (mesa/delivery), aplicar filtro automaticamente
+        if view == 'mesa':
+            queryset = queryset.filter(tipo='mesa')
+        elif view == 'delivery':
+            queryset = queryset.filter(tipo='delivery')
+        elif tipo and view != 'todos':  # Se tem tipo mas não é view todos, aplicar
             queryset = queryset.filter(tipo=tipo)
+        # Se não tem view ou é 'todos', mostrar todos os pedidos
         
         # Filtro por data
         data = self.request.GET.get('data')
@@ -56,7 +69,7 @@ class PedidoListView(LoginRequiredMixin, ListView):
                 Q(cliente__telefone__icontains=busca)
             )
         
-        return queryset.select_related('cliente', 'usuario').prefetch_related('itens')
+        return queryset.select_related('cliente', 'usuario').prefetch_related('itens').order_by('-criado_em')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -675,10 +688,25 @@ def api_criar_pedido_rapido(request):
                 usuario=request.user,
                 tipo=tipo_pedido,
                 mesa=mesa,
+                mesa_numero=mesa,  # Usar o novo campo mesa_numero também
                 forma_pagamento=forma_pagamento,
                 taxa_entrega=Decimal(taxa_entrega_str),
                 observacoes=observacoes
             )
+            
+            # Se for pedido de mesa, criar ou atualizar a mesa
+            if tipo_pedido == 'mesa' and mesa:
+                mesa_obj, created = Mesa.objects.get_or_create(
+                    numero=mesa,
+                    defaults={
+                        'status': 'aberta',
+                        'aberta_em': timezone.now()
+                    }
+                )
+                
+                # Se a mesa já existia mas estava fechada, reabrir
+                if not created and mesa_obj.status == 'fechada':
+                    mesa_obj.reabrir_mesa()
             
             # TODO: Salvar formas de pagamento múltiplas em tabela separada se necessário
         except Exception as e:

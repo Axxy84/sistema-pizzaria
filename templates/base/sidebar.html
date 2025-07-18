@@ -95,6 +95,13 @@
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pedido_rapido' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Novo Pedido
                     </a>
+                    <a href="{% url 'pedidos:listar_mesas' %}" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if 'mesas' in request.path %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
+                        Mesas Abertas
+                        <span class="ml-auto inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                            🪑
+                        </span>
+                    </a>
                     <a href="{% url 'pedidos:pedido_list' %}?status=preparando" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-l-md transition-colors">
                         Em Preparo

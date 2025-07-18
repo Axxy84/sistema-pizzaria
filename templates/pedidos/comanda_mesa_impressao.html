@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comanda - Mesa {{ mesa.numero }}</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none !important; }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .header p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        .info-section {
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .pedido-section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .pedido-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+        
+        .item-desc {
+            flex: 1;
+        }
+        
+        .item-valor {
+            text-align: right;
+            min-width: 80px;
+        }
+        
+        .observacao {
+            font-size: 12px;
+            font-style: italic;
+            color: #666;
+            padding-left: 20px;
+            margin-top: 2px;
+        }
+        
+        .total-section {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #000;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .print-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #DC2626;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .print-button:hover {
+            background-color: #B91C1C;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">Imprimir Comanda</button>
+    
+    <div class="header">
+        <h1>PIZZARIA</h1>
+        <p>Comanda da Mesa</p>
+    </div>
+    
+    <div class="info-section">
+        <div class="info-row">
+            <span><strong>Mesa:</strong></span>
+            <span>{{ mesa.numero }}</span>
+        </div>
+        {% if mesa.responsavel %}
+        <div class="info-row">
+            <span><strong>Responsável:</strong></span>
+            <span>{{ mesa.responsavel }}</span>
+        </div>
+        {% endif %}
+        <div class="info-row">
+            <span><strong>Data:</strong></span>
+            <span>{{ data_impressao|date:"d/m/Y H:i" }}</span>
+        </div>
+        <div class="info-row">
+            <span><strong>Tempo de Permanência:</strong></span>
+            <span>{{ mesa.tempo_aberta }}</span>
+        </div>
+    </div>
+    
+    {% for pedido in pedidos %}
+    <div class="pedido-section">
+        <div class="pedido-header">
+            <span>Pedido #{{ pedido.numero }}</span>
+            <span>{{ pedido.criado_em|date:"H:i" }}</span>
+        </div>
+        
+        {% for item in pedido.itens.all %}
+        <div class="item">
+            <div class="item-desc">
+                {{ item.quantidade }}x {{ item.get_descricao_completa }}
+            </div>
+            <div class="item-valor">
+                R$ {{ item.subtotal|floatformat:2 }}
+            </div>
+        </div>
+        {% if item.observacoes %}
+        <div class="observacao">
+            Obs: {{ item.observacoes }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        
+        {% if pedido.observacoes %}
+        <div class="observacao" style="margin-top: 10px;">
+            Obs. Pedido: {{ pedido.observacoes }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <div class="total-section">
+        <div class="total-row">
+            <span>TOTAL GERAL:</span>
+            <span>R$ {{ total|floatformat:2 }}</span>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Obrigado pela preferência!</p>
+        <p>{{ data_impressao|date:"d/m/Y H:i:s" }}</p>
+    </div>
+    
+    <script>
+        // Auto imprimir ao carregar a página
+        window.onload = function() {
+            if (window.location.search.includes('auto_print=1')) {
+                window.print();
+                // Fechar a janela após imprimir
+                window.onafterprint = function() {
+                    window.close();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

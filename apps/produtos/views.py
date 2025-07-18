@@ -146,6 +146,43 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         
         return Response({'produtos': produtos})
     
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def para_mesa(self, request):
+        """
+        Endpoint simples para adicionar itens às mesas
+        Retorna lista linear de produtos com preços
+        """
+        produtos_lista = []
+        
+        for produto in Produto.objects.filter(ativo=True).prefetch_related('precos__tamanho', 'categoria'):
+            # Para cada preço do produto
+            for preco in produto.precos.all():
+                produtos_lista.append({
+                    'id': produto.id,
+                    'nome': produto.nome,
+                    'categoria': produto.categoria.nome if produto.categoria else 'Outros',
+                    'precos': [{
+                        'produto_preco_id': preco.id,
+                        'tamanho': preco.tamanho.nome if preco.tamanho else 'Único',
+                        'preco': float(preco.preco_final)
+                    }]
+                })
+        
+        # Agrupar produtos pelo nome para ter todos os tamanhos juntos
+        produtos_agrupados = {}
+        for item in produtos_lista:
+            nome = item['nome']
+            if nome not in produtos_agrupados:
+                produtos_agrupados[nome] = {
+                    'id': item['id'],
+                    'nome': nome,
+                    'categoria': item['categoria'],
+                    'precos': []
+                }
+            produtos_agrupados[nome]['precos'].extend(item['precos'])
+        
+        return Response(list(produtos_agrupados.values()))
+    
     def _mapear_categoria_para_aba(self, categoria_nome):
         """Mapear nome da categoria para aba do frontend"""
         categoria_lower = categoria_nome.lower()

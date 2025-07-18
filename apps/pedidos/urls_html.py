@@ -1,6 +1,7 @@
 from django.urls import path
 from django.views.generic import TemplateView
 from . import views_html
+from . import views_mesa
 
 app_name = 'pedidos'
 
@@ -33,4 +34,13 @@ urlpatterns = [
     
     # API do pedido rápido
     path('api/criar-rapido/', views_html.api_criar_pedido_rapido, name='api_criar_pedido_rapido'),
+    
+    # URLs de Mesas
+    path('mesas/', views_mesa.listar_mesas, name='listar_mesas'),
+    path('mesas/abrir/', views_mesa.abrir_mesa, name='abrir_mesa'),
+    path('mesas/<int:mesa_id>/', views_mesa.detalhes_mesa, name='detalhes_mesa'),
+    path('mesas/<int:mesa_id>/adicionar-pedido/', views_mesa.adicionar_pedido_mesa, name='adicionar_pedido_mesa'),
+    path('mesas/<int:mesa_id>/fechar/', views_mesa.fechar_mesa, name='fechar_mesa'),
+    path('mesas/<int:mesa_id>/imprimir-comanda/', views_mesa.imprimir_comanda_mesa, name='imprimir_comanda_mesa'),
+    path('mesas/<int:mesa_id>/api/status/', views_mesa.api_status_mesa, name='api_status_mesa'),
 ]
