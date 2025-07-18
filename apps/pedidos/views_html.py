@@ -324,10 +324,21 @@ def pedido_cancelar_com_senha(request, pk):
         return redirect('pedidos:pedido_detail', pk=pk)
     
     # Método 2: Verificar contra uma senha específica (configurável)
-    # from django.conf import settings
-    # ADMIN_CANCEL_PASSWORD = getattr(settings, 'ADMIN_CANCEL_PASSWORD', '123456')
-    # if password == ADMIN_CANCEL_PASSWORD:
-    #     ...
+    from django.conf import settings
+    ADMIN_CANCEL_PASSWORD = getattr(settings, 'ADMIN_CANCEL_PASSWORD', None)
+    
+    if ADMIN_CANCEL_PASSWORD and password == ADMIN_CANCEL_PASSWORD:
+        pedido.status = 'cancelado'
+        pedido.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'Pedido #{pedido.numero} cancelado com sucesso'
+            })
+        
+        messages.success(request, f'Pedido #{pedido.numero} cancelado com sucesso')
+        return redirect('pedidos:pedido_detail', pk=pk)
     
     # Método 3: Verificar contra qualquer superusuário
     from django.contrib.auth import authenticate

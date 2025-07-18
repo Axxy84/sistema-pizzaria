@@ -188,6 +188,10 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
+# Senha para cancelamento de pedidos
+# IMPORTANTE: Altere esta senha em produção!
+ADMIN_CANCEL_PASSWORD = '2024pizza'  # Senha padrão - MUDE ISSO!
+
 # REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
