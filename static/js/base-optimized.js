@@ -304,7 +304,7 @@
         // Prefetch para páginas comuns
         if ('requestIdleCallback' in window) {
             requestIdleCallback(() => {
-                const prefetchPages = ['/produtos/', '/pedidos/', '/dashboard/'];
+                const prefetchPages = ['/produtos/', '/pedidos/'];
                 prefetchPages.forEach(page => {
                     const link = document.createElement('link');
                     link.rel = 'prefetch';

@@ -328,52 +328,42 @@
                     
                     <div class="flow-root">
                         <ul class="-mb-8">
-                            {% for status_code, status_label in pedido.STATUS_CHOICES %}
-                            {% if status_code != 'cancelado' or pedido.status == 'cancelado' %}
+                            {% if pedido.status == 'recebido' %}
                             <li class="timeline-item">
                                 <div class="timeline-line"></div>
                                 <div class="relative flex space-x-3">
                                     <div>
-                                        <span class="timeline-dot 
-                                            {% if status_code == pedido.status %}timeline-dot-active
-                                            {% elif forloop.counter0 < pedido.STATUS_CHOICES|length and status_code != pedido.status %}
-                                                {% for s_code, s_label in pedido.STATUS_CHOICES %}
-                                                    {% if s_code == pedido.status %}
-                                                        {% if forloop.counter0 > forloop.parentloop.counter0 %}timeline-dot-pending{% else %}timeline-dot-completed{% endif %}
-                                                    {% endif %}
-                                                {% endfor %}
-                                            {% else %}timeline-dot-pending{% endif %}">
-                                            {% if status_code == 'pendente' %}
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                            {% elif status_code == 'confirmado' %}
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                            {% elif status_code == 'preparando' %}
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                                                </svg>
-                                            {% elif status_code == 'saiu_entrega' %}
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                                </svg>
-                                            {% elif status_code == 'entregue' %}
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            {% elif status_code == 'cancelado' %}
-                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            {% endif %}
+                                        <span class="timeline-dot timeline-dot-completed">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
                                         </span>
                                     </div>
                                     <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                         <div>
-                                            <p class="text-sm font-medium text-gray-900">{{ status_label }}</p>
-                                            {% if status_code == pedido.status %}
+                                            <p class="text-sm font-medium text-gray-900">Recebido</p>
+                                            <p class="text-xs text-gray-500">{{ pedido.criado_em|date:"d/m/Y H:i" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endif %}
+                            
+                            {% if pedido.status in 'preparando,saindo,entregue' %}
+                            <li class="timeline-item">
+                                <div class="timeline-line"></div>
+                                <div class="relative flex space-x-3">
+                                    <div>
+                                        <span class="timeline-dot {% if pedido.status == 'preparando' %}timeline-dot-active{% else %}timeline-dot-completed{% endif %}">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">Preparando</p>
+                                            {% if pedido.status == 'preparando' %}
                                             <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
                                             {% endif %}
                                         </div>
@@ -381,7 +371,70 @@
                                 </div>
                             </li>
                             {% endif %}
-                            {% endfor %}
+                            
+                            {% if pedido.status in 'saindo,entregue' %}
+                            <li class="timeline-item">
+                                <div class="timeline-line"></div>
+                                <div class="relative flex space-x-3">
+                                    <div>
+                                        <span class="timeline-dot {% if pedido.status == 'saindo' %}timeline-dot-active{% else %}timeline-dot-completed{% endif %}">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">Saiu para Entrega</p>
+                                            {% if pedido.status == 'saindo' %}
+                                            <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endif %}
+                            
+                            {% if pedido.status == 'entregue' %}
+                            <li class="timeline-item">
+                                <div class="timeline-line"></div>
+                                <div class="relative flex space-x-3">
+                                    <div>
+                                        <span class="timeline-dot timeline-dot-active">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">Entregue</p>
+                                            <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endif %}
+                            
+                            {% if pedido.status == 'cancelado' %}
+                            <li class="timeline-item">
+                                <div class="relative flex space-x-3">
+                                    <div>
+                                        <span class="timeline-dot timeline-dot-active bg-red-600 border-red-600">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">Cancelado</p>
+                                            <p class="text-xs text-gray-500">{{ pedido.atualizado_em|date:"d/m/Y H:i" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
@@ -461,19 +514,15 @@ function pedidoDetailApp() {
         opcoesStatus: [],
         
         transicoesValidas: {
-            'pendente': [
-                {value: 'confirmado', label: 'Confirmado'},
-                {value: 'cancelado', label: 'Cancelado'}
-            ],
-            'confirmado': [
+            'recebido': [
                 {value: 'preparando', label: 'Preparando'},
                 {value: 'cancelado', label: 'Cancelado'}
             ],
             'preparando': [
-                {value: 'saiu_entrega', label: 'Saiu para Entrega'},
+                {value: 'saindo', label: 'Saiu para Entrega'},
                 {value: 'cancelado', label: 'Cancelado'}
             ],
-            'saiu_entrega': [
+            'saindo': [
                 {value: 'entregue', label: 'Entregue'},
                 {value: 'cancelado', label: 'Cancelado'}
             ]

@@ -28,6 +28,7 @@ urlpatterns = [
     path('auth/', include('apps.authentication.urls')),
     
     # URLs HTML dos apps
+    path('dashboard/', include('apps.dashboard.urls')),
     path('produtos/', include('apps.produtos.urls_html')),
     path('pedidos/', include('apps.pedidos.urls_html')),
     path('financeiro/', include('apps.financeiro.urls')),

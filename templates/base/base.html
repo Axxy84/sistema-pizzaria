@@ -144,7 +144,7 @@
     </div>
     
     <!-- JavaScript Otimizado com Lazy Loading -->
-    <script src="{% static 'js/base-optimized.js' %}" defer></script>
+    <script src="{% static 'js/base-optimized.js' %}?v={% now 'U' %}" defer></script>
     
     <!-- Lazy Loading para Chart.js apenas quando necessário -->
     {% if 'dashboard' in request.resolver_match.url_name or 'home' in request.resolver_match.url_name %}

@@ -91,15 +91,7 @@
                 <!-- Status Buttons -->
                 <div class="flex flex-wrap gap-2">
                     <!-- Ações rápidas baseadas no status atual -->
-                    {% if pedido.status == 'recebido' %}
-                        <button onclick="changeStatusSimple({{ pedido.pk }}, 'preparando', this)"
-                                class="inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white text-sm font-medium rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Iniciar Preparo
-                        </button>
-                    {% elif pedido.status == 'preparando' %}
+                    {% if pedido.status == 'preparando' %}
                         {% if pedido.tipo == 'delivery' %}
                             <button onclick="changeStatusSimple({{ pedido.pk }}, 'saindo', this)"
                                     class="inline-flex items-center px-3 py-1.5 bg-orange-600 text-white text-sm font-medium rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
@@ -109,12 +101,12 @@
                                 Saiu para Entrega
                             </button>
                         {% else %}
-                            <button onclick="changeStatusSimple({{ pedido.pk }}, 'pronto', this)"
+                            <button onclick="changeStatusSimple({{ pedido.pk }}, 'entregue', this)"
                                     class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                Pronto
+                                Finalizar
                             </button>
                         {% endif %}
                     {% elif pedido.status == 'saindo' %}
@@ -124,14 +116,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             Confirmar Entrega
-                        </button>
-                    {% elif pedido.status == 'pronto' %}
-                        <button onclick="changeStatusSimple({{ pedido.pk }}, 'entregue', this)"
-                                class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Finalizar
                         </button>
                     {% endif %}
                 </div>

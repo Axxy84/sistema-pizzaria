@@ -71,20 +71,10 @@
                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Ver Detalhes
                         </a>
-                        {% if pedido.status == 'recebido' %}
-                            <button onclick="updateStatus({{ pedido.pk }}, 'preparando')"
-                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                Iniciar Preparo
-                            </button>
-                        {% elif pedido.status == 'preparando' %}
-                            <button onclick="updateStatus({{ pedido.pk }}, 'pronto')"
-                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                Marcar como Pronto
-                            </button>
-                        {% elif pedido.status == 'pronto' %}
+                        {% if pedido.status == 'preparando' %}
                             <button onclick="updateStatus({{ pedido.pk }}, 'entregue')"
                                     class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                Finalizar
+                                Finalizar Pedido
                             </button>
                         {% endif %}
                         <button onclick="imprimirComanda({{ pedido.pk }})"

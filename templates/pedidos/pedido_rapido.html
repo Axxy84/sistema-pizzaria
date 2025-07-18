@@ -1330,11 +1330,6 @@ function pedidoRapido() {
                     this.carrinho = [];
                     this.cliente = { nome: '', telefone: '', endereco: '' };
                     this.numeroMesa = '';
-                    
-                    // Redirecionar para detalhes do pedido
-                    setTimeout(() => {
-                        window.location.href = `/pedidos/${data.pedido_id}/`;
-                    }, 1000);
                 } else {
                     const errorData = await response.json();
                     console.error('DEBUG: Erro do servidor:', errorData);

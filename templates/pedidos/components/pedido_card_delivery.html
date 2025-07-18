@@ -103,12 +103,7 @@
         
         <div class="flex space-x-2">
             <!-- Botões de ação rápida baseados no status -->
-            {% if pedido.status == 'recebido' %}
-                <button onclick="updateStatus({{ pedido.pk }}, 'preparando')"
-                        class="px-3 py-1 bg-yellow-600 text-white text-sm font-medium rounded hover:bg-yellow-700 transition-colors">
-                    Iniciar Preparo
-                </button>
-            {% elif pedido.status == 'preparando' %}
+            {% if pedido.status == 'preparando' %}
                 <button onclick="updateStatus({{ pedido.pk }}, 'saindo')"
                         class="px-3 py-1 bg-orange-600 text-white text-sm font-medium rounded hover:bg-orange-700 transition-colors">
                     Saiu para Entrega
