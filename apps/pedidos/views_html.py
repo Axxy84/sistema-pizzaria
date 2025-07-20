@@ -906,11 +906,12 @@ def pedido_atualizar_status(request, pk):
 
 @login_required
 def pedido_cancelar_com_senha(request, pk):
-    """View para cancelar pedido com senha de proteção"""
+    """View para cancelar pedido com senha de proteção (suporta AJAX e HTML)"""
     pedido = get_object_or_404(Pedido, pk=pk)
     
     if request.method == 'POST':
-        senha = request.POST.get('senha_cancelamento')
+        # Para AJAX, o campo se chama 'password', para HTML se chama 'senha_cancelamento'
+        senha = request.POST.get('password') or request.POST.get('senha_cancelamento')
         motivo = request.POST.get('motivo', '')
         
         # Verificar senha usando o modelo de configuração
@@ -920,13 +921,40 @@ def pedido_cancelar_com_senha(request, pk):
             try:
                 pedido.status = 'cancelado'
                 pedido.save()
+                
+                # Se for requisição AJAX, retornar JSON
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'Pedido #{pedido.numero} cancelado com sucesso'
+                    })
+                
+                # Se for requisição HTML normal
                 messages.success(request, f'Pedido {pedido.numero} cancelado com sucesso!')
                 return redirect('pedidos:pedido_detail', pk=pedido.pk)
                 
             except Exception as e:
-                messages.error(request, f'Erro ao cancelar pedido: {str(e)}')
+                error_msg = f'Erro ao cancelar pedido: {str(e)}'
+                
+                # Se for requisição AJAX, retornar JSON
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': error_msg
+                    })
+                
+                messages.error(request, error_msg)
         else:
-            messages.error(request, 'Senha incorreta!')
+            error_msg = 'Senha incorreta!'
+            
+            # Se for requisição AJAX, retornar JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': error_msg
+                })
+            
+            messages.error(request, error_msg)
     
     return render(request, 'pedidos/cancelar_com_senha.html', {'pedido': pedido})
 

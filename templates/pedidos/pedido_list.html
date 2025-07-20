@@ -377,9 +377,26 @@
 <!-- CSRF token for status buttons -->
 <div style="display: none;">
     {% csrf_token %}
+    <div data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"></div>
 </div>
 
 <script>
+// Utility function for getting cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 // Sistema de atualização automática de pedidos
 (function() {
     let ultimoCheckTimestamp = new Date().toISOString();
@@ -389,8 +406,42 @@
     // Função para verificar novos pedidos
     async function verificarNovosPedidos() {
         try {
-            const response = await fetch(`/api/pedidos/pedidos/novos/?desde=${ultimoCheckTimestamp}`);
-            if (!response.ok) return;
+            // Check if user is authenticated (this page requires login)
+            const userAuthenticated = document.querySelector('[data-user-authenticated]')?.dataset.userAuthenticated === 'true';
+            if (!userAuthenticated) {
+                console.log('User not authenticated, skipping API call');
+                return;
+            }
+            
+            // Pegar CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                             document.querySelector('meta[name="csrf-token"]')?.content ||
+                             getCookie('csrftoken');
+            
+            const response = await fetch(`/api/pedidos/pedidos/novos/?desde=${ultimoCheckTimestamp}`, {
+                method: 'GET',
+                credentials: 'same-origin', // Include cookies for session authentication
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            // If not authenticated, silently return (avoid error spam)
+            if (response.status === 403 || response.status === 401) {
+                console.log('API request requires authentication, disabling auto-refresh');
+                // Stop the auto-refresh if we're getting auth errors
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                    updateInterval = null;
+                }
+                return;
+            }
+            
+            if (!response.ok) {
+                console.warn('API response not OK:', response.status, response.statusText);
+                return;
+            }
             
             const data = await response.json();
             
@@ -410,6 +461,14 @@
             
         } catch (error) {
             console.error('Erro ao verificar novos pedidos:', error);
+            // If there are repeated errors, disable auto-refresh
+            if (error.message && error.message.includes('JSON')) {
+                console.log('Disabling auto-refresh due to JSON parsing errors');
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                    updateInterval = null;
+                }
+            }
         }
     }
     
@@ -630,22 +689,7 @@ async function changeStatusSimple(pedidoId, newStatus, buttonElement) {
     }
 }
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-// Variável para armazenar o ID do pedido a ser cancelado
+// Variável global para armazenar o ID do pedido a ser cancelado
 let pedidoToCancelId = null;
 
 function showPasswordModal(pedidoId) {
