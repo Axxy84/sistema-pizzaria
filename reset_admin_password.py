@@ -1,59 +1,65 @@
-#!/usr/bin/env python
+#\!/usr/bin/env python
 """
-Script para resetar senha do admin para facilitar acesso
+Script para redefinir a senha do usuário admin
 """
 import os
-import sys
 import django
+import sys
 
-# Setup Django
-sys.path.append('/home/labdev/Documentos/DjangoProject')
+# Adiciona o diretório do projeto ao path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Configura o Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
 from django.contrib.auth.models import User
 
 def reset_admin_password():
-    """Resetar senha do admin para 'admin123'"""
+    """Redefine a senha do usuário admin"""
+    print("=== Redefinição de Senha do Admin ===\n")
+    
+    # Buscar usuário admin (ID 7)
     try:
-        admin = User.objects.get(username='admin')
-        admin.set_password('admin123')
-        admin.save()
-        print("✅ Senha do admin resetada com sucesso!")
-        print("📧 Email: admin@example.com")
-        print("🔑 Senha: admin123")
-        return True
+        admin_user = User.objects.get(id=7, username='admin')
+        print(f"✓ Usuário encontrado: {admin_user.username}")
+        print(f"  Email: {admin_user.email}")
+        print(f"  Is_staff: {admin_user.is_staff}")
+        print(f"  Is_superuser: {admin_user.is_superuser}")
+        
+        # Definir nova senha
+        new_password = "admin123"
+        admin_user.set_password(new_password)
+        admin_user.save()
+        
+        print(f"\n✅ Senha redefinida com sucesso\!")
+        print(f"\n📝 Credenciais de acesso:")
+        print(f"   Username: admin")
+        print(f"   Password: {new_password}")
+        print(f"\n⚠️  IMPORTANTE: Altere esta senha após o primeiro login\!")
+        
     except User.DoesNotExist:
-        print("❌ Usuário admin não encontrado")
-        return False
+        print("❌ Usuário admin (ID 7) não encontrado\!")
+        
+        # Listar admins disponíveis
+        admins = User.objects.filter(is_superuser=True)
+        if admins.exists():
+            print("\n📋 Usuários admin disponíveis:")
+            for admin in admins:
+                print(f"   - ID: {admin.id}, Username: {admin.username}")
+            
+            # Tentar resetar o primeiro admin encontrado
+            admin_user = admins.first()
+            new_password = "admin123"
+            admin_user.set_password(new_password)
+            admin_user.save()
+            
+            print(f"\n✅ Senha redefinida para: {admin_user.username}")
+            print(f"   Nova senha: {new_password}")
+        else:
+            print("\n❌ Nenhum usuário admin encontrado no sistema\!")
+            print("💡 Você pode criar um novo admin com: python manage.py createsuperuser")
 
-def create_admin_if_not_exists():
-    """Criar admin se não existir"""
-    if not User.objects.filter(username='admin').exists():
-        admin = User.objects.create_superuser(
-            username='admin',
-            email='admin@example.com',
-            password='admin123'
-        )
-        print("✅ Usuário admin criado com sucesso!")
-        print("📧 Email: admin@example.com")
-        print("🔑 Senha: admin123")
-        return True
-    return False
-
-def main():
-    print("🔧 Configurando acesso de admin...")
-    
-    if create_admin_if_not_exists():
-        print("\n✅ Admin criado!")
-    else:
-        if reset_admin_password():
-            print("\n✅ Senha resetada!")
-    
-    print("\n🌐 Agora você pode acessar:")
-    print("1. http://127.0.0.1:8001/auth/login/")
-    print("2. Use: admin@example.com / admin123")
-    print("3. Depois acesse: http://127.0.0.1:8001/estoque/")
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    reset_admin_password()
+EOF < /dev/null

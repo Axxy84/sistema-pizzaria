@@ -183,6 +183,9 @@ LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+# Senha para cancelamento de pedidos
+PEDIDO_CANCELAMENTO_SENHA = 'admin123'
+
 # Session configuration
 # SESSION_ENGINE está definido mais abaixo após a configuração de cache
 SESSION_COOKIE_NAME = 'pizzaria_sessionid'

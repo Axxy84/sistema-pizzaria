@@ -270,8 +270,8 @@ def pedido_cancelar(request, pk):
 
 
 @login_required
-def pedido_cancelar_com_senha(request, pk):
-    """Cancelar pedido com verificação de senha"""
+def pedido_cancelar_com_senha_ajax(request, pk):
+    """Cancelar pedido com verificação de senha via AJAX"""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Método não permitido'}, status=405)
     
@@ -913,8 +913,9 @@ def pedido_cancelar_com_senha(request, pk):
         senha = request.POST.get('senha_cancelamento')
         motivo = request.POST.get('motivo', '')
         
-        # Verificar senha (pode ser configurável)
-        SENHA_CANCELAMENTO = "admin123"  # TODO: Mover para configurações
+        # Verificar senha configurada no settings
+        from django.conf import settings
+        SENHA_CANCELAMENTO = getattr(settings, 'PEDIDO_CANCELAMENTO_SENHA', 'admin123')
         
         if senha == SENHA_CANCELAMENTO:
             try:
