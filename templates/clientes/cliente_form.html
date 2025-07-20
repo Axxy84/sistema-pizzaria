@@ -1,0 +1,237 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar Cliente{% else %}Novo Cliente{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-600">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                    </svg>
+                    Início
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <a href="{% url 'clientes:cliente-list' %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-red-600 md:ml-2">
+                        Clientes
+                    </a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">
+                        {% if form.instance.pk %}Editar Cliente{% else %}Novo Cliente{% endif %}
+                    </span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">
+            {% if form.instance.pk %}Editar Cliente{% else %}Novo Cliente{% endif %}
+        </h1>
+        <p class="mt-2 text-gray-600">
+            {% if form.instance.pk %}
+                Atualize as informações do cliente
+            {% else %}
+                Preencha os dados para cadastrar um novo cliente
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+            {% for error in form.non_field_errors %}
+                <p class="text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Informações Pessoais</h2>
+            
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <!-- Nome -->
+                <div class="col-span-2 md:col-span-1">
+                    <label for="{{ form.nome.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Nome Completo <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="{{ form.nome.name }}" 
+                           id="{{ form.nome.id_for_label }}"
+                           value="{{ form.nome.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.nome.errors %}border-red-300{% endif %}"
+                           required>
+                    {% if form.nome.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.nome.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- CPF -->
+                <div>
+                    <label for="{{ form.cpf.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        CPF
+                    </label>
+                    <input type="text" 
+                           name="{{ form.cpf.name }}" 
+                           id="{{ form.cpf.id_for_label }}"
+                           value="{{ form.cpf.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.cpf.errors %}border-red-300{% endif %}"
+                           placeholder="000.000.000-00"
+                           data-mask="cpf">
+                    {% if form.cpf.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.cpf.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        E-mail
+                    </label>
+                    <input type="email" 
+                           name="{{ form.email.name }}" 
+                           id="{{ form.email.id_for_label }}"
+                           value="{{ form.email.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.email.errors %}border-red-300{% endif %}">
+                    {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Telefone Principal -->
+                <div>
+                    <label for="{{ form.telefone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Telefone Principal <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="{{ form.telefone.name }}" 
+                           id="{{ form.telefone.id_for_label }}"
+                           value="{{ form.telefone.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.telefone.errors %}border-red-300{% endif %}"
+                           placeholder="(00) 00000-0000"
+                           data-mask="phone"
+                           required>
+                    {% if form.telefone.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.telefone.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Telefone Secundário -->
+                <div>
+                    <label for="{{ form.telefone2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Telefone Secundário
+                    </label>
+                    <input type="text" 
+                           name="{{ form.telefone2.name }}" 
+                           id="{{ form.telefone2.id_for_label }}"
+                           value="{{ form.telefone2.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.telefone2.errors %}border-red-300{% endif %}"
+                           placeholder="(00) 00000-0000"
+                           data-mask="phone">
+                    {% if form.telefone2.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.telefone2.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Data de Nascimento -->
+                <div>
+                    <label for="{{ form.data_nascimento.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Data de Nascimento
+                    </label>
+                    <input type="date" 
+                           name="{{ form.data_nascimento.name }}" 
+                           id="{{ form.data_nascimento.id_for_label }}"
+                           value="{{ form.data_nascimento.value|date:'Y-m-d'|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.data_nascimento.errors %}border-red-300{% endif %}">
+                    {% if form.data_nascimento.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.data_nascimento.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Observações -->
+                <div class="col-span-2">
+                    <label for="{{ form.observacoes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Observações
+                    </label>
+                    <textarea name="{{ form.observacoes.name }}" 
+                              id="{{ form.observacoes.id_for_label }}"
+                              rows="3"
+                              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.observacoes.errors %}border-red-300{% endif %}"
+                              placeholder="Informações adicionais sobre o cliente">{{ form.observacoes.value|default:'' }}</textarea>
+                    {% if form.observacoes.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.observacoes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{% if form.instance.pk %}{% url 'clientes:cliente-detail' form.instance.pk %}{% else %}{% url 'clientes:cliente-list' %}{% endif %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                Cancelar
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% if form.instance.pk %}Salvar Alterações{% else %}Cadastrar Cliente{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara para CPF
+    const cpfInputs = document.querySelectorAll('[data-mask="cpf"]');
+    cpfInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            }
+            e.target.value = value;
+        });
+    });
+
+    // Máscara para telefone
+    const phoneInputs = document.querySelectorAll('[data-mask="phone"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                if (value.length === 11) {
+                    value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                } else if (value.length === 10) {
+                    value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+                }
+            }
+            e.target.value = value;
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

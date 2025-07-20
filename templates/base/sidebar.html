@@ -120,7 +120,7 @@
             </div>
 
             <!-- Clientes -->
-            <a href="#" 
+            <a href="{% url 'clientes:cliente-list' %}" 
                class="{% if 'clientes' in request.path %}bg-pizza-50 border-r border-pizza-500 text-pizza-700{% else %}text-secondary hover:bg-secondary hover:text-primary{% endif %} group flex items-center px-3 py-2 text-sm font-medium rounded-l-md transition-colors duration-200">
                 <!-- Heroicon: users -->
                 <svg class="{% if 'clientes' in request.path %}text-pizza-500{% else %}text-tertiary group-hover:text-secondary{% endif %} mr-3 h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

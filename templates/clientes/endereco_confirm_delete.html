@@ -1,0 +1,149 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Excluir Endereço{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-600">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                    </svg>
+                    Início
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <a href="{% url 'clientes:cliente-list' %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-red-600 md:ml-2">
+                        Clientes
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <a href="{% url 'clientes:cliente-detail' object.cliente.pk %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-red-600 md:ml-2">
+                        {{ object.cliente.nome }}
+                    </a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Excluir Endereço</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Delete Confirmation -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="bg-red-50 px-6 py-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-lg font-medium text-red-800">
+                        Confirmar Exclusão
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 py-4">
+            <p class="text-gray-700 mb-4">
+                Tem certeza que deseja excluir este endereço?
+            </p>
+
+            {% if object.principal %}
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">
+                            Atenção
+                        </h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>
+                                Este é o endereço principal do cliente. Após a exclusão, será necessário definir outro endereço como principal.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-900 mb-2">Endereço que será excluído:</h4>
+                <div class="text-sm text-gray-600 space-y-1">
+                    <p class="font-medium">
+                        {{ object.logradouro }}, {{ object.numero }}
+                        {% if object.complemento %}- {{ object.complemento }}{% endif %}
+                    </p>
+                    <p>{{ object.bairro }} - {{ object.cidade }}/{{ object.estado }}</p>
+                    <p>CEP: {{ object.cep }}</p>
+                    
+                    {% if object.referencia %}
+                    <p class="mt-2">
+                        <span class="font-medium">Referência:</span> {{ object.referencia }}
+                    </p>
+                    {% endif %}
+                    
+                    <div class="mt-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                     {% if object.tipo == 'casa' %}bg-blue-100 text-blue-800
+                                     {% elif object.tipo == 'trabalho' %}bg-purple-100 text-purple-800
+                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ object.get_tipo_display }}
+                        </span>
+                        {% if object.principal %}
+                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Principal
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-sm text-gray-500 mt-4">
+                Esta ação não pode ser desfeita.
+            </p>
+        </div>
+
+        <div class="bg-gray-50 px-6 py-4">
+            <form method="post" class="flex items-center justify-end space-x-3">
+                {% csrf_token %}
+                <a href="{% url 'clientes:cliente-detail' object.cliente.pk %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Excluir Endereço
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

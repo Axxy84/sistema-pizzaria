@@ -1,0 +1,352 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar Endereço{% else %}Novo Endereço{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{% url 'home' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-600">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                    </svg>
+                    Início
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <a href="{% url 'clientes:cliente-list' %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-red-600 md:ml-2">
+                        Clientes
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <a href="{% url 'clientes:cliente-detail' cliente.pk %}" class="ml-1 text-sm font-medium text-gray-700 hover:text-red-600 md:ml-2">
+                        {{ cliente.nome }}
+                    </a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">
+                        {% if form.instance.pk %}Editar Endereço{% else %}Novo Endereço{% endif %}
+                    </span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">
+            {% if form.instance.pk %}Editar Endereço{% else %}Novo Endereço{% endif %}
+        </h1>
+        <p class="mt-2 text-gray-600">
+            {% if form.instance.pk %}
+                Atualize as informações do endereço de {{ cliente.nome }}
+            {% else %}
+                Adicione um novo endereço para {{ cliente.nome }}
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+            {% for error in form.non_field_errors %}
+                <p class="text-sm">{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Informações do Endereço</h2>
+            
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <!-- Tipo -->
+                <div>
+                    <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Tipo de Endereço <span class="text-red-500">*</span>
+                    </label>
+                    <select name="{{ form.tipo.name }}" 
+                            id="{{ form.tipo.id_for_label }}"
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.tipo.errors %}border-red-300{% endif %}"
+                            required>
+                        <option value="">Selecione...</option>
+                        <option value="casa" {% if form.tipo.value == 'casa' %}selected{% endif %}>Casa</option>
+                        <option value="trabalho" {% if form.tipo.value == 'trabalho' %}selected{% endif %}>Trabalho</option>
+                        <option value="outro" {% if form.tipo.value == 'outro' %}selected{% endif %}>Outro</option>
+                    </select>
+                    {% if form.tipo.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.tipo.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- CEP -->
+                <div>
+                    <label for="{{ form.cep.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        CEP <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 flex rounded-lg shadow-sm">
+                        <input type="text" 
+                               name="{{ form.cep.name }}" 
+                               id="{{ form.cep.id_for_label }}"
+                               value="{{ form.cep.value|default:'' }}"
+                               class="flex-1 block w-full rounded-l-lg border-gray-300 focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.cep.errors %}border-red-300{% endif %}"
+                               placeholder="00000-000"
+                               data-mask="cep"
+                               required>
+                        <button type="button" 
+                                id="buscar-cep"
+                                class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg bg-gray-50 text-gray-500 text-sm hover:bg-gray-100">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    {% if form.cep.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.cep.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Logradouro -->
+                <div class="col-span-2">
+                    <label for="{{ form.logradouro.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Logradouro <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="{{ form.logradouro.name }}" 
+                           id="{{ form.logradouro.id_for_label }}"
+                           value="{{ form.logradouro.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.logradouro.errors %}border-red-300{% endif %}"
+                           placeholder="Rua, Avenida, etc..."
+                           required>
+                    {% if form.logradouro.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.logradouro.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Número -->
+                <div>
+                    <label for="{{ form.numero.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Número <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="{{ form.numero.name }}" 
+                           id="{{ form.numero.id_for_label }}"
+                           value="{{ form.numero.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.numero.errors %}border-red-300{% endif %}"
+                           required>
+                    {% if form.numero.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.numero.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Complemento -->
+                <div>
+                    <label for="{{ form.complemento.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Complemento
+                    </label>
+                    <input type="text" 
+                           name="{{ form.complemento.name }}" 
+                           id="{{ form.complemento.id_for_label }}"
+                           value="{{ form.complemento.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.complemento.errors %}border-red-300{% endif %}"
+                           placeholder="Apartamento, Bloco, etc...">
+                    {% if form.complemento.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.complemento.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Bairro -->
+                <div>
+                    <label for="{{ form.bairro.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Bairro <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="{{ form.bairro.name }}" 
+                           id="{{ form.bairro.id_for_label }}"
+                           value="{{ form.bairro.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.bairro.errors %}border-red-300{% endif %}"
+                           required>
+                    {% if form.bairro.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.bairro.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Cidade -->
+                <div>
+                    <label for="{{ form.cidade.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Cidade <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="{{ form.cidade.name }}" 
+                           id="{{ form.cidade.id_for_label }}"
+                           value="{{ form.cidade.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.cidade.errors %}border-red-300{% endif %}"
+                           required>
+                    {% if form.cidade.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.cidade.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Estado -->
+                <div>
+                    <label for="{{ form.estado.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Estado <span class="text-red-500">*</span>
+                    </label>
+                    <select name="{{ form.estado.name }}" 
+                            id="{{ form.estado.id_for_label }}"
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.estado.errors %}border-red-300{% endif %}"
+                            required>
+                        <option value="">Selecione...</option>
+                        <option value="AC" {% if form.estado.value == 'AC' %}selected{% endif %}>AC</option>
+                        <option value="AL" {% if form.estado.value == 'AL' %}selected{% endif %}>AL</option>
+                        <option value="AP" {% if form.estado.value == 'AP' %}selected{% endif %}>AP</option>
+                        <option value="AM" {% if form.estado.value == 'AM' %}selected{% endif %}>AM</option>
+                        <option value="BA" {% if form.estado.value == 'BA' %}selected{% endif %}>BA</option>
+                        <option value="CE" {% if form.estado.value == 'CE' %}selected{% endif %}>CE</option>
+                        <option value="DF" {% if form.estado.value == 'DF' %}selected{% endif %}>DF</option>
+                        <option value="ES" {% if form.estado.value == 'ES' %}selected{% endif %}>ES</option>
+                        <option value="GO" {% if form.estado.value == 'GO' %}selected{% endif %}>GO</option>
+                        <option value="MA" {% if form.estado.value == 'MA' %}selected{% endif %}>MA</option>
+                        <option value="MT" {% if form.estado.value == 'MT' %}selected{% endif %}>MT</option>
+                        <option value="MS" {% if form.estado.value == 'MS' %}selected{% endif %}>MS</option>
+                        <option value="MG" {% if form.estado.value == 'MG' %}selected{% endif %}>MG</option>
+                        <option value="PA" {% if form.estado.value == 'PA' %}selected{% endif %}>PA</option>
+                        <option value="PB" {% if form.estado.value == 'PB' %}selected{% endif %}>PB</option>
+                        <option value="PR" {% if form.estado.value == 'PR' %}selected{% endif %}>PR</option>
+                        <option value="PE" {% if form.estado.value == 'PE' %}selected{% endif %}>PE</option>
+                        <option value="PI" {% if form.estado.value == 'PI' %}selected{% endif %}>PI</option>
+                        <option value="RJ" {% if form.estado.value == 'RJ' %}selected{% endif %}>RJ</option>
+                        <option value="RN" {% if form.estado.value == 'RN' %}selected{% endif %}>RN</option>
+                        <option value="RS" {% if form.estado.value == 'RS' %}selected{% endif %}>RS</option>
+                        <option value="RO" {% if form.estado.value == 'RO' %}selected{% endif %}>RO</option>
+                        <option value="RR" {% if form.estado.value == 'RR' %}selected{% endif %}>RR</option>
+                        <option value="SC" {% if form.estado.value == 'SC' %}selected{% endif %}>SC</option>
+                        <option value="SP" {% if form.estado.value == 'SP' %}selected{% endif %}>SP</option>
+                        <option value="SE" {% if form.estado.value == 'SE' %}selected{% endif %}>SE</option>
+                        <option value="TO" {% if form.estado.value == 'TO' %}selected{% endif %}>TO</option>
+                    </select>
+                    {% if form.estado.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.estado.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Referência -->
+                <div class="col-span-2">
+                    <label for="{{ form.referencia.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Ponto de Referência
+                    </label>
+                    <input type="text" 
+                           name="{{ form.referencia.name }}" 
+                           id="{{ form.referencia.id_for_label }}"
+                           value="{{ form.referencia.value|default:'' }}"
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm {% if form.referencia.errors %}border-red-300{% endif %}"
+                           placeholder="Próximo ao mercado, em frente à praça, etc...">
+                    {% if form.referencia.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.referencia.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Principal -->
+                <div class="col-span-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               name="{{ form.principal.name }}" 
+                               id="{{ form.principal.id_for_label }}"
+                               {% if form.principal.value %}checked{% endif %}
+                               class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                        <label for="{{ form.principal.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+                            Definir como endereço principal
+                        </label>
+                    </div>
+                    {% if form.principal.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.principal.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end space-x-3">
+            <a href="{% url 'clientes:cliente-detail' cliente.pk %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                Cancelar
+            </a>
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {% if form.instance.pk %}Salvar Alterações{% else %}Adicionar Endereço{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara para CEP
+    const cepInput = document.querySelector('[data-mask="cep"]');
+    if (cepInput) {
+        cepInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 8) {
+                value = value.replace(/(\d{5})(\d{3})/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Buscar CEP
+    const buscarCepBtn = document.getElementById('buscar-cep');
+    if (buscarCepBtn) {
+        buscarCepBtn.addEventListener('click', function() {
+            const cep = cepInput.value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            document.getElementById('{{ form.logradouro.id_for_label }}').value = data.logradouro || '';
+                            document.getElementById('{{ form.bairro.id_for_label }}').value = data.bairro || '';
+                            document.getElementById('{{ form.cidade.id_for_label }}').value = data.localidade || '';
+                            document.getElementById('{{ form.estado.id_for_label }}').value = data.uf || '';
+                            
+                            // Focar no campo número
+                            document.getElementById('{{ form.numero.id_for_label }}').focus();
+                        } else {
+                            alert('CEP não encontrado');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao buscar CEP:', error);
+                        alert('Erro ao buscar CEP. Tente novamente.');
+                    });
+            } else {
+                alert('Digite um CEP válido');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}
