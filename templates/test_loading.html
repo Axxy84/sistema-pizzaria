@@ -1,0 +1,145 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Teste de Loading - Pizzaria{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Sistema de Loading</h1>
+    
+    <!-- Demonstração dos componentes de loading -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Loading Global -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Loading Global</h2>
+            <button onclick="showLoading('Carregando produtos...'); setTimeout(hideLoading, 3000)" 
+                    class="bg-pizza-600 text-white px-4 py-2 rounded hover:bg-pizza-700">
+                Mostrar Loading Global (3s)
+            </button>
+        </div>
+        
+        <!-- Loading em Botão -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Loading em Botão</h2>
+            <button id="btnExample" onclick="testButtonLoading(this)" 
+                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Processar Pedido
+            </button>
+        </div>
+        
+        <!-- Skeleton Loading -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Skeleton Loading</h2>
+            <div id="skeletonContainer">
+                <button onclick="showSkeletonLoading()" 
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Carregar Lista
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading de Produtos -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Carregar Produtos</h2>
+            <button onclick="loadProdutosExample()" 
+                    class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                Buscar Produtos da API
+            </button>
+            <div id="produtosContainer" class="mt-4"></div>
+        </div>
+        
+        <!-- Lazy Loading de Imagens -->
+        <div class="bg-white rounded-lg shadow p-6 col-span-full">
+            <h2 class="text-xl font-semibold mb-4">Lazy Loading de Imagens</h2>
+            <p class="text-gray-600 mb-4">Role para baixo para ver as imagens sendo carregadas</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {% for i in "12345678" %}
+                <div class="aspect-square">
+                    <img data-src="https://picsum.photos/300/300?random={{ i }}" 
+                         alt="Pizza {{ i }}"
+                         class="w-full h-full object-cover rounded-lg skeleton-loader">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+// Função para testar loading em botão
+function testButtonLoading(btn) {
+    const restore = PizzariaLoading.addButtonLoader(btn);
+    
+    // Simular processamento
+    setTimeout(() => {
+        restore();
+        alert('Pedido processado com sucesso!');
+    }, 2000);
+}
+
+// Função para mostrar skeleton loading
+function showSkeletonLoading() {
+    const container = document.getElementById('skeletonContainer');
+    container.innerHTML = PizzariaLoading.createSkeletonLoader(3, 'list');
+    
+    // Simular carregamento de dados
+    setTimeout(() => {
+        container.innerHTML = `
+            <div class="space-y-4">
+                <div class="p-4 bg-gray-50 rounded">
+                    <h3 class="font-semibold">Pizza Margherita</h3>
+                    <p class="text-gray-600">Molho, mussarela, tomate, manjericão</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded">
+                    <h3 class="font-semibold">Pizza Calabresa</h3>
+                    <p class="text-gray-600">Molho, mussarela, calabresa, cebola</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded">
+                    <h3 class="font-semibold">Pizza Quatro Queijos</h3>
+                    <p class="text-gray-600">Molho, mussarela, gorgonzola, parmesão, catupiry</p>
+                </div>
+            </div>
+        `;
+    }, 2000);
+}
+
+// Função para carregar produtos da API
+async function loadProdutosExample() {
+    const container = document.getElementById('produtosContainer');
+    
+    // Mostrar skeleton enquanto carrega
+    container.innerHTML = PizzariaLoading.createSkeletonLoader(2, 'card');
+    
+    try {
+        // Buscar produtos da API
+        const response = await fetch('/api/produtos/produtos/', { skipLoading: true });
+        const data = await response.json();
+        
+        // Simular delay para demonstração
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Renderizar alguns produtos
+        const produtos = data.results ? data.results.slice(0, 4) : data.slice(0, 4);
+        
+        container.innerHTML = `
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                ${produtos.map(produto => `
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-semibold text-sm">${produto.nome}</h4>
+                        <p class="text-pizza-600 font-bold">R$ ${produto.preco_unitario || '0.00'}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = `
+            <div class="text-red-600 p-4 bg-red-50 rounded">
+                Erro ao carregar produtos. Tente novamente.
+            </div>
+        `;
+    }
+}
+</script>
+{% endblock %}

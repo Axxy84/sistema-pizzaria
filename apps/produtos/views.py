@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 from .models import Categoria, Tamanho, Produto, ProdutoPreco
 from .serializers import (
     CategoriaSerializer, TamanhoSerializer,
@@ -43,6 +46,9 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         Endpoint otimizado para buscar produtos por categoria no formato
         esperado pelo formulário de pedidos
         """
+        import time
+        start_time = time.time()
+        
         produtos_por_categoria = {
             'pizzas': [],
             'bebidas': [],
@@ -53,6 +59,17 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         produtos = Produto.objects.filter(ativo=True).select_related('categoria').prefetch_related(
             'precos__tamanho'
         ).order_by('categoria__nome', 'nome')
+        
+        query_time = time.time() - start_time
+        print(f"[PRODUTOS] Query time: {query_time:.3f}s")
+        
+        # Tentar pegar do cache primeiro
+        cache_key = 'produtos:para_pedido:v2'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            print(f"[PRODUTOS] Retornando dados do cache")
+            return Response(cached_data)
         
         for produto in produtos:
             categoria_key = self._mapear_categoria_para_aba(produto.categoria.nome if produto.categoria else '')
@@ -104,6 +121,12 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                     'tipo': 'simples'
                 })
         
+        # Cachear por 30 minutos
+        cache.set(cache_key, produtos_por_categoria, 60 * 30)
+        
+        total_time = time.time() - start_time
+        print(f"[PRODUTOS] Total processing time: {total_time:.3f}s")
+        
         return Response(produtos_por_categoria)
     
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
@@ -112,9 +135,27 @@ class ProdutoViewSet(viewsets.ModelViewSet):
         Endpoint otimizado para o novo sistema de pedido rápido
         Retorna produtos com estrutura simplificada
         """
+        import time
+        start_time = time.time()
+        
+        # Verificar cache primeiro
+        cache_key = 'produtos:pedido_rapido:v1'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            print(f"[PRODUTOS RAPIDO] Retornando do cache")
+            return Response(cached_data)
+        
         produtos = []
         
-        for produto in Produto.objects.filter(ativo=True).prefetch_related('precos', 'categoria'):
+        # Otimizar query com select_related e prefetch_related
+        queryset = Produto.objects.filter(ativo=True).select_related('categoria').prefetch_related(
+            'precos__tamanho'
+        ).order_by('categoria__nome', 'nome')
+        
+        print(f"[PRODUTOS RAPIDO] Query time: {time.time() - start_time:.3f}s")
+        
+        for produto in queryset:
             categoria_key = 'outros'
             if produto.categoria:
                 categoria_key = self._mapear_categoria_para_aba(produto.categoria.nome)
@@ -144,7 +185,15 @@ class ProdutoViewSet(viewsets.ModelViewSet):
                 'precos': precos
             })
         
-        return Response({'produtos': produtos})
+        response_data = {'produtos': produtos}
+        
+        # Cachear por 30 minutos
+        cache.set(cache_key, response_data, 60 * 30)
+        
+        total_time = time.time() - start_time
+        print(f"[PRODUTOS RAPIDO] Total time: {total_time:.3f}s")
+        
+        return Response(response_data)
     
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def para_mesa(self, request):

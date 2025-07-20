@@ -31,7 +31,16 @@
                     <h3 class="text-lg font-medium text-gray-900">Confirmar Exclusão</h3>
                     <div class="mt-2 text-sm text-gray-500">
                         <p>Tem certeza que deseja excluir o produto <strong class="text-gray-700">{{ object.nome }}</strong>?</p>
-                        <p class="mt-2">Esta ação não pode ser desfeita.</p>
+                        <p class="mt-2">
+                            {% if object.itempedido_set.exists %}
+                                <span class="text-yellow-700 font-medium">
+                                    Nota: Este produto está sendo usado em pedidos existentes. 
+                                    Ele será apenas desativado ao invés de excluído permanentemente.
+                                </span>
+                            {% else %}
+                                Esta ação não pode ser desfeita.
+                            {% endif %}
+                        </p>
                     </div>
                     
                     <!-- Detalhes do Produto -->
@@ -66,6 +75,15 @@
                         </p>
                     </div>
                     {% endif %}
+                    
+                    {% if object.itempedido_set.exists %}
+                    <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p class="text-sm text-blue-800">
+                            <strong>Informação:</strong> Este produto está presente em {{ object.itempedido_set.count }} pedido(s). 
+                            O produto será desativado para preservar o histórico de pedidos.
+                        </p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -80,7 +98,11 @@
                 </a>
                 <button type="submit" 
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                    Sim, Excluir Produto
+                    {% if object.itempedido_set.exists %}
+                        Sim, Desativar Produto
+                    {% else %}
+                        Sim, Excluir Produto
+                    {% endif %}
                 </button>
             </form>
         </div>

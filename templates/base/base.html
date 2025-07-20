@@ -46,6 +46,7 @@
     <!-- Custom CSS -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/loading.css' %}">
     
     <!-- Extra head content -->
     {% block extra_head %}{% endblock %}
@@ -164,6 +165,10 @@
             });
         </script>
     {% endif %}
+    
+    <!-- Loading System -->
+    <script src="{% static 'js/loading.js' %}"></script>
+    <script src="{% static 'js/lazy-loading.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

@@ -218,3 +218,7 @@ def force_login_view(request):
     else:
         return HttpResponse("Usuário não encontrado")
 
+def test_loading_view(request):
+    """View para testar o sistema de loading"""
+    return render(request, 'test_loading.html')
+

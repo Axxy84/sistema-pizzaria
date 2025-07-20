@@ -1,11 +1,12 @@
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.db.models import Q, Count
+from django.db.models import Q, Count, ProtectedError
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.core.cache import cache
+from django.contrib import messages
 from .models import Produto, Categoria, ProdutoPreco, Tamanho
 from .forms import ProdutoForm, PizzaForm
 
@@ -212,6 +213,26 @@ class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Produto
     template_name = 'produtos/product_confirm_delete.html'
     success_url = reverse_lazy('product_list')
+    
+    def post(self, request, *args, **kwargs):
+        """Override para implementar soft delete ao invés de exclusão física"""
+        self.object = self.get_object()
+        
+        try:
+            # Tentar excluir fisicamente primeiro
+            self.object.delete()
+            messages.success(request, f'Produto "{self.object.nome}" excluído com sucesso!')
+            return redirect(self.success_url)
+        except ProtectedError:
+            # Se falhar por estar em uso, fazer soft delete (desativar)
+            self.object.ativo = False
+            self.object.save()
+            messages.warning(
+                request, 
+                f'O produto "{self.object.nome}" não pode ser excluído pois está sendo usado em pedidos. '
+                f'O produto foi desativado e não aparecerá mais nas listagens.'
+            )
+            return redirect(self.success_url)
 
 
 def product_toggle_status(request, pk):
