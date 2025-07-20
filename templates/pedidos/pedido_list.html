@@ -111,7 +111,9 @@
     
     <!-- Tabs para separar Mesa e Delivery -->
     <div class="border-b border-gray-200 mb-6">
-        <nav class="flex space-x-8" x-data="{ activeTab: '{{ request.GET.view|default:'todos' }}' }">
+        <nav class="flex space-x-8" x-data="{ 
+            activeTab: '{{ request.GET.view|default:'todos' }}'
+        }">
             <button @click="activeTab = 'todos'; window.location.href='?view=todos'" 
                     :class="activeTab === 'todos' ? 'active' : ''"
                     class="tab-button">
@@ -273,6 +275,8 @@
             </div>
         {% else %}
             <!-- Layout padrão para todos os pedidos -->
+            <!-- DEBUG: Total de pedidos = {{ pedidos|length }}, View = {{ request.GET.view|default:'todos' }}, Page = {{ page_obj.number|default:'N/A' }} -->
+            <!-- DEBUG: Filtros ativos - Status: {{ filtro_status }}, Tipo: {{ filtro_tipo }}, Data: {{ filtro_data }}, Busca: {{ busca }} -->
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {% for pedido in pedidos %}
                     {% include 'pedidos/components/pedido_card_simple.html' with pedido=pedido %}
@@ -373,5 +377,398 @@
 <!-- CSRF token for status buttons -->
 <div style="display: none;">
     {% csrf_token %}
+</div>
+
+<script>
+// Sistema de atualização automática de pedidos
+(function() {
+    let ultimoCheckTimestamp = new Date().toISOString();
+    let updateInterval;
+    let notificationShown = false;
+    
+    // Função para verificar novos pedidos
+    async function verificarNovosPedidos() {
+        try {
+            const response = await fetch(`/api/pedidos/pedidos/novos/?desde=${ultimoCheckTimestamp}`);
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            
+            if (data.novos_pedidos > 0) {
+                // Mostrar notificação se ainda não foi mostrada
+                if (!notificationShown) {
+                    mostrarNotificacao(data.novos_pedidos);
+                    notificationShown = true;
+                }
+                
+                // Atualizar contador na aba se existir
+                atualizarContadores(data);
+            }
+            
+            // Atualizar timestamp para próxima verificação
+            ultimoCheckTimestamp = data.timestamp || new Date().toISOString();
+            
+        } catch (error) {
+            console.error('Erro ao verificar novos pedidos:', error);
+        }
+    }
+    
+    // Função para mostrar notificação de novos pedidos
+    function mostrarNotificacao(quantidade) {
+        const container = document.querySelector('.mb-6');
+        if (!container) return;
+        
+        // Criar elemento de notificação
+        const notification = document.createElement('div');
+        notification.className = 'bg-green-50 border-l-4 border-green-400 p-4 mb-4 rounded-r-lg shadow-sm flex items-center justify-between animate-slide-in';
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <svg class="w-6 h-6 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-green-800">
+                        ${quantidade} ${quantidade === 1 ? 'novo pedido' : 'novos pedidos'} ${quantidade === 1 ? 'foi recebido' : 'foram recebidos'}
+                    </p>
+                    <p class="text-xs text-green-600 mt-1">
+                        Clique para atualizar a página
+                    </p>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="ml-4 px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
+                Atualizar
+            </button>
+        `;
+        
+        // Adicionar animação CSS se não existir
+        if (!document.querySelector('#notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(-100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                .animate-slide-in {
+                    animation: slideIn 0.3s ease-out;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Inserir notificação após o header
+        container.insertBefore(notification, container.firstChild);
+        
+        // Auto-remover após 30 segundos
+        setTimeout(() => {
+            notification.style.transition = 'opacity 0.3s ease-out';
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 30000);
+    }
+    
+    // Função para atualizar contadores nas abas
+    function atualizarContadores(data) {
+        // Atualizar contador de pedidos hoje
+        const pedidosHojeElement = document.querySelector('[data-counter="pedidos-hoje"]');
+        if (pedidosHojeElement && data.total_hoje !== undefined) {
+            pedidosHojeElement.textContent = data.total_hoje;
+        }
+        
+        // Atualizar contador de vendas hoje
+        const vendasHojeElement = document.querySelector('[data-counter="vendas-hoje"]');
+        if (vendasHojeElement && data.vendas_hoje !== undefined) {
+            vendasHojeElement.textContent = 'R$ ' + data.vendas_hoje.toFixed(2).replace('.', ',');
+        }
+        
+        // Atualizar contadores nas abas
+        if (data.pedidos_mesa_count !== undefined) {
+            const mesaBadge = document.querySelector('[data-tab="mesa"] .rounded-full');
+            if (mesaBadge) mesaBadge.textContent = data.pedidos_mesa_count;
+        }
+        
+        if (data.pedidos_delivery_count !== undefined) {
+            const deliveryBadge = document.querySelector('[data-tab="delivery"] .rounded-full');
+            if (deliveryBadge) deliveryBadge.textContent = data.pedidos_delivery_count;
+        }
+    }
+    
+    // Função para iniciar/parar verificação baseado na visibilidade da página
+    function gerenciarVerificacao() {
+        if (document.hidden) {
+            // Parar verificação quando a aba não está visível
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        } else {
+            // Retomar verificação quando a aba está visível
+            if (!updateInterval) {
+                // Verificar imediatamente ao carregar a página
+                setTimeout(verificarNovosPedidos, 100); // Pequeno delay para garantir que a página carregou
+                updateInterval = setInterval(verificarNovosPedidos, 5000); // Verificar a cada 5 segundos (mais rápido)
+            }
+        }
+    }
+    
+    // Iniciar verificação periódica
+    document.addEventListener('DOMContentLoaded', function() {
+        // Adicionar data-attributes aos elementos para facilitar atualização
+        const pedidosHoje = document.querySelector('.text-3xl.font-semibold.text-gray-900');
+        if (pedidosHoje && pedidosHoje.parentElement.querySelector('.text-sm').textContent.includes('Pedidos Hoje')) {
+            pedidosHoje.setAttribute('data-counter', 'pedidos-hoje');
+        }
+        
+        const vendasHoje = document.querySelectorAll('.text-3xl.font-semibold.text-gray-900')[1];
+        if (vendasHoje && vendasHoje.parentElement.querySelector('.text-sm').textContent.includes('Vendas Hoje')) {
+            vendasHoje.setAttribute('data-counter', 'vendas-hoje');
+        }
+        
+        // Adicionar data-attributes às abas
+        document.querySelectorAll('.tab-button').forEach(button => {
+            if (button.textContent.includes('Mesa')) button.setAttribute('data-tab', 'mesa');
+            if (button.textContent.includes('Delivery')) button.setAttribute('data-tab', 'delivery');
+        });
+        
+        // Iniciar verificação
+        gerenciarVerificacao();
+        
+        // Gerenciar quando a visibilidade da página muda
+        document.addEventListener('visibilitychange', gerenciarVerificacao);
+    });
+    
+    // Limpar interval quando sair da página
+    window.addEventListener('beforeunload', function() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+        }
+    });
+})();
+
+// Funções para gerenciar status de pedidos
+async function changeStatusSimple(pedidoId, newStatus, buttonElement) {
+    // Verificar se o botão está desabilitado
+    if (buttonElement && buttonElement.disabled) {
+        return;
+    }
+    
+    // Armazenar texto original
+    const originalText = buttonElement.innerHTML;
+    
+    // Desabilitar botão e mostrar loading
+    if (buttonElement) {
+        buttonElement.disabled = true;
+        buttonElement.innerHTML = '<svg class="animate-spin h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Atualizando...';
+    }
+    
+    try {
+        // Pegar CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                         document.querySelector('meta[name="csrf-token"]')?.content ||
+                         getCookie('csrftoken');
+        
+        // Fazer requisição AJAX
+        const response = await fetch(`/pedidos/${pedidoId}/status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({
+                'status': newStatus
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Mostrar toast de sucesso
+            if (window.Alpine && Alpine.store('app')) {
+                Alpine.store('app').showToast(data.message, 'success', 3000);
+            }
+            
+            // Aguardar um pouco e recarregar a página
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            // Restaurar botão
+            if (buttonElement) {
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalText;
+            }
+            
+            // Mostrar erro
+            if (window.Alpine && Alpine.store('app')) {
+                Alpine.store('app').showToast(data.message || 'Erro ao atualizar status', 'error');
+            } else {
+                alert(data.message || 'Erro ao atualizar status');
+            }
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        
+        // Restaurar botão
+        if (buttonElement) {
+            buttonElement.disabled = false;
+            buttonElement.innerHTML = originalText;
+        }
+        
+        // Mostrar erro
+        if (window.Alpine && Alpine.store('app')) {
+            Alpine.store('app').showToast('Erro ao conectar com o servidor', 'error');
+        } else {
+            alert('Erro ao conectar com o servidor');
+        }
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Variável para armazenar o ID do pedido a ser cancelado
+let pedidoToCancelId = null;
+
+function showPasswordModal(pedidoId) {
+    pedidoToCancelId = pedidoId;
+    document.getElementById('passwordModal').classList.remove('hidden');
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('passwordError').classList.add('hidden');
+    document.getElementById('adminPassword').focus();
+}
+
+function hidePasswordModal() {
+    document.getElementById('passwordModal').classList.add('hidden');
+    pedidoToCancelId = null;
+}
+
+// Configurar eventos do modal após o DOM carregar
+document.addEventListener('DOMContentLoaded', function() {
+    // Evento para o botão de confirmar
+    const confirmBtn = document.getElementById('confirmCancel');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', async function() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (!password) {
+                document.getElementById('passwordError').textContent = 'Digite a senha!';
+                document.getElementById('passwordError').classList.remove('hidden');
+                return;
+            }
+            
+            // Desabilitar botão
+            this.disabled = true;
+            this.textContent = 'Verificando...';
+            
+            try {
+                const csrfToken = getCookie('csrftoken');
+                
+                // Verificar senha e cancelar pedido
+                const response = await fetch(`/pedidos/${pedidoToCancelId}/cancelar-com-senha/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams({
+                        'password': password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    hidePasswordModal();
+                    if (window.Alpine && Alpine.store('app')) {
+                        Alpine.store('app').showToast('Pedido cancelado com sucesso', 'success', 3000);
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    document.getElementById('passwordError').textContent = data.message || 'Senha incorreta!';
+                    document.getElementById('passwordError').classList.remove('hidden');
+                    this.disabled = false;
+                    this.textContent = 'Confirmar Cancelamento';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('passwordError').textContent = 'Erro ao processar. Tente novamente.';
+                document.getElementById('passwordError').classList.remove('hidden');
+                this.disabled = false;
+                this.textContent = 'Confirmar Cancelamento';
+            }
+        });
+    }
+
+    // Permitir confirmar com Enter quando o campo de senha estiver focado
+    const passwordField = document.getElementById('adminPassword');
+    if (passwordField) {
+        passwordField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('confirmCancel').click();
+            }
+        });
+    }
+});
+
+// Permitir fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !document.getElementById('passwordModal').classList.contains('hidden')) {
+        hidePasswordModal();
+    }
+});
+</script>
+
+<!-- Modal de Senha Admin (único) -->
+<div id="passwordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">Senha de Administrador</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500">Digite a senha do administrador para cancelar o pedido</p>
+                <input type="password" 
+                       id="adminPassword" 
+                       class="mt-3 px-3 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                       placeholder="Senha">
+                <p id="passwordError" class="mt-2 text-sm text-red-600 hidden">Senha incorreta!</p>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="confirmCancel" 
+                        class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    Confirmar Cancelamento
+                </button>
+                <button onclick="hidePasswordModal()" 
+                        class="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

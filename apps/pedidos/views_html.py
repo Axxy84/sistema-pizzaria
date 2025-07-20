@@ -14,7 +14,7 @@ from decimal import Decimal
 
 from .models import Pedido, ItemPedido
 from .models_mesa import Mesa
-from .forms import PedidoForm, ItemPedidoFormSet, StatusUpdateForm
+from .forms import PedidoForm, ItemPedidoFormSet, CancelamentoPedidoForm
 from apps.clientes.models import Cliente, Endereco
 from apps.produtos.models import Produto, ProdutoPreco
 
@@ -33,10 +33,8 @@ class PedidoListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         
-        # Filtro por status
-        status = self.request.GET.get('status')
-        if status and status != 'todos':
-            queryset = queryset.filter(status=status)
+        # Filtro por status - removido pois status agora é calculado
+        # Para filtrar por status, precisaríamos filtrar pelos campos de timestamp
         
         # Filtro por tipo - apenas aplica se for uma view específica
         view = self.request.GET.get('view')
@@ -87,13 +85,25 @@ class PedidoListView(LoginRequiredMixin, ListView):
             if context['total_pedidos_hoje'] > 0 else 0
         )
         
-        # Contadores por status
-        context['status_counts'] = Pedido.objects.values('status').annotate(
-            count=Count('id')
-        ).order_by('status')
+        # Contadores por status calculado
+        todos_pedidos = Pedido.objects.all()
+        status_counts = {}
+        for pedido in todos_pedidos:
+            status = pedido.status
+            if status not in status_counts:
+                status_counts[status] = 0
+            status_counts[status] += 1
         
-        # Contadores por tipo para as abas
-        pedidos_ativos = Pedido.objects.exclude(status__in=['entregue', 'cancelado'])
+        context['status_counts'] = [
+            {'status': status, 'count': count} 
+            for status, count in status_counts.items()
+        ]
+        
+        # Contadores por tipo para as abas (pedidos não finalizados)
+        pedidos_ativos = Pedido.objects.filter(
+            entregue_em__isnull=True,
+            cancelado_em__isnull=True
+        )
         context['pedidos_mesa_count'] = pedidos_ativos.filter(tipo='mesa').count()
         context['pedidos_delivery_count'] = pedidos_ativos.filter(tipo='delivery').count()
         
@@ -230,49 +240,17 @@ def pedido_atualizar_status(request, pk):
             'cancelado': []
         }
         
-        # Verificar se a transição é válida
-        if novo_status in transicoes_validas.get(pedido.status, []):
-            # Atualizar status
-            pedido.status = novo_status
-            
-            # Se entregue, atualizar forma de pagamento se fornecida
-            if novo_status == 'entregue' and forma_pagamento:
-                pedido.forma_pagamento = forma_pagamento
-            
-            pedido.save()
-            
-            # TODO: Salvar histórico de status se implementado
-            # StatusHistorico.objects.create(
-            #     pedido=pedido,
-            #     status_anterior=pedido.status,
-            #     status_novo=novo_status,
-            #     usuario=request.user,
-            #     observacao=observacao
-            # )
-            
-            # Resposta para requisições AJAX
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'message': f'Status do pedido #{pedido.numero} atualizado para {pedido.get_status_display()}',
-                    'new_status': novo_status,
-                    'status_display': pedido.get_status_display()
-                })
-            
-            messages.success(
-                request, 
-                f'Status do pedido #{pedido.numero} atualizado para {pedido.get_status_display()}'
-            )
-        else:
-            error_msg = f'Transição de status inválida: {pedido.get_status_display()} → {dict(pedido.STATUS_CHOICES).get(novo_status, novo_status)}'
-            
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': False,
-                    'message': error_msg
-                }, status=400)
-            
-            messages.error(request, error_msg)
+        # Função legada - redirecionar para usar as novas funções
+        messages.warning(
+            request,
+            'Use os botões de ação específicos para atualizar o status do pedido.'
+        )
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'Use as APIs específicas: iniciar-preparo, confirmar-saida, confirmar-entrega ou cancelar-com-senha'
+            }, status=400)
     
     # Só redireciona se não for AJAX
     if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
@@ -287,92 +265,35 @@ def pedido_atualizar_status(request, pk):
 
 @login_required
 def pedido_cancelar(request, pk):
-    """Cancelar pedido"""
-    pedido = get_object_or_404(Pedido, pk=pk)
-    
-    if pedido.status not in ['entregue', 'cancelado']:
-        pedido.status = 'cancelado'
-        pedido.save()
-        messages.success(request, f'Pedido #{pedido.numero} cancelado')
-    else:
-        messages.error(request, 'Este pedido não pode ser cancelado')
-    
-    return redirect('pedido_list')
+    """Cancelar pedido - redireciona para cancelamento com senha"""
+    messages.info(request, 'Use o botão de cancelar com senha para cancelar o pedido.')
+    return redirect('pedidos:pedido_detail', pk=pk)
 
 
 @login_required
 def pedido_cancelar_com_senha(request, pk):
-    """Cancelar pedido com verificação de senha admin"""
+    """Cancelar pedido com verificação de senha"""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Método não permitido'}, status=405)
     
     pedido = get_object_or_404(Pedido, pk=pk)
     password = request.POST.get('password', '')
+    motivo = request.POST.get('motivo', '')
     
     # Verificar se o pedido pode ser cancelado
-    if pedido.status in ['entregue', 'cancelado']:
+    if not pedido.pode_cancelar:
         return JsonResponse({
             'success': False,
             'message': 'Este pedido não pode ser cancelado'
         })
     
-    # Verificar a senha do usuário admin
-    # Você pode usar diferentes métodos de verificação:
-    # 1. Senha do superusuário atual
-    # 2. Senha específica configurada no settings
-    # 3. Senha de qualquer superusuário
-    
-    # Método 1: Verificar se é a senha do usuário atual (se for superusuário)
-    if request.user.is_superuser and request.user.check_password(password):
-        pedido.status = 'cancelado'
-        pedido.save()
-        
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': True,
-                'message': f'Pedido #{pedido.numero} cancelado com sucesso'
-            })
-        
-        messages.success(request, f'Pedido #{pedido.numero} cancelado com sucesso')
-        return redirect('pedidos:pedido_detail', pk=pk)
-    
-    # Método 2: Verificar contra uma senha específica (configurável)
+    # Verificar senha configurada no settings
     from django.conf import settings
-    ADMIN_CANCEL_PASSWORD = getattr(settings, 'ADMIN_CANCEL_PASSWORD', None)
+    senha_correta = getattr(settings, 'PEDIDO_CANCELAMENTO_SENHA', '1234')
     
-    if ADMIN_CANCEL_PASSWORD and password == ADMIN_CANCEL_PASSWORD:
-        pedido.status = 'cancelado'
-        pedido.save()
-        
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': True,
-                'message': f'Pedido #{pedido.numero} cancelado com sucesso'
-            })
-        
-        messages.success(request, f'Pedido #{pedido.numero} cancelado com sucesso')
-        return redirect('pedidos:pedido_detail', pk=pk)
-    
-    # Método 3: Verificar contra qualquer superusuário
-    from django.contrib.auth import authenticate
-    from django.contrib.auth.models import User
-    
-    # Tentar autenticar com email/username de superusuários
-    superusers = User.objects.filter(is_superuser=True)
-    authenticated = False
-    
-    for superuser in superusers:
-        # Tentar com username
-        if authenticate(username=superuser.username, password=password):
-            authenticated = True
-            break
-        # Tentar com email
-        if superuser.email and authenticate(username=superuser.email, password=password):
-            authenticated = True
-            break
-    
-    if authenticated:
-        pedido.status = 'cancelado'
+    if password == senha_correta:
+        pedido.cancelado_em = timezone.now()
+        pedido.motivo_cancelamento = motivo
         pedido.save()
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -392,6 +313,87 @@ def pedido_cancelar_com_senha(request, pk):
         })
     
     messages.error(request, 'Senha incorreta!')
+    return redirect('pedidos:pedido_detail', pk=pk)
+
+
+@login_required
+def pedido_iniciar_preparo(request, pk):
+    """Inicia o preparo do pedido"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'}, status=405)
+    
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if not pedido.pode_iniciar_preparo:
+        return JsonResponse({
+            'success': False,
+            'message': 'Não é possível iniciar o preparo deste pedido'
+        })
+    
+    pedido.preparacao_iniciada_em = timezone.now()
+    pedido.save()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': f'Preparo do pedido #{pedido.numero} iniciado'
+        })
+    
+    messages.success(request, f'Preparo do pedido #{pedido.numero} iniciado')
+    return redirect('pedidos:pedido_detail', pk=pk)
+
+
+@login_required
+def pedido_confirmar_saida(request, pk):
+    """Confirma saída do pedido para entrega"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'}, status=405)
+    
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if not pedido.pode_confirmar_saida:
+        return JsonResponse({
+            'success': False,
+            'message': 'Não é possível confirmar saída deste pedido'
+        })
+    
+    pedido.saida_confirmada_em = timezone.now()
+    pedido.save()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': f'Saída do pedido #{pedido.numero} confirmada'
+        })
+    
+    messages.success(request, f'Saída do pedido #{pedido.numero} confirmada')
+    return redirect('pedidos:pedido_detail', pk=pk)
+
+
+@login_required
+def pedido_confirmar_entrega(request, pk):
+    """Confirma entrega do pedido"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'}, status=405)
+    
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if not pedido.pode_confirmar_entrega:
+        return JsonResponse({
+            'success': False,
+            'message': 'Não é possível confirmar entrega deste pedido'
+        })
+    
+    pedido.entregue_em = timezone.now()
+    pedido.save()
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': f'Pedido #{pedido.numero} entregue com sucesso'
+        })
+    
+    messages.success(request, f'Pedido #{pedido.numero} entregue com sucesso')
     return redirect('pedidos:pedido_detail', pk=pk)
 
 
@@ -822,3 +824,214 @@ def api_criar_pedido_rapido(request):
         return JsonResponse({
             'error': f'Erro ao criar pedido: {str(e)}'
         }, status=400)
+
+
+# Views para atualização de status de pedidos
+
+@login_required
+def pedido_atualizar_status(request, pk):
+    """View genérica para atualizar status do pedido"""
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if request.method == 'POST':
+        # Capturar o parâmetro status ou action
+        status = request.POST.get('status') or request.POST.get('action')
+        
+        try:
+            success_message = ''
+            
+            if status == 'iniciar_preparo' or status == 'preparando':
+                if pedido.preparacao_iniciada_em:
+                    success_message = f'Preparação do pedido {pedido.numero} já foi iniciada!'
+                else:
+                    pedido.preparacao_iniciada_em = timezone.now()
+                    pedido.save()
+                    success_message = f'Preparação do pedido {pedido.numero} iniciada!'
+                
+            elif status == 'confirmar_saida' or status == 'saiu_entrega':
+                if not pedido.preparacao_iniciada_em:
+                    raise ValueError('Preparação deve ser iniciada antes de confirmar saída!')
+                elif pedido.saiu_entrega_em:
+                    success_message = f'Saída do pedido {pedido.numero} já foi confirmada!'
+                else:
+                    pedido.saiu_entrega_em = timezone.now()
+                    pedido.save()
+                    success_message = f'Saída do pedido {pedido.numero} confirmada!'
+                
+            elif status == 'confirmar_entrega' or status == 'entregue':
+                if pedido.tipo == 'delivery' and not pedido.saiu_entrega_em:
+                    raise ValueError('Saída deve ser confirmada antes de confirmar entrega!')
+                elif pedido.entregue_em:
+                    success_message = f'Entrega do pedido {pedido.numero} já foi confirmada!'
+                else:
+                    pedido.entregue_em = timezone.now()
+                    pedido.save()
+                    success_message = f'Entrega do pedido {pedido.numero} confirmada!'
+                    
+            elif status == 'cancelar':
+                if pedido.cancelado_em:
+                    success_message = f'Pedido {pedido.numero} já está cancelado!'
+                else:
+                    pedido.cancelado_em = timezone.now()
+                    pedido.motivo_cancelamento = 'Cancelado via interface'
+                    pedido.save()
+                    success_message = f'Pedido {pedido.numero} cancelado!'
+                
+            else:
+                raise ValueError(f'Status inválido: {status}')
+            
+            # Se for requisição AJAX, retornar JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': success_message,
+                    'status': status,
+                    'pedido_id': pedido.id
+                })
+            else:
+                messages.success(request, success_message)
+                
+        except Exception as e:
+            error_message = f'Erro ao atualizar status: {str(e)}'
+            
+            # Se for requisição AJAX, retornar JSON de erro
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': error_message
+                }, status=400)
+            else:
+                messages.error(request, error_message)
+    
+    # Para requisições não-AJAX, redirecionar
+    return redirect('pedidos:pedido_detail', pk=pedido.pk)
+
+
+@login_required
+def pedido_cancelar_com_senha(request, pk):
+    """View para cancelar pedido com senha de proteção"""
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if request.method == 'POST':
+        senha = request.POST.get('senha_cancelamento')
+        motivo = request.POST.get('motivo', '')
+        
+        # Verificar senha (pode ser configurável)
+        SENHA_CANCELAMENTO = "admin123"  # TODO: Mover para configurações
+        
+        if senha == SENHA_CANCELAMENTO:
+            try:
+                pedido.cancelado_em = timezone.now()
+                pedido.motivo_cancelamento = motivo
+                pedido.save()
+                messages.success(request, f'Pedido {pedido.numero} cancelado com sucesso!')
+                return redirect('pedidos:pedido_detail', pk=pedido.pk)
+                
+            except Exception as e:
+                messages.error(request, f'Erro ao cancelar pedido: {str(e)}')
+        else:
+            messages.error(request, 'Senha incorreta!')
+    
+    return render(request, 'pedidos/cancelar_com_senha.html', {'pedido': pedido})
+
+
+@login_required
+def pedido_iniciar_preparo(request, pk):
+    """View específica para iniciar preparação"""
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            if pedido.preparacao_iniciada_em:
+                messages.warning(request, f'Preparação do pedido {pedido.numero} já foi iniciada!')
+            else:
+                pedido.preparacao_iniciada_em = timezone.now()
+                pedido.save()
+                messages.success(request, f'Preparação do pedido {pedido.numero} iniciada!')
+                
+        except Exception as e:
+            messages.error(request, f'Erro ao iniciar preparação: {str(e)}')
+    
+    return redirect('pedidos:pedido_detail', pk=pedido.pk)
+
+
+@login_required
+def pedido_confirmar_saida(request, pk):
+    """View específica para confirmar saída para entrega"""
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            if not pedido.preparacao_iniciada_em:
+                messages.error(request, 'Preparação deve ser iniciada antes de confirmar saída!')
+            elif pedido.saiu_entrega_em:
+                messages.warning(request, f'Saída do pedido {pedido.numero} já foi confirmada!')
+            else:
+                pedido.saiu_entrega_em = timezone.now()
+                pedido.save()
+                messages.success(request, f'Saída do pedido {pedido.numero} confirmada!')
+                
+        except Exception as e:
+            messages.error(request, f'Erro ao confirmar saída: {str(e)}')
+    
+    return redirect('pedidos:pedido_detail', pk=pedido.pk)
+
+
+@login_required
+def pedido_confirmar_entrega(request, pk):
+    """View específica para confirmar entrega"""
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            if pedido.tipo == 'delivery' and not pedido.saiu_entrega_em:
+                messages.error(request, 'Saída deve ser confirmada antes de confirmar entrega!')
+            elif pedido.entregue_em:
+                messages.warning(request, f'Entrega do pedido {pedido.numero} já foi confirmada!')
+            else:
+                pedido.entregue_em = timezone.now()
+                pedido.save()
+                messages.success(request, f'Entrega do pedido {pedido.numero} confirmada!')
+                
+        except Exception as e:
+            messages.error(request, f'Erro ao confirmar entrega: {str(e)}')
+    
+    return redirect('pedidos:pedido_detail', pk=pedido.pk)
+
+
+@login_required
+def pedido_cancelar(request, pk):
+    """View simples para cancelar pedido (sem senha)"""
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    if request.method == 'POST':
+        motivo = request.POST.get('motivo', 'Cancelado pelo usuário')
+        
+        try:
+            if pedido.cancelado_em:
+                messages.warning(request, f'Pedido {pedido.numero} já está cancelado!')
+            else:
+                pedido.cancelado_em = timezone.now()
+                pedido.motivo_cancelamento = motivo
+                pedido.save()
+                messages.success(request, f'Pedido {pedido.numero} cancelado com sucesso!')
+                
+        except Exception as e:
+            messages.error(request, f'Erro ao cancelar pedido: {str(e)}')
+    
+    return redirect('pedidos:pedido_detail', pk=pedido.pk)
+
+
+@login_required
+def pedido_imprimir(request, pk):
+    """View para imprimir pedido"""
+    pedido = get_object_or_404(Pedido, pk=pk)
+    
+    context = {
+        'pedido': pedido,
+        'itens': pedido.itens.all(),
+        'cliente': pedido.cliente,
+        'print_mode': True
+    }
+    
+    return render(request, 'pedidos/pedido_print.html', context)

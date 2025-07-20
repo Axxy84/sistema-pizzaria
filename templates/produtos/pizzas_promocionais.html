@@ -1,0 +1,1095 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Pizzas Promocionais{% endblock %}
+
+{% block extra_css %}
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<style>
+    .promocional-card {
+        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 25px rgba(220, 38, 38, 0.2);
+    }
+    
+    .promocional-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 50px;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    
+    .pizza-promocional-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .pizza-promocional-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #F1F5F9;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .pizza-promocional-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: #DC2626;
+    }
+    
+    .pizza-promocional-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #DC2626, #EF4444);
+    }
+    
+    .pizza-emoji {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    
+    .pizza-nome {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+    }
+    
+    .pizza-descricao {
+        color: #64748B;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    
+    .pizza-preco {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #F8FAFC;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .preco-valor {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #DC2626;
+    }
+    
+    .preco-detalhes {
+        text-align: right;
+    }
+    
+    .preco-tamanho {
+        font-size: 0.75rem;
+        color: #64748B;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+    }
+    
+    .preco-pedacos {
+        font-size: 0.875rem;
+        color: #374151;
+        font-weight: 500;
+    }
+    
+    .categoria-section {
+        margin-bottom: 3rem;
+    }
+    
+    .categoria-titulo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1E293B;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .categoria-contador {
+        background: #DC2626;
+        color: white;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+    
+    .adicionar-carrinho-btn {
+        background: linear-gradient(135deg, #DC2626, #B91C1C);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+    }
+    
+    .adicionar-carrinho-btn:hover {
+        background: linear-gradient(135deg, #B91C1C, #991B1B);
+        transform: translateY(-1px);
+    }
+    
+    .stats-promocional {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #F1F5F9;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #DC2626;
+        display: block;
+    }
+    
+    .stat-label {
+        color: #64748B;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="carrinhoPromocional()" x-init="init()">
+<!-- Header Promocional -->
+<div class="promocional-card">
+    <div class="promocional-badge">
+        🔥 OFERTA ESPECIAL
+    </div>
+    <h1 class="text-3xl font-bold mb-2">Pizzas Promocionais</h1>
+    <p class="text-lg opacity-90">Todas as pizzas por apenas <strong>R$ 40,00</strong> - Tamanho Grande com 8 fatias!</p>
+</div>
+
+<!-- Estatísticas Rápidas -->
+<div class="stats-promocional">
+    <div class="stat-card">
+        <span class="stat-number">{{ total_pizzas }}</span>
+        <div class="stat-label">Sabores Disponíveis</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">R$ 40,00</span>
+        <div class="stat-label">Preço Único</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">8</span>
+        <div class="stat-label">Fatias por Pizza</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">Grande</span>
+        <div class="stat-label">Tamanho</div>
+    </div>
+</div>
+
+<!-- Pizzas Salgadas -->
+{% if pizzas_salgadas %}
+<div class="categoria-section">
+    <h2 class="categoria-titulo">
+        🍕 Pizzas Salgadas 
+        <span class="categoria-contador">{{ pizzas_salgadas|length }}</span>
+    </h2>
+    
+    <div class="pizza-promocional-grid">
+        {% for pizza in pizzas_salgadas %}
+        <div class="pizza-promocional-card">
+            <span class="pizza-emoji">🍕</span>
+            <h3 class="pizza-nome">{{ pizza.nome }}</h3>
+            <p class="pizza-descricao">{{ pizza.descricao }}</p>
+            
+            <div class="pizza-preco">
+                <div>
+                    <span class="preco-valor">R$ {{ pizza.preco_unitario }}</span>
+                </div>
+                <div class="preco-detalhes">
+                    <div class="preco-tamanho">Grande</div>
+                    <div class="preco-pedacos">8 fatias</div>
+                </div>
+            </div>
+            
+            <button class="adicionar-carrinho-btn" 
+                    @click="adicionarPizza({{ pizza.id }}, '{{ pizza.nome }}', {{ pizza.preco_unitario }}, 'pizza')"
+                    :disabled="carregando"
+                    :class="{ 'opacity-50 cursor-not-allowed': carregando }">
+                <span x-show="!carregando">🛒 Adicionar ao Carrinho</span>
+                <span x-show="carregando">⏳ Adicionando...</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Pizzas Doces -->
+{% if pizzas_doces %}
+<div class="categoria-section">
+    <h2 class="categoria-titulo">
+        🍰 Pizzas Doces 
+        <span class="categoria-contador">{{ pizzas_doces|length }}</span>
+    </h2>
+    
+    <div class="pizza-promocional-grid">
+        {% for pizza in pizzas_doces %}
+        <div class="pizza-promocional-card">
+            <span class="pizza-emoji">🍰</span>
+            <h3 class="pizza-nome">{{ pizza.nome }}</h3>
+            <p class="pizza-descricao">{{ pizza.descricao }}</p>
+            
+            <div class="pizza-preco">
+                <div>
+                    <span class="preco-valor">R$ {{ pizza.preco_unitario }}</span>
+                </div>
+                <div class="preco-detalhes">
+                    <div class="preco-tamanho">Grande</div>
+                    <div class="preco-pedacos">8 fatias</div>
+                </div>
+            </div>
+            
+            <button class="adicionar-carrinho-btn" 
+                    @click="adicionarPizza({{ pizza.id }}, '{{ pizza.nome }}', {{ pizza.preco_unitario }}, 'pizza')"
+                    :disabled="carregando"
+                    :class="{ 'opacity-50 cursor-not-allowed': carregando }">
+                <span x-show="!carregando">🛒 Adicionar ao Carrinho</span>
+                <span x-show="carregando">⏳ Adicionando...</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Bordas Recheadas -->
+{% if bordas %}
+<div class="categoria-section">
+    <h2 class="categoria-titulo">
+        🎂 Bordas Recheadas 
+        <span class="categoria-contador">{{ bordas|length }}</span>
+    </h2>
+    
+    <div class="pizza-promocional-grid">
+        {% for borda in bordas %}
+        <div class="pizza-promocional-card">
+            <span class="pizza-emoji">🎂</span>
+            <h3 class="pizza-nome">{{ borda.nome }}</h3>
+            <p class="pizza-descricao">{{ borda.descricao }}</p>
+            
+            <div class="pizza-preco">
+                <div>
+                    <span class="preco-valor">R$ {{ borda.preco_unitario }}</span>
+                </div>
+                <div class="preco-detalhes">
+                    <div class="preco-tamanho">Adicional</div>
+                    <div class="preco-pedacos">Para qualquer pizza</div>
+                </div>
+            </div>
+            
+            <button class="adicionar-carrinho-btn" 
+                    @click="adicionarPizza({{ borda.id }}, '{{ borda.nome }}', {{ borda.preco_unitario }}, 'borda')"
+                    :disabled="carregando"
+                    :class="{ 'opacity-50 cursor-not-allowed': carregando }">
+                <span x-show="!carregando">🛒 Adicionar como Extra</span>
+                <span x-show="carregando">⏳ Adicionando...</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Carrinho Lateral -->
+<div x-show="mostrarCarrinho" 
+     x-transition:enter="transform transition ease-in-out duration-300"
+     x-transition:enter-start="translate-x-full"
+     x-transition:enter-end="translate-x-0"
+     x-transition:leave="transform transition ease-in-out duration-300"
+     x-transition:leave-start="translate-x-0"
+     x-transition:leave-end="translate-x-full"
+     class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 overflow-y-auto"
+     style="display: none;">
+    
+    <div class="p-6">
+        <!-- Header do Carrinho -->
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800">🛒 Seu Carrinho</h2>
+            <button @click="fecharCarrinho()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Itens do Carrinho -->
+        <div x-show="carrinho.length === 0" class="text-center py-8">
+            <div class="text-gray-400 mb-4">
+                <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 11-4 0v-6m4 0V9a2 2 0 10-4 0v4.01"></path>
+                </svg>
+            </div>
+            <p class="text-gray-500">Seu carrinho está vazio</p>
+            <p class="text-sm text-gray-400 mt-2">Adicione algumas pizzas promocionais!</p>
+        </div>
+
+        <div x-show="carrinho.length > 0" class="space-y-4">
+            <template x-for="(item, index) in carrinho" :key="index">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-gray-800" x-text="item.nome"></h4>
+                        <button @click="removerItem(index)" class="text-red-500 hover:text-red-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <button @click="alterarQuantidade(index, -1)" 
+                                    class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                <span class="text-sm font-bold">-</span>
+                            </button>
+                            <span class="font-medium" x-text="item.quantidade"></span>
+                            <button @click="alterarQuantidade(index, 1)" 
+                                    class="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
+                                <span class="text-sm font-bold">+</span>
+                            </button>
+                        </div>
+                        <span class="font-bold text-red-600" x-text="formatarPreco(item.preco * item.quantidade)"></span>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Total -->
+        <div x-show="carrinho.length > 0" class="mt-6 pt-6 border-t border-gray-200">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-lg font-semibold">Total:</span>
+                <span class="text-xl font-bold text-red-600" x-text="formatarPreco(calcularTotal())"></span>
+            </div>
+            
+            <div class="space-y-3">
+                <button @click="finalizarPedido()" 
+                        class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                    🚀 Finalizar Pedido
+                </button>
+                <button @click="limparCarrinho()" 
+                        class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    🗑️ Limpar Carrinho
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay -->
+<div x-show="mostrarCarrinho" 
+     x-transition:enter="transition-opacity ease-linear duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition-opacity ease-linear duration-300"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     @click="fecharCarrinho()"
+     class="fixed inset-0 bg-black bg-opacity-50 z-40"
+     style="display: none;">
+</div>
+
+<!-- Botão Flutuante do Carrinho -->
+<div x-show="carrinho.length > 0" 
+     class="fixed bottom-6 right-6 z-30">
+    <button @click="abrirCarrinho()" 
+            class="bg-red-600 text-white rounded-full p-4 shadow-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-110">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 11-4 0v-6m4 0V9a2 2 0 10-4 0v4.01"></path>
+        </svg>
+        <span class="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center" 
+              x-text="carrinho.length"></span>
+    </button>
+</div>
+
+<!-- Ações Rápidas -->
+<div class="bg-gray-50 rounded-lg p-6 mt-8">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Ações Rápidas</h3>
+    <div class="flex flex-wrap gap-4">
+        <button @click="abrirCarrinho()" class="inline-flex items-center px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors">
+            🛒 Ver Carrinho (<span x-text="carrinho.length"></span>)
+        </button>
+        <a href="{% url 'pedidos:pedido_rapido' %}" class="inline-flex items-center px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors">
+            📋 Pedido Completo
+        </a>
+        <a href="{% url 'home' %}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+            🏠 Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Modal de Finalização do Pedido -->
+<div x-show="mostrarModalPedido" 
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+     style="display: none;">
+    
+    <div x-show="mostrarModalPedido"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform scale-95"
+         x-transition:enter-end="opacity-100 transform scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform scale-100"
+         x-transition:leave-end="opacity-0 transform scale-95"
+         class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+        
+        <!-- Header do Modal -->
+        <div class="bg-red-600 text-white p-6 rounded-t-lg">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold">🚀 Finalizar Pedido</h2>
+                <button @click="fecharModalPedido()" class="text-white hover:text-red-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-red-100 mt-2">Complete os dados para finalizar seu pedido</p>
+        </div>
+        
+        <div class="p-6 space-y-6">
+            <!-- Resumo do Carrinho -->
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">📋 Resumo do Pedido</h3>
+                <div class="space-y-2">
+                    <template x-for="item in carrinho" :key="item.id">
+                        <div class="flex justify-between text-sm">
+                            <span><span x-text="item.quantidade"></span>x <span x-text="item.nome"></span></span>
+                            <span x-text="formatarPreco(item.preco * item.quantidade)"></span>
+                        </div>
+                    </template>
+                </div>
+                <div class="border-t pt-2 mt-2">
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>Total:</span>
+                        <span class="text-red-600" x-text="formatarPreco(calcularTotal())"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tipo de Atendimento -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">🏪 Tipo de Atendimento</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="cursor-pointer">
+                        <input type="radio" x-model="pedido.tipo" value="balcao" class="sr-only">
+                        <div class="border-2 rounded-lg p-3 text-center transition-all"
+                             :class="pedido.tipo === 'balcao' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 hover:border-gray-300'">
+                            <div class="text-2xl mb-1">🏪</div>
+                            <div class="font-medium">Balcão</div>
+                            <div class="text-xs text-gray-500">Retirada no local</div>
+                        </div>
+                    </label>
+                    
+                    <label class="cursor-pointer">
+                        <input type="radio" x-model="pedido.tipo" value="mesa" class="sr-only">
+                        <div class="border-2 rounded-lg p-3 text-center transition-all"
+                             :class="pedido.tipo === 'mesa' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 hover:border-gray-300'">
+                            <div class="text-2xl mb-1">🪑</div>
+                            <div class="font-medium">Mesa</div>
+                            <div class="text-xs text-gray-500">Consumo no local</div>
+                        </div>
+                    </label>
+                    
+                    <label class="cursor-pointer">
+                        <input type="radio" x-model="pedido.tipo" value="delivery" class="sr-only">
+                        <div class="border-2 rounded-lg p-3 text-center transition-all"
+                             :class="pedido.tipo === 'delivery' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 hover:border-gray-300'">
+                            <div class="text-2xl mb-1">🚚</div>
+                            <div class="font-medium">Delivery</div>
+                            <div class="text-xs text-gray-500">Entrega em casa</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Dados do Cliente -->
+            <div>
+                <h3 class="font-semibold text-gray-800 mb-3">👤 Dados do Cliente</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+                        <input type="text" x-model="pedido.cliente.nome" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                               placeholder="Nome completo">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
+                        <input type="tel" x-model="pedido.cliente.telefone" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                               placeholder="(00) 00000-0000">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                        <input type="email" x-model="pedido.cliente.email" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                               placeholder="email@exemplo.com">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Número da Mesa (apenas se tipo = mesa) -->
+            <div x-show="pedido.tipo === 'mesa'">
+                <h3 class="font-semibold text-gray-800 mb-3">🪑 Dados da Mesa</h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Número da Mesa *</label>
+                    <input type="text" x-model="pedido.mesa.numero" 
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                           placeholder="Ex: 15">
+                </div>
+            </div>
+            
+            <!-- Endereço (apenas se tipo = delivery) -->
+            <div x-show="pedido.tipo === 'delivery'">
+                <h3 class="font-semibold text-gray-800 mb-3">🏠 Endereço de Entrega</h3>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Rua *</label>
+                            <input type="text" x-model="pedido.endereco.rua" 
+                                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                   placeholder="Nome da rua">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Número *</label>
+                            <input type="text" x-model="pedido.endereco.numero" 
+                                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                   placeholder="123">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bairro *</label>
+                            <input type="text" x-model="pedido.endereco.bairro" 
+                                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                   placeholder="Nome do bairro">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                            <input type="text" x-model="pedido.endereco.cep" 
+                                   class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                   placeholder="00000-000">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+                        <input type="text" x-model="pedido.endereco.complemento" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                               placeholder="Apto, bloco, etc.">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ponto de Referência</label>
+                        <input type="text" x-model="pedido.endereco.referencia" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                               placeholder="Próximo ao...">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Forma de Pagamento -->
+            <div>
+                <h3 class="font-semibold text-gray-800 mb-3">💳 Forma de Pagamento</h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" x-model="pedido.pagamento.forma" value="dinheiro" class="sr-only">
+                            <div class="border-2 rounded-lg p-3 text-center transition-all"
+                                 :class="pedido.pagamento.forma === 'dinheiro' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 hover:border-gray-300'">
+                                <div class="text-2xl mb-1">💵</div>
+                                <div class="font-medium">Dinheiro</div>
+                            </div>
+                        </label>
+                        
+                        <label class="cursor-pointer">
+                            <input type="radio" x-model="pedido.pagamento.forma" value="pix" class="sr-only">
+                            <div class="border-2 rounded-lg p-3 text-center transition-all"
+                                 :class="pedido.pagamento.forma === 'pix' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 hover:border-gray-300'">
+                                <div class="text-2xl mb-1">📱</div>
+                                <div class="font-medium">PIX</div>
+                            </div>
+                        </label>
+                        
+                        <label class="cursor-pointer">
+                            <input type="radio" x-model="pedido.pagamento.forma" value="cartao" class="sr-only">
+                            <div class="border-2 rounded-lg p-3 text-center transition-all"
+                                 :class="pedido.pagamento.forma === 'cartao' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 hover:border-gray-300'">
+                                <div class="text-2xl mb-1">💳</div>
+                                <div class="font-medium">Cartão</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Opções para Dinheiro -->
+                    <div x-show="pedido.pagamento.forma === 'dinheiro'" class="space-y-3">
+                        <div class="flex items-center">
+                            <input type="checkbox" x-model="pedido.pagamento.precisa_troco" id="precisa_troco" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                            <label for="precisa_troco" class="ml-2 text-sm text-gray-700">Precisa de troco</label>
+                        </div>
+                        
+                        <div x-show="pedido.pagamento.precisa_troco" class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Valor Pago</label>
+                                <input type="number" x-model="pedido.pagamento.valor_pago" step="0.01"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                       placeholder="0,00">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Troco</label>
+                                <input type="text" :value="formatarPreco(calcularTroco())" readonly
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Observações -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">📝 Observações</label>
+                <textarea x-model="pedido.observacoes" rows="3"
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="Observações especiais do pedido..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Footer do Modal -->
+        <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-between items-center">
+            <div class="text-lg font-bold text-gray-800">
+                Total: <span class="text-red-600" x-text="formatarPreco(calcularTotal())"></span>
+            </div>
+            <div class="flex space-x-3">
+                <button @click="fecharModalPedido()" 
+                        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </button>
+                <button @click="enviarPedido()" 
+                        :disabled="enviandoPedido"
+                        :class="{ 'opacity-50 cursor-not-allowed': enviandoPedido }"
+                        class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-semibold">
+                    <span x-show="!enviandoPedido">🚀 Finalizar Pedido</span>
+                    <span x-show="enviandoPedido">⏳ Enviando...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% csrf_token %}
+
+<script>
+function carrinhoPromocional() {
+    return {
+        carrinho: [],
+        mostrarCarrinho: false,
+        carregando: false,
+        mostrarModalPedido: false,
+        enviandoPedido: false,
+        
+        // Dados do pedido
+        pedido: {
+            tipo: 'balcao', // balcao, mesa, delivery
+            cliente: {
+                nome: '',
+                telefone: '',
+                email: ''
+            },
+            mesa: {
+                numero: ''
+            },
+            endereco: {
+                rua: '',
+                numero: '',
+                bairro: '',
+                cidade: '',
+                cep: '',
+                complemento: '',
+                referencia: ''
+            },
+            pagamento: {
+                forma: 'dinheiro', // dinheiro, pix, cartao
+                valor_pago: '',
+                precisa_troco: false,
+                valor_troco: ''
+            },
+            observacoes: ''
+        },
+        
+        // Adicionar pizza ao carrinho
+        adicionarPizza(id, nome, preco, tipo) {
+            this.carregando = true;
+            
+            // Verificar se o item já existe
+            const itemExistente = this.carrinho.find(item => item.id === id);
+            
+            if (itemExistente) {
+                itemExistente.quantidade += 1;
+            } else {
+                this.carrinho.push({
+                    id: id,
+                    nome: nome,
+                    preco: parseFloat(preco),
+                    quantidade: 1,
+                    tipo: tipo,
+                    detalhes: tipo === 'pizza' ? 'Tamanho Grande (8 fatias)' : 'Adicional'
+                });
+            }
+            
+            // Feedback visual
+            this.mostrarNotificacao(`${nome} adicionado ao carrinho!`);
+            
+            // Salvar no localStorage
+            this.salvarCarrinho();
+            
+            setTimeout(() => {
+                this.carregando = false;
+            }, 500);
+        },
+        
+        // Alterar quantidade
+        alterarQuantidade(index, delta) {
+            const item = this.carrinho[index];
+            item.quantidade += delta;
+            
+            if (item.quantidade <= 0) {
+                this.removerItem(index);
+            } else {
+                this.salvarCarrinho();
+            }
+        },
+        
+        // Remover item
+        removerItem(index) {
+            const item = this.carrinho[index];
+            this.carrinho.splice(index, 1);
+            this.mostrarNotificacao(`${item.nome} removido do carrinho`);
+            this.salvarCarrinho();
+        },
+        
+        // Limpar carrinho
+        limparCarrinho() {
+            if (confirm('Tem certeza que deseja limpar o carrinho?')) {
+                this.carrinho = [];
+                this.salvarCarrinho();
+                this.mostrarNotificacao('Carrinho limpo!');
+                this.fecharCarrinho();
+            }
+        },
+        
+        // Calcular total
+        calcularTotal() {
+            return this.carrinho.reduce((total, item) => {
+                return total + (item.preco * item.quantidade);
+            }, 0);
+        },
+        
+        // Formatar preço
+        formatarPreco(valor) {
+            return `R$ ${valor.toFixed(2).replace('.', ',')}`;
+        },
+        
+        // Abrir carrinho
+        abrirCarrinho() {
+            this.mostrarCarrinho = true;
+            document.body.style.overflow = 'hidden';
+        },
+        
+        // Fechar carrinho
+        fecharCarrinho() {
+            this.mostrarCarrinho = false;
+            document.body.style.overflow = 'auto';
+        },
+        
+        // Finalizar pedido
+        finalizarPedido() {
+            if (this.carrinho.length === 0) {
+                alert('Adicione itens ao carrinho primeiro!');
+                return;
+            }
+            
+            this.abrirModalPedido();
+        },
+        
+        // Modal de pedido
+        abrirModalPedido() {
+            this.mostrarModalPedido = true;
+            this.fecharCarrinho();
+            document.body.style.overflow = 'hidden';
+        },
+        
+        fecharModalPedido() {
+            this.mostrarModalPedido = false;
+            document.body.style.overflow = 'auto';
+        },
+        
+        // Validar dados do pedido
+        validarPedido() {
+            const erros = [];
+            
+            // Validar carrinho
+            if (!this.carrinho || this.carrinho.length === 0) {
+                erros.push('Adicione pelo menos um item ao carrinho');
+            }
+            
+            if (!this.pedido.cliente.nome.trim()) {
+                erros.push('Nome do cliente é obrigatório');
+            }
+            
+            if (!this.pedido.cliente.telefone.trim()) {
+                erros.push('Telefone é obrigatório');
+            }
+            
+            if (this.pedido.tipo === 'mesa' && !this.pedido.mesa.numero.trim()) {
+                erros.push('Número da mesa é obrigatório');
+            }
+            
+            if (this.pedido.tipo === 'delivery') {
+                if (!this.pedido.endereco.rua.trim()) {
+                    erros.push('Endereço é obrigatório para delivery');
+                }
+                if (!this.pedido.endereco.numero.trim()) {
+                    erros.push('Número do endereço é obrigatório');
+                }
+                if (!this.pedido.endereco.bairro.trim()) {
+                    erros.push('Bairro é obrigatório');
+                }
+            }
+            
+            if (this.pedido.pagamento.forma === 'dinheiro' && this.pedido.pagamento.precisa_troco) {
+                if (!this.pedido.pagamento.valor_pago || parseFloat(this.pedido.pagamento.valor_pago) <= this.calcularTotal()) {
+                    erros.push('Valor pago deve ser maior que o total para ter troco');
+                }
+            }
+            
+            return erros;
+        },
+        
+        // Enviar pedido
+        async enviarPedido() {
+            const erros = this.validarPedido();
+            
+            if (erros.length > 0) {
+                alert('Corrija os erros:\n\n' + erros.join('\n'));
+                return;
+            }
+            
+            this.enviandoPedido = true;
+            
+            try {
+                // Preparar dados do pedido no formato correto
+                const dadosPedido = {
+                    tipo: this.pedido.tipo,
+                    cliente: this.pedido.cliente,
+                    pagamento: {
+                        forma: this.pedido.pagamento.forma
+                    },
+                    itens: this.carrinho.map(item => ({
+                        produto_id: item.id,
+                        nome: item.nome,
+                        preco_unitario: item.preco,
+                        quantidade: item.quantidade,
+                        observacoes: item.detalhes || ''
+                    })),
+                    observacoes: this.pedido.observacoes || ''
+                };
+                
+                // Adicionar dados específicos do tipo
+                if (this.pedido.tipo === 'mesa') {
+                    dadosPedido.mesa = {
+                        numero: this.pedido.mesa.numero
+                    };
+                } else if (this.pedido.tipo === 'delivery') {
+                    dadosPedido.endereco = this.pedido.endereco;
+                }
+                
+                // Adicionar dados de pagamento
+                if (this.pedido.pagamento.forma === 'dinheiro' && this.pedido.pagamento.precisa_troco) {
+                    dadosPedido.pagamento.valor_pago = parseFloat(this.pedido.pagamento.valor_pago);
+                    dadosPedido.pagamento.troco = dadosPedido.pagamento.valor_pago - this.calcularTotal();
+                }
+                
+                console.log('DEBUG: Enviando dados:', JSON.stringify(dadosPedido, null, 2));
+                console.log('DEBUG: Carrinho:', this.carrinho);
+                console.log('DEBUG: Dados do cliente:', this.pedido.cliente);
+                
+                // Enviar para API
+                const response = await fetch('/api/pedidos/criar_pedido_promocional/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCsrfToken()
+                    },
+                    body: JSON.stringify(dadosPedido)
+                });
+                
+                if (response.ok) {
+                    const resultado = await response.json();
+                    this.mostrarNotificacao('✅ Pedido criado com sucesso!');
+                    
+                    // Limpar carrinho e fechar modal
+                    this.carrinho = [];
+                    this.salvarCarrinho();
+                    this.fecharModalPedido();
+                    this.resetarPedido();
+                    
+                    // Mostrar sucesso com número do pedido
+                    setTimeout(() => {
+                        alert(`Pedido #${resultado.numero} criado com sucesso!\n\nTotal: ${this.formatarPreco(resultado.total)}\nStatus: ${resultado.status}`);
+                    }, 500);
+                    
+                } else {
+                    const erro = await response.json();
+                    console.error('Erro da API:', erro);
+                    throw new Error(erro.message || erro.error || 'Erro ao criar pedido');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao enviar pedido:', error);
+                alert('Erro ao criar pedido: ' + error.message);
+            } finally {
+                this.enviandoPedido = false;
+            }
+        },
+        
+        // Resetar dados do pedido
+        resetarPedido() {
+            this.pedido = {
+                tipo: 'balcao',
+                cliente: { nome: '', telefone: '', email: '' },
+                mesa: { numero: '' },
+                endereco: { rua: '', numero: '', bairro: '', cidade: '', cep: '', complemento: '', referencia: '' },
+                pagamento: { forma: 'dinheiro', valor_pago: '', precisa_troco: false, valor_troco: '' },
+                observacoes: ''
+            };
+        },
+        
+        // Obter CSRF token
+        getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                   document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        },
+        
+        // Calcular troco
+        calcularTroco() {
+            if (this.pedido.pagamento.precisa_troco && this.pedido.pagamento.valor_pago) {
+                const valorPago = parseFloat(this.pedido.pagamento.valor_pago);
+                const total = this.calcularTotal();
+                return Math.max(0, valorPago - total);
+            }
+            return 0;
+        },
+        
+        // Salvar carrinho no localStorage
+        salvarCarrinho() {
+            localStorage.setItem('carrinho_promocional', JSON.stringify(this.carrinho));
+        },
+        
+        // Carregar carrinho do localStorage
+        carregarCarrinho() {
+            const carrinhoSalvo = localStorage.getItem('carrinho_promocional');
+            if (carrinhoSalvo) {
+                this.carrinho = JSON.parse(carrinhoSalvo);
+            }
+        },
+        
+        // Mostrar notificação
+        mostrarNotificacao(mensagem) {
+            // Criar elemento de notificação
+            const notificacao = document.createElement('div');
+            notificacao.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300';
+            notificacao.textContent = mensagem;
+            
+            document.body.appendChild(notificacao);
+            
+            // Animar entrada
+            setTimeout(() => {
+                notificacao.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remover após 3 segundos
+            setTimeout(() => {
+                notificacao.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notificacao);
+                }, 300);
+            }, 3000);
+        },
+        
+        // Inicialização
+        init() {
+            this.carregarCarrinho();
+            
+            // Adicionar animação aos cards
+            this.$nextTick(() => {
+                this.animarCards();
+            });
+        },
+        
+        // Animar cards
+        animarCards() {
+            const cards = document.querySelectorAll('.pizza-promocional-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+            
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                observer.observe(card);
+            });
+        }
+    }
+}
+</script>
+
+</div> <!-- Fecha div x-data -->
+{% endblock %}

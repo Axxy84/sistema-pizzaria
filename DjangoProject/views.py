@@ -33,10 +33,10 @@ def home_view(request):
             criado_em__date=timezone.now().date()
         ).count()
         
-        # Calcular faturamento hoje
+        # Calcular faturamento hoje (pedidos não cancelados)
         faturamento_hoje = Pedido.objects.filter(
             criado_em__date=timezone.now().date(),
-            status__in=['confirmado', 'entregue', 'finalizado']
+            cancelado_em__isnull=True
         ).aggregate(total=Sum('total'))['total'] or 0
         
         context.update({
@@ -162,6 +162,38 @@ def dashboard_data_api(request):
     }
     
     return JsonResponse(data)
+
+def pizzas_promocionais_view(request):
+    """View para página de pizzas promocionais"""
+    from apps.produtos.models import Produto
+    
+    # Buscar pizzas promocionais por categoria
+    pizzas_salgadas = Produto.objects.filter(
+        categoria__nome='Pizzas Salgadas',
+        ativo=True
+    ).order_by('nome')
+    
+    pizzas_doces = Produto.objects.filter(
+        categoria__nome='Pizzas Doces',
+        ativo=True
+    ).order_by('nome')
+    
+    bordas = Produto.objects.filter(
+        categoria__nome='Bordas Recheadas',
+        ativo=True
+    ).order_by('preco_unitario')
+    
+    # Calcular total de pizzas
+    total_pizzas = pizzas_salgadas.count() + pizzas_doces.count()
+    
+    context = {
+        'pizzas_salgadas': pizzas_salgadas,
+        'pizzas_doces': pizzas_doces,
+        'bordas': bordas,
+        'total_pizzas': total_pizzas,
+    }
+    
+    return render(request, 'produtos/pizzas_promocionais.html', context)
 
 def force_login_view(request):
     """View para forçar login de teste"""

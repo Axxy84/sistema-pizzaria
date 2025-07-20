@@ -260,6 +260,80 @@ class PedidoSupabaseManager:
             import traceback
             logger.error(f"Traceback completo: {traceback.format_exc()}")
             return None, [f"Erro interno detalhado: {str(e)}"]
+    
+    def criar_pedido_completo(self, dados_pedido):
+        """Cria pedido completo com cliente, endereço e itens"""
+        try:
+            # Validações iniciais
+            erros = []
+            
+            # Validar estrutura dos dados
+            if not isinstance(dados_pedido, dict):
+                return {'status': 'error', 'message': 'Dados do pedido inválidos'}
+            
+            tipo = dados_pedido.get('tipo', 'balcao')
+            cliente_data = dados_pedido.get('cliente', {})
+            mesa_data = dados_pedido.get('mesa', {})
+            endereco_data = dados_pedido.get('endereco', {})
+            pagamento_data = dados_pedido.get('pagamento', {})
+            itens = dados_pedido.get('itens', [])
+            observacoes = dados_pedido.get('observacoes', '')
+            
+            # Validações específicas
+            if not cliente_data.get('nome'):
+                erros.append('Nome do cliente é obrigatório')
+            
+            if not cliente_data.get('telefone'):
+                erros.append('Telefone do cliente é obrigatório')
+            
+            if not itens:
+                erros.append('É necessário adicionar pelo menos um item')
+            
+            if not pagamento_data.get('forma'):
+                erros.append('Forma de pagamento é obrigatória')
+            
+            if tipo == 'mesa' and not mesa_data.get('numero'):
+                erros.append('Número da mesa é obrigatório')
+            
+            if tipo == 'delivery':
+                if not endereco_data.get('rua'):
+                    erros.append('Rua é obrigatória para delivery')
+                if not endereco_data.get('numero'):
+                    erros.append('Número é obrigatório para delivery')
+                if not endereco_data.get('bairro'):
+                    erros.append('Bairro é obrigatório para delivery')
+            
+            if erros:
+                return {'status': 'error', 'message': '; '.join(erros)}
+            
+            # Criar estrutura de dados para o método existente
+            dados_para_criar = {
+                'tipo': tipo,
+                'cliente': cliente_data,
+                'itens': itens,
+                'forma_pagamento': pagamento_data.get('forma'),
+                'observacoes': observacoes
+            }
+            
+            # Usar método existente
+            resultado, erro = self.criar_pedido_seguro(dados_para_criar)
+            
+            if erro:
+                return {'status': 'error', 'message': '; '.join(erro)}
+            
+            # Sucesso
+            pedido = resultado['pedido']
+            return {
+                'status': 'success',
+                'pedido_id': pedido.id,
+                'numero_pedido': pedido.numero,
+                'total': float(resultado['total']),
+                'message': 'Pedido criado com sucesso!'
+            }
+            
+        except Exception as e:
+            logger.error(f"Erro em criar_pedido_completo: {e}")
+            return {'status': 'error', 'message': f'Erro interno: {str(e)}'}
 
 class SupabaseHealthCheck:
     """Classe para monitorar saúde da integração"""

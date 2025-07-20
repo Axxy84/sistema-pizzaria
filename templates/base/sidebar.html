@@ -45,6 +45,13 @@
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name in 'product_list,pizza_list,bebida_list,borda_list,sobremesa_list,acompanhamento_list' or request.path == '/produtos/' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Todos Produtos
                     </a>
+                    <a href="{% url 'pizzas_promocionais' %}" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'pizzas_promocionais' %}bg-red-100 text-red-900 font-medium{% else %}text-gray-600 hover:bg-red-50 hover:text-red-900{% endif %} rounded-l-md transition-colors">
+                        🍕 Pizzas Promocionais
+                        <span class="ml-auto inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                            R$ 40
+                        </span>
+                    </a>
                     <a href="{% url 'product_create' %}" 
                        class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'product_create' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
                         Adicionar Produto

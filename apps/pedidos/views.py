@@ -13,7 +13,7 @@ from .models import Pedido, ItemPedido, Mesa
 from .models_mesa import Mesa as MesaModel
 from .serializers import (
     PedidoListSerializer, PedidoDetailSerializer,
-    PedidoCreateSerializer, PedidoStatusSerializer
+    PedidoCreateSerializer
 )
 from .utils import SupabaseHealthCheck, PedidoSupabaseManager
 from apps.produtos.models import Produto, ProdutoPreco, Tamanho
@@ -21,7 +21,7 @@ from apps.produtos.models import Produto, ProdutoPreco, Tamanho
 class PedidoViewSet(viewsets.ModelViewSet):
     queryset = Pedido.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'tipo', 'cliente', 'forma_pagamento']
+    filterset_fields = ['tipo', 'cliente', 'forma_pagamento']
     search_fields = ['numero', 'cliente__nome', 'cliente__telefone']
     ordering_fields = ['criado_em', 'total']
     ordering = ['-criado_em']
@@ -38,43 +38,28 @@ class PedidoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(usuario=self.request.user)
     
-    @action(detail=True, methods=['patch'])
-    def atualizar_status(self, request, pk=None):
-        pedido = self.get_object()
-        serializer = PedidoStatusSerializer(pedido, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # Método atualizar_status removido - use as views específicas
     
-    @action(detail=True, methods=['patch'], url_path='status')
-    def status(self, request, pk=None):
-        """Atualizar apenas o status do pedido"""
-        pedido = self.get_object()
-        new_status = request.data.get('status')
-        
-        if not new_status:
-            return Response({'error': 'Status é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Verificar se o status é válido
-        status_choices = [choice[0] for choice in Pedido.STATUS_CHOICES]
-        if new_status not in status_choices:
-            return Response({'error': 'Status inválido'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        pedido.status = new_status
-        pedido.save()
-        
-        return Response({'status': pedido.status, 'message': 'Status atualizado com sucesso'})
+    # Método status removido - use as views específicas
     
     @action(detail=False, methods=['get'])
     def pendentes(self, request):
-        pendentes = self.queryset.filter(status='pendente')
+        # Pedidos recém criados (sem preparação iniciada)
+        pendentes = self.queryset.filter(
+            preparacao_iniciada_em__isnull=True,
+            cancelado_em__isnull=True
+        )
         serializer = PedidoListSerializer(pendentes, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def em_preparacao(self, request):
-        em_prep = self.queryset.filter(status__in=['confirmado', 'preparando'])
+        # Pedidos com preparação iniciada mas não finalizados
+        em_prep = self.queryset.filter(
+            preparacao_iniciada_em__isnull=False,
+            entregue_em__isnull=True,
+            cancelado_em__isnull=True
+        )
         serializer = PedidoListSerializer(em_prep, many=True)
         return Response(serializer.data)
     
@@ -124,7 +109,11 @@ class PedidoViewSet(viewsets.ModelViewSet):
             vendas_hoje = pedidos_hoje.aggregate(total=Sum('total'))['total'] or 0
             
             # Contadores por tipo (apenas ativos)
-            pedidos_ativos = Pedido.objects.exclude(status__in=['entregue', 'cancelado'])
+            # Pedidos ativos (não entregues e não cancelados)
+            pedidos_ativos = Pedido.objects.filter(
+                entregue_em__isnull=True,
+                cancelado_em__isnull=True
+            )
             pedidos_mesa_count = pedidos_ativos.filter(tipo='mesa').count()
             pedidos_delivery_count = pedidos_ativos.filter(tipo='delivery').count()
             
@@ -407,6 +396,125 @@ def mesas_abertas_view(request):
     return render(request, 'pedidos/mesas_abertas.html', context)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def criar_pedido_promocional(request):
+    """
+    API endpoint para processar pedidos promocionais com validações completas
+    """
+    try:
+        data = request.data
+        
+        # Log da requisição para debug (apenas quando houver erro)
+        import json
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Extrair dados do pedido
+        tipo = data.get('tipo', 'balcao')
+        cliente_data = data.get('cliente', {})
+        mesa_data = data.get('mesa', {})
+        endereco_data = data.get('endereco', {})
+        pagamento_data = data.get('pagamento', {})
+        itens = data.get('itens', [])
+        observacoes = data.get('observacoes', '')
+        
+        # Validações básicas
+        if not itens:
+            logger.error(f"Pedido sem itens. Dados recebidos: {json.dumps(data, indent=2)}")
+            return Response({
+                'status': 'error',
+                'message': 'É necessário adicionar pelo menos um item ao carrinho'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validar tipo de pedido
+        if tipo not in ['balcao', 'mesa', 'delivery']:
+            logger.error(f"Tipo de pedido inválido: {tipo}")
+            return Response({
+                'status': 'error',
+                'message': 'Tipo de pedido inválido'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validar dados específicos por tipo
+        if tipo == 'mesa':
+            if not mesa_data.get('numero'):
+                logger.error(f"Mesa sem número. Mesa data: {mesa_data}")
+                return Response({
+                    'status': 'error',
+                    'message': 'Número da mesa é obrigatório para pedidos no local'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if tipo == 'delivery':
+            endereco_obrigatorios = ['rua', 'numero', 'bairro']
+            for campo in endereco_obrigatorios:
+                if not endereco_data.get(campo):
+                    logger.error(f"Campo {campo} obrigatório faltando. Endereço: {endereco_data}")
+                    return Response({
+                        'status': 'error',
+                        'message': f'Campo {campo} é obrigatório para delivery'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validar dados do cliente
+        if not cliente_data.get('nome'):
+            logger.error(f"Nome do cliente faltando. Cliente: {cliente_data}")
+            return Response({
+                'status': 'error',
+                'message': 'Nome do cliente é obrigatório'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not cliente_data.get('telefone'):
+            return Response({
+                'status': 'error',
+                'message': 'Telefone do cliente é obrigatório'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validar pagamento
+        forma_pagamento = pagamento_data.get('forma', '')
+        if not forma_pagamento:
+            return Response({
+                'status': 'error',
+                'message': 'Forma de pagamento é obrigatória'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Usar manager do Supabase para criar pedido seguro
+        manager = PedidoSupabaseManager()
+        
+        # Preparar dados do pedido
+        pedido_data = {
+            'tipo': tipo,
+            'cliente': cliente_data,
+            'mesa': mesa_data if tipo == 'mesa' else None,
+            'endereco': endereco_data if tipo == 'delivery' else None,
+            'pagamento': pagamento_data,
+            'itens': itens,
+            'observacoes': observacoes
+        }
+        
+        # Criar pedido com transação segura
+        resultado = manager.criar_pedido_completo(pedido_data)
+        
+        if resultado['status'] == 'success':
+            return Response({
+                'status': 'success',
+                'message': 'Pedido criado com sucesso!',
+                'pedido_id': resultado['pedido_id'],
+                'numero_pedido': resultado.get('numero_pedido'),
+                'total': resultado.get('total'),
+                'redirect_url': f'/pedidos/confirmacao/{resultado["pedido_id"]}/'
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                'status': 'error',
+                'message': resultado.get('message', 'Erro ao criar pedido')
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': f'Erro interno do servidor: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @login_required
 @require_http_methods(["POST"])
 def abrir_mesa_view(request):
@@ -453,7 +561,8 @@ def fechar_mesa_view(request, mesa_id):
         return redirect('pedidos:mesas_abertas')
     
     # Verificar se há pedidos pendentes
-    pedidos_pendentes = mesa.pedidos_ativos.exclude(status='entregue').count()
+    # Verificar pedidos não finalizados
+    pedidos_pendentes = mesa.pedidos_ativos.filter(entregue_em__isnull=True).count()
     
     if pedidos_pendentes > 0 and not request.POST.get('forcar_fechamento'):
         messages.warning(
