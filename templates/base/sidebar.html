@@ -130,18 +130,33 @@
             </a>
 
             <!-- Estoque -->
-            <a href="#" 
-               class="{% if 'estoque' in request.path %}bg-pizza-50 border-r border-pizza-500 text-pizza-700{% else %}text-secondary hover:bg-secondary hover:text-primary{% endif %} group flex items-center px-3 py-2 text-sm font-medium rounded-l-md transition-colors duration-200">
-                <!-- Heroicon: cube -->
-                <svg class="{% if 'estoque' in request.path %}text-pizza-500{% else %}text-tertiary group-hover:text-secondary{% endif %} mr-3 h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-                </svg>
-                Estoque
-                <!-- Low stock indicator -->
-                <span class="ml-auto inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-                    !
-                </span>
-            </a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'estoque:dashboard' %}" 
+                   class="{% if 'estoque' in request.path %}bg-pizza-50 border-r border-pizza-500 text-pizza-700{% else %}text-secondary hover:bg-secondary hover:text-primary{% endif %} group flex items-center px-3 py-2 text-sm font-medium rounded-l-md transition-colors duration-200">
+                    <!-- Heroicon: cube -->
+                    <svg class="{% if 'estoque' in request.path %}text-pizza-500{% else %}text-tertiary group-hover:text-secondary{% endif %} mr-3 h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                    </svg>
+                    Estoque
+                    <!-- Low stock indicator -->
+                    <span class="ml-auto inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                        !
+                    </span>
+                </a>
+            {% else %}
+                <a href="{% url 'estoque_debug:dashboard' %}" 
+                   class="{% if 'estoque' in request.path %}bg-pizza-50 border-r border-pizza-500 text-pizza-700{% else %}text-secondary hover:bg-secondary hover:text-primary{% endif %} group flex items-center px-3 py-2 text-sm font-medium rounded-l-md transition-colors duration-200">
+                    <!-- Heroicon: cube -->
+                    <svg class="{% if 'estoque' in request.path %}text-pizza-500{% else %}text-tertiary group-hover:text-secondary{% endif %} mr-3 h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                    </svg>
+                    Estoque (Debug)
+                    <!-- Low stock indicator -->
+                    <span class="ml-auto inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+                        !
+                    </span>
+                </a>
+            {% endif %}
 
             <!-- Financeiro Section -->
             <div x-data="{ open: {% if 'financeiro' in request.path %}true{% else %}false{% endif %} }">

@@ -1,0 +1,193 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Ingredientes - Estoque{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="md:flex md:items-center md:justify-between">
+        <div class="min-w-0 flex-1">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                Ingredientes
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Gerencie os ingredientes do seu estoque
+            </p>
+        </div>
+        <div class="mt-4 flex md:ml-4 md:mt-0">
+            <a href="{% url 'estoque:ingrediente_create' %}" 
+               class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                </svg>
+                Novo Ingrediente
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white shadow rounded-lg">
+        <form method="get" class="p-6">
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-4">
+                <div>
+                    <label for="search" class="block text-sm font-medium leading-6 text-gray-900">Buscar</label>
+                    <input type="text" 
+                           name="search" 
+                           id="search" 
+                           value="{{ search }}"
+                           placeholder="Nome do ingrediente..."
+                           class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6">
+                </div>
+                
+                <div>
+                    <label for="status" class="block text-sm font-medium leading-6 text-gray-900">Status</label>
+                    <select name="status" 
+                            id="status"
+                            class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6">
+                        <option value="todos" {% if status_filter == 'todos' %}selected{% endif %}>Todos</option>
+                        <option value="ativo" {% if status_filter == 'ativo' %}selected{% endif %}>Ativo</option>
+                        <option value="inativo" {% if status_filter == 'inativo' %}selected{% endif %}>Inativo</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="estoque" class="block text-sm font-medium leading-6 text-gray-900">Estoque</label>
+                    <select name="estoque" 
+                            id="estoque"
+                            class="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6">
+                        <option value="todos" {% if estoque_filter == 'todos' %}selected{% endif %}>Todos</option>
+                        <option value="baixo" {% if estoque_filter == 'baixo' %}selected{% endif %}>Estoque Baixo</option>
+                        <option value="zerado" {% if estoque_filter == 'zerado' %}selected{% endif %}>Zerado</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-end">
+                    <button type="submit" 
+                            class="w-full rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Ingredientes -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        {% if page_obj %}
+            <ul role="list" class="divide-y divide-gray-200">
+                {% for ingrediente in page_obj %}
+                    <li class="{% if ingrediente.estoque_baixo %}bg-red-50{% endif %}">
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        {% if ingrediente.estoque_baixo %}
+                                            <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        {% else %}
+                                            <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="flex items-center">
+                                            <p class="text-sm font-medium text-gray-900 truncate">{{ ingrediente.nome }}</p>
+                                            {% if not ingrediente.ativo %}
+                                                <span class="ml-2 inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                                                    Inativo
+                                                </span>
+                                            {% endif %}
+                                            {% if ingrediente.estoque_baixo %}
+                                                <span class="ml-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                                    Estoque Baixo
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                                            <p>
+                                                <span class="font-medium">Estoque:</span> 
+                                                {{ ingrediente.quantidade_estoque }} {{ ingrediente.unidade_medida.sigla }}
+                                                <span class="mx-2">•</span>
+                                                <span class="font-medium">Mínimo:</span> 
+                                                {{ ingrediente.estoque_minimo }} {{ ingrediente.unidade_medida.sigla }}
+                                                <span class="mx-2">•</span>
+                                                <span class="font-medium">Custo:</span> 
+                                                R$ {{ ingrediente.custo_unitario|floatformat:2 }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <a href="{% url 'estoque:ingrediente_detail' ingrediente.pk %}" 
+                                       class="text-red-600 hover:text-red-900 text-sm font-medium">
+                                        Ver detalhes
+                                    </a>
+                                    <a href="{% url 'estoque:ingrediente_edit' ingrediente.pk %}" 
+                                       class="text-gray-600 hover:text-gray-900 text-sm font-medium">
+                                        Editar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            
+            <!-- Paginação -->
+            {% if page_obj.has_other_pages %}
+                <nav class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div class="hidden sm:block">
+                        <p class="text-sm text-gray-700">
+                            Mostrando
+                            <span class="font-medium">{{ page_obj.start_index }}</span>
+                            a
+                            <span class="font-medium">{{ page_obj.end_index }}</span>
+                            de
+                            <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                            resultados
+                        </p>
+                    </div>
+                    <div class="flex-1 flex justify-between sm:justify-end">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter != 'todos' %}&status={{ status_filter }}{% endif %}{% if estoque_filter != 'todos' %}&estoque={{ estoque_filter }}{% endif %}" 
+                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Anterior
+                            </a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter != 'todos' %}&status={{ status_filter }}{% endif %}{% if estoque_filter != 'todos' %}&estoque={{ estoque_filter }}{% endif %}" 
+                               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Próxima
+                            </a>
+                        {% endif %}
+                    </div>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum ingrediente encontrado</h3>
+                <p class="mt-1 text-sm text-gray-500">Comece criando um novo ingrediente.</p>
+                <div class="mt-6">
+                    <a href="{% url 'estoque:ingrediente_create' %}" 
+                       class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                        <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                        </svg>
+                        Novo Ingrediente
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

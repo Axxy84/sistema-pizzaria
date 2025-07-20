@@ -1,0 +1,318 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ ingrediente.nome }} - Estoque{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="md:flex md:items-center md:justify-between">
+        <div class="min-w-0 flex-1">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                {{ ingrediente.nome }}
+            </h2>
+            <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+                <div class="mt-2 flex items-center text-sm text-gray-500">
+                    <svg class="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 100-2H7a1 1 0 100 2h6zm-6 4a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                    </svg>
+                    {{ ingrediente.unidade_medida }}
+                </div>
+                {% if ingrediente.estoque_baixo %}
+                    <div class="mt-2 flex items-center text-sm text-red-600">
+                        <svg class="mr-1.5 h-5 w-5 flex-shrink-0 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        Estoque Baixo
+                    </div>
+                {% endif %}
+                {% if not ingrediente.ativo %}
+                    <div class="mt-2 flex items-center text-sm text-gray-500">
+                        <svg class="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                        </svg>
+                        Inativo
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="mt-4 flex md:ml-4 md:mt-0 space-x-3">
+            <a href="{% url 'estoque:movimento_create' %}?ingrediente={{ ingrediente.pk }}" 
+               class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                </svg>
+                Nova Movimentação
+            </a>
+            <a href="{% url 'estoque:ingrediente_edit' ingrediente.pk %}" 
+               class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+                </svg>
+                Editar
+            </a>
+            <a href="{% url 'estoque:ingrediente_list' %}" 
+               class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Informações do Ingrediente -->
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-base font-semibold leading-6 text-gray-900">Informações do Ingrediente</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">Detalhes e status atual do estoque.</p>
+        </div>
+        <div class="border-t border-gray-200">
+            <dl>
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Nome</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ ingrediente.nome }}</dd>
+                </div>
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Unidade de medida</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ ingrediente.unidade_medida }}</dd>
+                </div>
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Quantidade em estoque</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <span class="text-lg font-semibold {% if ingrediente.estoque_baixo %}text-red-600{% else %}text-green-600{% endif %}">
+                            {{ ingrediente.quantidade_estoque }} {{ ingrediente.unidade_medida.sigla }}
+                        </span>
+                    </dd>
+                </div>
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Estoque mínimo</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ ingrediente.estoque_minimo }} {{ ingrediente.unidade_medida.sigla }}</dd>
+                </div>
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Custo unitário</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">R$ {{ ingrediente.custo_unitario|floatformat:2 }}</dd>
+                </div>
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Valor total em estoque</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <span class="text-lg font-semibold text-green-600">
+                            R$ {% widthratio ingrediente.quantidade_estoque 1 ingrediente.custo_unitario as valor_total %}{{ valor_total|floatformat:2 }}
+                        </span>
+                    </dd>
+                </div>
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        {% if ingrediente.ativo %}
+                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                Ativo
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                                Inativo
+                            </span>
+                        {% endif %}
+                        {% if ingrediente.estoque_baixo %}
+                            <span class="ml-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                Estoque Baixo
+                            </span>
+                        {% endif %}
+                    </dd>
+                </div>
+                <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Criado em</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ ingrediente.criado_em|date:"d/m/Y H:i" }}</dd>
+                </div>
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Última atualização</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ ingrediente.atualizado_em|date:"d/m/Y H:i" }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Receitas que usam este ingrediente -->
+        {% if receitas %}
+            <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-base font-semibold leading-6 text-gray-900">Usado em Produtos</h3>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">Produtos que utilizam este ingrediente.</p>
+                </div>
+                <div class="border-t border-gray-200">
+                    <ul role="list" class="divide-y divide-gray-200">
+                        {% for receita in receitas %}
+                            <li class="px-4 py-4 sm:px-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">{{ receita.produto.nome }}</p>
+                                        <p class="text-sm text-gray-500">{{ receita.quantidade }} {{ ingrediente.unidade_medida.sigla }} por unidade</p>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        R$ {% widthratio receita.quantidade 1 ingrediente.custo_unitario as custo_receita %}{{ custo_receita|floatformat:2 }}
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Gráfico ou estatísticas -->
+        <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-base font-semibold leading-6 text-gray-900">Status do Estoque</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Visualização do nível atual de estoque.</p>
+            </div>
+            <div class="px-4 py-5 sm:px-6">
+                {% widthratio ingrediente.quantidade_estoque 1 ingrediente.estoque_minimo as percentual_minimo %}
+                {% if percentual_minimo > 3 %}
+                    {% widthratio ingrediente.quantidade_estoque 1 ingrediente.estoque_minimo as percentual %}
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm font-medium text-gray-700 mb-2">
+                            <span>Estoque Atual</span>
+                            <span>{{ percentual|floatformat:0 }}% do mínimo</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="{% if percentual < 100 %}bg-red-600{% elif percentual < 200 %}bg-yellow-600{% else %}bg-green-600{% endif %} h-2 rounded-full" 
+                                 style="width: {% if percentual > 100 %}100{% else %}{{ percentual }}{% endif %}%"></div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm font-medium text-red-700 mb-2">
+                            <span>Estoque Crítico</span>
+                            <span>Muito baixo</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-red-600 h-2 rounded-full" style="width: 10%"></div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Atual</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ ingrediente.quantidade_estoque }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Mínimo</dt>
+                        <dd class="text-lg font-semibold text-gray-900">{{ ingrediente.estoque_minimo }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Diferença</dt>
+                        <dd class="text-lg font-semibold {% if ingrediente.estoque_baixo %}text-red-600{% else %}text-green-600{% endif %}">
+                            {% widthratio ingrediente.quantidade_estoque 1 1 as atual %}
+                            {% widthratio ingrediente.estoque_minimo 1 1 as minimo %}
+                            {% widthratio atual 1 1 as diferenca_temp %}
+                            {% widthratio diferenca_temp minimo 1 as diferenca %}
+                            {{ diferenca|add:"-1"|floatformat:1 }}
+                        </dd>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico de Movimentos -->
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-base font-semibold leading-6 text-gray-900">Histórico de Movimentos</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">Últimas movimentações deste ingrediente.</p>
+        </div>
+        <div class="border-t border-gray-200">
+            {% if page_obj %}
+                <ul role="list" class="divide-y divide-gray-200">
+                    {% for movimento in page_obj %}
+                        <li class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-8 w-8 rounded-full 
+                                            {% if movimento.tipo == 'entrada' %}bg-green-100{% elif movimento.tipo == 'saida' %}bg-blue-100{% elif movimento.tipo == 'perda' %}bg-red-100{% else %}bg-yellow-100{% endif %} 
+                                            flex items-center justify-center">
+                                            {% if movimento.tipo == 'entrada' %}
+                                                <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% elif movimento.tipo == 'saida' %}
+                                                <svg class="h-4 w-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% elif movimento.tipo == 'perda' %}
+                                                <svg class="h-4 w-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% else %}
+                                                <svg class="h-4 w-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-900">{{ movimento.get_tipo_display }}</p>
+                                        <p class="text-sm text-gray-500">{{ movimento.motivo }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium text-gray-900">{{ movimento.quantidade }} {{ ingrediente.unidade_medida.sigla }}</p>
+                                    <p class="text-sm text-gray-500">{{ movimento.data|date:"d/m/Y H:i" }} - {{ movimento.usuario.username }}</p>
+                                    <p class="text-sm text-gray-500">R$ {{ movimento.custo_total|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                
+                <!-- Paginação -->
+                {% if page_obj.has_other_pages %}
+                    <nav class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                        <div class="hidden sm:block">
+                            <p class="text-sm text-gray-700">
+                                Mostrando
+                                <span class="font-medium">{{ page_obj.start_index }}</span>
+                                a
+                                <span class="font-medium">{{ page_obj.end_index }}</span>
+                                de
+                                <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                                movimentos
+                            </p>
+                        </div>
+                        <div class="flex-1 flex justify-between sm:justify-end">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}" 
+                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Anterior
+                                </a>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}" 
+                                   class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Próxima
+                                </a>
+                            {% endif %}
+                        </div>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum movimento registrado</h3>
+                    <p class="mt-1 text-sm text-gray-500">Comece registrando uma movimentação.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'estoque:movimento_create' %}?ingrediente={{ ingrediente.pk }}" 
+                           class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                            <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                            </svg>
+                            Nova Movimentação
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

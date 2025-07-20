@@ -1,0 +1,231 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Estoque Baixo - Estoque{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="md:flex md:items-center md:justify-between">
+        <div class="min-w-0 flex-1">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                Ingredientes com Estoque Baixo
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Ingredientes que precisam de reposição urgente
+            </p>
+        </div>
+        <div class="mt-4 flex md:ml-4 md:mt-0 space-x-3">
+            <a href="{% url 'estoque:movimento_create' %}" 
+               class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                </svg>
+                Nova Movimentação
+            </a>
+            <a href="{% url 'estoque:ingrediente_list' %}" 
+               class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                Ver Todos
+            </a>
+        </div>
+    </div>
+
+    {% if ingredientes %}
+        <!-- Alert geral -->
+        <div class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Atenção: {{ ingredientes|length }} ingrediente{{ ingredientes|length|pluralize }} com estoque baixo</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <p>Os ingredientes abaixo estão com estoque igual ou menor que o mínimo configurado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de ingredientes -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul role="list" class="divide-y divide-gray-200">
+                {% for ingrediente in ingredientes %}
+                    <li class="bg-red-50">
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                                            {% if ingrediente.quantidade_estoque == 0 %}
+                                                <svg class="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% else %}
+                                                <svg class="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                </svg>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="flex items-center">
+                                            <p class="text-lg font-medium text-gray-900">{{ ingrediente.nome }}</p>
+                                            {% if ingrediente.quantidade_estoque == 0 %}
+                                                <span class="ml-2 inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                                    Zerado
+                                                </span>
+                                            {% else %}
+                                                <span class="ml-2 inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                                                    Baixo
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mt-2">
+                                            <!-- Barra de progresso -->
+                                            <div class="flex items-center">
+                                                <div class="w-40 bg-gray-200 rounded-full h-2 mr-3">
+                                                    {% widthratio ingrediente.quantidade_estoque 1 ingrediente.estoque_minimo as percentual %}
+                                                    <div class="{% if percentual == 0 %}bg-red-600{% elif percentual < 50 %}bg-red-500{% elif percentual < 100 %}bg-yellow-500{% else %}bg-green-500{% endif %} h-2 rounded-full" 
+                                                         style="width: {% if percentual > 100 %}100{% else %}{{ percentual }}{% endif %}%"></div>
+                                                </div>
+                                                <span class="text-sm text-gray-600">
+                                                    {{ ingrediente.quantidade_estoque }} de {{ ingrediente.estoque_minimo }} {{ ingrediente.unidade_medida.sigla }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-sm text-gray-500">
+                                            <p>
+                                                <span class="font-medium">Custo unitário:</span> R$ {{ ingrediente.custo_unitario|floatformat:2 }}
+                                                <span class="mx-2">•</span>
+                                                <span class="font-medium">Valor em estoque:</span> 
+                                                R$ {% widthratio ingrediente.quantidade_estoque 1 ingrediente.custo_unitario as valor_estoque %}{{ valor_estoque|floatformat:2 }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+                                    <a href="{% url 'estoque:movimento_create' %}?ingrediente={{ ingrediente.pk }}" 
+                                       class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                                        <svg class="-ml-0.5 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                        </svg>
+                                        Repor
+                                    </a>
+                                    <a href="{% url 'estoque:ingrediente_detail' ingrediente.pk %}" 
+                                       class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                        Ver detalhes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-base font-semibold leading-6 text-gray-900 mb-4">Estatísticas de Estoque Baixo</h3>
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                    <!-- Total de ingredientes com estoque baixo -->
+                    <div class="bg-red-50 overflow-hidden rounded-lg px-4 py-5">
+                        <dt class="truncate text-sm font-medium text-red-600">Ingredientes Afetados</dt>
+                        <dd class="mt-1 text-3xl font-semibold tracking-tight text-red-900">{{ ingredientes|length }}</dd>
+                    </div>
+
+                    <!-- Ingredientes zerados -->
+                    <div class="bg-gray-50 overflow-hidden rounded-lg px-4 py-5">
+                        <dt class="truncate text-sm font-medium text-gray-600">Estoque Zerado</dt>
+                        <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+                            {% for ingrediente in ingredientes %}{% if ingrediente.quantidade_estoque == 0 %}{{ forloop.counter0|add:"1" }}{% endif %}{% empty %}0{% endfor %}
+                        </dd>
+                    </div>
+
+                    <!-- Valor total de reposição estimado -->
+                    <div class="bg-green-50 overflow-hidden rounded-lg px-4 py-5">
+                        <dt class="truncate text-sm font-medium text-green-600">Valor Reposição</dt>
+                        <dd class="mt-1 text-3xl font-semibold tracking-tight text-green-900">
+                            {% widthratio 0 1 1 as total_reposicao %}
+                            {% for ingrediente in ingredientes %}
+                                {% widthratio ingrediente.estoque_minimo 1 ingrediente.custo_unitario as custo_ingrediente %}
+                                {% widthratio total_reposicao|add:custo_ingrediente 1 1 as total_reposicao %}
+                            {% endfor %}
+                            R$ {{ total_reposicao|floatformat:0 }}
+                        </dd>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sugestões de ação -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-base font-semibold leading-6 text-blue-900 mb-3">Ações Recomendadas</h3>
+                <div class="space-y-3">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L8.23 10.66a.75.75 0 00-1.06 1.061l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-800">
+                                <span class="font-medium">Priorize a reposição</span> dos ingredientes zerados para evitar interrupção na produção.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L8.23 10.66a.75.75 0 00-1.06 1.061l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-800">
+                                <span class="font-medium">Revise os níveis mínimos</span> se alguns ingredientes aparecem frequentemente nesta lista.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L8.23 10.66a.75.75 0 00-1.06 1.061l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-800">
+                                <span class="font-medium">Configure alertas automáticos</span> para ser notificado quando o estoque atingir níveis críticos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Estado vazio - todos os estoques estão OK -->
+        <div class="text-center py-12 bg-white shadow rounded-lg">
+            <svg class="mx-auto h-16 w-16 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="mt-4 text-lg font-medium text-gray-900">Excelente! Todos os estoques estão adequados</h3>
+            <p class="mt-2 text-sm text-gray-500">
+                Nenhum ingrediente está com estoque abaixo do mínimo configurado.
+            </p>
+            <div class="mt-6 space-x-3">
+                <a href="{% url 'estoque:ingrediente_list' %}" 
+                   class="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500">
+                    Ver Todos os Ingredientes
+                </a>
+                <a href="{% url 'estoque:dashboard' %}" 
+                   class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                    Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

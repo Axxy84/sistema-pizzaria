@@ -32,6 +32,9 @@ urlpatterns = [
     path('produtos/', include('apps.produtos.urls_html')),
     path('pedidos/', include('apps.pedidos.urls_html')),
     path('financeiro/', include('apps.financeiro.urls')),
+    path('clientes/', include('apps.clientes.urls_html')),
+    path('estoque/', include('apps.estoque.urls_html')),
+    path('estoque-debug/', include('apps.estoque.urls_debug')),  # Versão sem login para debug
     
     # APIs REST
     path('api/auth/', include('apps.authentication.api_urls')),

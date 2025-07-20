@@ -1,0 +1,196 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Estoque{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="md:flex md:items-center md:justify-between">
+        <div class="min-w-0 flex-1">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                {{ title }}
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                {% if ingrediente %}
+                    Atualize as informações do ingrediente
+                {% else %}
+                    Preencha as informações do novo ingrediente
+                {% endif %}
+            </p>
+        </div>
+        <div class="mt-4 flex md:ml-4 md:mt-0">
+            <a href="{% url 'estoque:ingrediente_list' %}" 
+               class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                </svg>
+                Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulário -->
+    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+        <form method="post" class="px-4 py-6 sm:p-8">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="mb-6 rounded-md bg-red-50 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Erro no formulário</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                <!-- Nome -->
+                <div class="sm:col-span-4">
+                    <label for="{{ form.nome.id_for_label }}" class="block text-sm font-medium leading-6 text-gray-900">
+                        {{ form.nome.label }}
+                    </label>
+                    <div class="mt-2">
+                        {{ form.nome }}
+                        {% if form.nome.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.nome.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Unidade de Medida -->
+                <div class="sm:col-span-2">
+                    <label for="{{ form.unidade_medida.id_for_label }}" class="block text-sm font-medium leading-6 text-gray-900">
+                        {{ form.unidade_medida.label }}
+                    </label>
+                    <div class="mt-2">
+                        {{ form.unidade_medida }}
+                        {% if form.unidade_medida.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.unidade_medida.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Quantidade em Estoque -->
+                <div class="sm:col-span-2">
+                    <label for="{{ form.quantidade_estoque.id_for_label }}" class="block text-sm font-medium leading-6 text-gray-900">
+                        {{ form.quantidade_estoque.label }}
+                    </label>
+                    <div class="mt-2">
+                        {{ form.quantidade_estoque }}
+                        {% if form.quantidade_estoque.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.quantidade_estoque.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Quantidade atual disponível em estoque</p>
+                    </div>
+                </div>
+
+                <!-- Estoque Mínimo -->
+                <div class="sm:col-span-2">
+                    <label for="{{ form.estoque_minimo.id_for_label }}" class="block text-sm font-medium leading-6 text-gray-900">
+                        {{ form.estoque_minimo.label }}
+                    </label>
+                    <div class="mt-2">
+                        {{ form.estoque_minimo }}
+                        {% if form.estoque_minimo.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.estoque_minimo.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Quando alertar sobre estoque baixo</p>
+                    </div>
+                </div>
+
+                <!-- Custo Unitário -->
+                <div class="sm:col-span-2">
+                    <label for="{{ form.custo_unitario.id_for_label }}" class="block text-sm font-medium leading-6 text-gray-900">
+                        {{ form.custo_unitario.label }}
+                    </label>
+                    <div class="mt-2">
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <span class="text-gray-500 sm:text-sm">R$</span>
+                            </div>
+                            {{ form.custo_unitario }}
+                        </div>
+                        {% if form.custo_unitario.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.custo_unitario.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-sm text-gray-500">Custo por unidade de medida</p>
+                    </div>
+                </div>
+
+                <!-- Ativo -->
+                <div class="sm:col-span-6">
+                    <div class="relative flex gap-x-3">
+                        <div class="flex h-6 items-center">
+                            {{ form.ativo }}
+                        </div>
+                        <div class="text-sm leading-6">
+                            <label for="{{ form.ativo.id_for_label }}" class="font-medium text-gray-900">{{ form.ativo.label }}</label>
+                            <p class="text-gray-500">O ingrediente está disponível para uso</p>
+                            {% if form.ativo.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.ativo.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end gap-x-6">
+                <a href="{% url 'estoque:ingrediente_list' %}" 
+                   class="text-sm font-semibold leading-6 text-gray-900">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+                    {% if ingrediente %}Atualizar{% else %}Criar{% endif %} Ingrediente
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if ingrediente %}
+        <!-- Informações adicionais para edição -->
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 rounded-lg">
+            <dt class="text-sm font-medium text-gray-500">Criado em</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ ingrediente.criado_em|date:"d/m/Y H:i" }}</dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 rounded-lg">
+            <dt class="text-sm font-medium text-gray-500">Última atualização</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ ingrediente.atualizado_em|date:"d/m/Y H:i" }}</dd>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Calcular o valor do estoque em tempo real
+    const quantidade = document.getElementById('{{ form.quantidade_estoque.id_for_label }}');
+    const custo = document.getElementById('{{ form.custo_unitario.id_for_label }}');
+    
+    function calcularValorEstoque() {
+        const qtd = parseFloat(quantidade.value) || 0;
+        const cst = parseFloat(custo.value) || 0;
+        const valor = qtd * cst;
+        
+        // Aqui você pode adicionar um elemento para mostrar o valor total
+        console.log('Valor total do estoque:', valor.toFixed(2));
+    }
+    
+    if (quantidade && custo) {
+        quantidade.addEventListener('input', calcularValorEstoque);
+        custo.addEventListener('input', calcularValorEstoque);
+    }
+});
+</script>
+{% endblock %}

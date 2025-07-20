@@ -63,7 +63,7 @@
                     Pedidos
                 </a>
                 
-                <a href="#" onclick="event.preventDefault(); Alpine.store('app').showToast('Gestão de clientes em desenvolvimento. Use a API REST por enquanto.', 'warning', 3000);" 
+                <a href="{% url 'clientes:cliente-list' %}" 
                    class="inline-flex items-center border-b {% if 'clientes' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
                     <!-- Heroicon: users -->
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,6 +71,26 @@
                     </svg>
                     Clientes
                 </a>
+                
+                {% if user.is_authenticated %}
+                    <a href="{% url 'estoque:dashboard' %}" 
+                       class="inline-flex items-center border-b {% if 'estoque' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
+                        <!-- Heroicon: archive-box -->
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        Estoque
+                    </a>
+                {% else %}
+                    <a href="{% url 'estoque_debug:dashboard' %}" 
+                       class="inline-flex items-center border-b {% if 'estoque' in request.path %}border-pizza-500 text-pizza-600{% else %}border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900{% endif %} px-1 pt-1 text-sm font-medium transition-colors duration-200">
+                        <!-- Heroicon: archive-box -->
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                        Estoque (Debug)
+                    </a>
+                {% endif %}
             </div>
             
             <!-- Right side - User menu -->
