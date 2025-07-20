@@ -43,4 +43,7 @@ urlpatterns = [
     path('mesas/<int:mesa_id>/fechar/', views_mesa.fechar_mesa, name='fechar_mesa'),
     path('mesas/<int:mesa_id>/imprimir-comanda/', views_mesa.imprimir_comanda_mesa, name='imprimir_comanda_mesa'),
     path('mesas/<int:mesa_id>/api/status/', views_mesa.api_status_mesa, name='api_status_mesa'),
+    
+    # Configurações
+    path('configuracao/senha-cancelamento/', views_html.configuracao_senha_cancelamento, name='configuracao_senha_cancelamento'),
 ]

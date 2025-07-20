@@ -12,7 +12,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from .models import Pedido, ItemPedido
+from .models import Pedido, ItemPedido, ConfiguracaoPedido
 from .models_mesa import Mesa
 from .forms import PedidoForm, ItemPedidoFormSet
 from apps.clientes.models import Cliente, Endereco
@@ -913,11 +913,10 @@ def pedido_cancelar_com_senha(request, pk):
         senha = request.POST.get('senha_cancelamento')
         motivo = request.POST.get('motivo', '')
         
-        # Verificar senha configurada no settings
-        from django.conf import settings
-        SENHA_CANCELAMENTO = getattr(settings, 'PEDIDO_CANCELAMENTO_SENHA', 'admin123')
+        # Verificar senha usando o modelo de configuração
+        config = ConfiguracaoPedido.get_configuracao()
         
-        if senha == SENHA_CANCELAMENTO:
+        if config.check_senha_cancelamento(senha):
             try:
                 pedido.status = 'cancelado'
                 pedido.save()
@@ -1031,3 +1030,44 @@ def pedido_imprimir(request, pk):
     }
     
     return render(request, 'pedidos/pedido_print.html', context)
+
+
+@login_required
+def configuracao_senha_cancelamento(request):
+    """View para alterar a senha de cancelamento de pedidos"""
+    # Verificar se o usuário é admin
+    if not request.user.is_staff:
+        messages.error(request, 'Você não tem permissão para acessar esta página.')
+        return redirect('pedidos:pedido_list')
+    
+    config = ConfiguracaoPedido.get_configuracao()
+    
+    if request.method == 'POST':
+        senha_atual = request.POST.get('senha_atual', '')
+        senha_nova = request.POST.get('senha_nova', '')
+        senha_confirmacao = request.POST.get('senha_confirmacao', '')
+        
+        # Validações
+        if not senha_atual:
+            messages.error(request, 'Por favor, informe a senha atual.')
+        elif not config.check_senha_cancelamento(senha_atual):
+            messages.error(request, 'Senha atual incorreta.')
+        elif not senha_nova:
+            messages.error(request, 'Por favor, informe a nova senha.')
+        elif len(senha_nova) < 4:
+            messages.error(request, 'A nova senha deve ter pelo menos 4 caracteres.')
+        elif senha_nova != senha_confirmacao:
+            messages.error(request, 'As senhas não coincidem.')
+        else:
+            # Alterar a senha
+            config.set_senha_cancelamento(senha_nova)
+            messages.success(request, 'Senha de cancelamento alterada com sucesso!')
+            return redirect('pedidos:configuracao_senha_cancelamento')
+    
+    context = {
+        'config': config,
+        'tempo_maximo': config.tempo_maximo_cancelamento,
+        'permitir_cancelamento': config.permitir_cancelamento,
+    }
+    
+    return render(request, 'pedidos/configuracao_senha_cancelamento.html', context)

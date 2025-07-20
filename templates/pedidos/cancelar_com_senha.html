@@ -1,0 +1,150 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Cancelar Pedido #{{ pedido.numero }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a href="{% url 'home' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li><a href="{% url 'pedidos:pedido_list' %}" class="text-gray-500 hover:text-gray-700">Pedidos</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li><a href="{% url 'pedidos:pedido_detail' pedido.pk %}" class="text-gray-500 hover:text-gray-700">#{{ pedido.numero }}</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li class="text-gray-900 font-medium">Cancelar</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Card de Cancelamento -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-lg font-medium text-gray-900">Cancelar Pedido</h3>
+                    <div class="mt-2 text-sm text-gray-500">
+                        <p>Para cancelar o pedido <strong class="text-gray-700">#{{ pedido.numero }}</strong>, informe a senha de cancelamento.</p>
+                    </div>
+                    
+                    <!-- Detalhes do Pedido -->
+                    <div class="mt-4 bg-gray-50 rounded-lg p-4">
+                        <dl class="grid grid-cols-1 gap-2 text-sm">
+                            <div>
+                                <dt class="font-medium text-gray-700">Cliente:</dt>
+                                <dd class="text-gray-600">{{ pedido.cliente.nome|default:"Não informado" }}</dd>
+                            </div>
+                            <div>
+                                <dt class="font-medium text-gray-700">Tipo:</dt>
+                                <dd class="text-gray-600">{{ pedido.get_tipo_display|default:pedido.tipo|title }}</dd>
+                            </div>
+                            <div>
+                                <dt class="font-medium text-gray-700">Valor Total:</dt>
+                                <dd class="text-gray-600">R$ {{ pedido.total|floatformat:2 }}</dd>
+                            </div>
+                            <div>
+                                <dt class="font-medium text-gray-700">Status Atual:</dt>
+                                <dd class="text-gray-600">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if pedido.status == 'recebido' %}bg-yellow-100 text-yellow-800
+                                        {% elif pedido.status == 'preparando' %}bg-blue-100 text-blue-800
+                                        {% elif pedido.status == 'saindo' %}bg-purple-100 text-purple-800
+                                        {% elif pedido.status == 'entregue' %}bg-green-100 text-green-800
+                                        {% elif pedido.status == 'cancelado' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ pedido.get_status_display|default:pedido.status|title }}
+                                    </span>
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                    
+                    <!-- Formulário de Cancelamento -->
+                    <form method="post" class="mt-6" onsubmit="return confirmarCancelamento()">
+                        {% csrf_token %}
+                        
+                        <div class="space-y-4">
+                            <!-- Campo de Senha -->
+                            <div>
+                                <label for="senha_cancelamento" class="block text-sm font-medium text-gray-700">
+                                    Senha de Cancelamento
+                                </label>
+                                <input type="password" 
+                                       name="senha_cancelamento" 
+                                       id="senha_cancelamento"
+                                       required
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                                       placeholder="Digite a senha de cancelamento">
+                            </div>
+                            
+                            <!-- Campo de Motivo -->
+                            <div>
+                                <label for="motivo" class="block text-sm font-medium text-gray-700">
+                                    Motivo do Cancelamento (opcional)
+                                </label>
+                                <textarea name="motivo" 
+                                          id="motivo"
+                                          rows="3"
+                                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                                          placeholder="Descreva o motivo do cancelamento..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Aviso -->
+                        <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p class="text-sm text-yellow-800">
+                                <strong>Atenção:</strong> Esta ação não pode ser desfeita. 
+                                O pedido será marcado como cancelado permanentemente.
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botões -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'pedidos:pedido_detail' pedido.pk %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Voltar
+                </a>
+                <button type="submit" 
+                        form="cancelamento-form"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Confirmar Cancelamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarCancelamento() {
+    const senha = document.getElementById('senha_cancelamento').value;
+    
+    if (!senha) {
+        alert('Por favor, informe a senha de cancelamento.');
+        return false;
+    }
+    
+    return confirm('Tem certeza que deseja cancelar este pedido? Esta ação não pode ser desfeita.');
+}
+
+// Dar o ID correto ao formulário
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        form.id = 'cancelamento-form';
+    }
+});
+</script>
+{% endblock %}

@@ -123,6 +123,15 @@
                             2
                         </span>
                     </a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'pedidos:configuracao_senha_cancelamento' %}" 
+                       class="flex items-center py-2 pl-11 pr-3 text-sm {% if request.resolver_match.url_name == 'configuracao_senha_cancelamento' %}bg-pizza-100 text-pizza-900 font-medium{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %} rounded-l-md transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Senha de Cancelamento
+                    </a>
+                    {% endif %}
                 </div>
             </div>
 

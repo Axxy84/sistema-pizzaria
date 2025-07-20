@@ -1,0 +1,303 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Configuração de Senha de Cancelamento{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a href="{% url 'home' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li><a href="{% url 'pedidos:pedido_list' %}" class="text-gray-500 hover:text-gray-700">Pedidos</a></li>
+                <li><span class="mx-2 text-gray-400">/</span></li>
+                <li class="text-gray-900 font-medium">Configuração de Senha</li>
+            </ol>
+        </nav>
+        
+        <h1 class="text-2xl font-bold text-gray-900">Configuração de Senha de Cancelamento</h1>
+        <p class="mt-1 text-sm text-gray-600">
+            Altere a senha necessária para cancelar pedidos no sistema
+        </p>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="rounded-md p-4 mb-4
+                    {% if message.tags == 'error' %}bg-red-50 text-red-800
+                    {% elif message.tags == 'success' %}bg-green-50 text-green-800
+                    {% else %}bg-blue-50 text-blue-800{% endif %}">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            {% if message.tags == 'error' %}
+                                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/>
+                                </svg>
+                            {% elif message.tags == 'success' %}
+                                <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">{{ message }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Card Principal -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="p-6">
+            <!-- Informações Atuais -->
+            <div class="mb-6 bg-gray-50 rounded-lg p-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Configurações Atuais</h3>
+                <dl class="grid grid-cols-1 gap-2 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600">Cancelamento Permitido:</dt>
+                        <dd class="font-medium {% if permitir_cancelamento %}text-green-600{% else %}text-red-600{% endif %}">
+                            {% if permitir_cancelamento %}Sim{% else %}Não{% endif %}
+                        </dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600">Tempo Máximo para Cancelar:</dt>
+                        <dd class="font-medium text-gray-900">{{ tempo_maximo }} minutos</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600">Última Atualização:</dt>
+                        <dd class="font-medium text-gray-900">{{ config.atualizado_em|date:"d/m/Y H:i" }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Formulário de Alteração de Senha -->
+            <form method="post" onsubmit="return validarFormulario()">
+                {% csrf_token %}
+                
+                <div class="space-y-4">
+                    <!-- Senha Atual -->
+                    <div>
+                        <label for="senha_atual" class="block text-sm font-medium text-gray-700">
+                            Senha Atual
+                        </label>
+                        <div class="mt-1 relative">
+                            <input type="password" 
+                                   name="senha_atual" 
+                                   id="senha_atual"
+                                   required
+                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                                   placeholder="Digite a senha atual">
+                            <button type="button" 
+                                    onclick="togglePassword('senha_atual')"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Informe a senha atual para confirmar a alteração</p>
+                    </div>
+                    
+                    <!-- Nova Senha -->
+                    <div>
+                        <label for="senha_nova" class="block text-sm font-medium text-gray-700">
+                            Nova Senha
+                        </label>
+                        <div class="mt-1 relative">
+                            <input type="password" 
+                                   name="senha_nova" 
+                                   id="senha_nova"
+                                   required
+                                   minlength="4"
+                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                                   placeholder="Digite a nova senha (mínimo 4 caracteres)"
+                                   onkeyup="verificarForcaSenha()">
+                            <button type="button" 
+                                    onclick="togglePassword('senha_nova')"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="forca-senha" class="mt-2 hidden">
+                            <div class="flex items-center">
+                                <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                    <div id="barra-forca" class="h-2 rounded-full transition-all duration-300"></div>
+                                </div>
+                                <span id="texto-forca" class="ml-2 text-xs font-medium"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirmar Nova Senha -->
+                    <div>
+                        <label for="senha_confirmacao" class="block text-sm font-medium text-gray-700">
+                            Confirmar Nova Senha
+                        </label>
+                        <div class="mt-1 relative">
+                            <input type="password" 
+                                   name="senha_confirmacao" 
+                                   id="senha_confirmacao"
+                                   required
+                                   minlength="4"
+                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-pizza-500 focus:ring-pizza-500 sm:text-sm"
+                                   placeholder="Digite novamente a nova senha"
+                                   onkeyup="verificarSenhasIguais()">
+                            <button type="button" 
+                                    onclick="togglePassword('senha_confirmacao')"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <p id="senha-match" class="mt-1 text-xs hidden"></p>
+                    </div>
+                </div>
+                
+                <!-- Aviso -->
+                <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">Importante</h3>
+                            <div class="mt-1 text-sm text-yellow-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Guarde a nova senha em um local seguro</li>
+                                    <li>Todos os usuários precisarão usar a nova senha para cancelar pedidos</li>
+                                    <li>A senha atual padrão é: <code class="bg-yellow-100 px-1 rounded">admin123</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botões -->
+                <div class="mt-6 flex justify-end space-x-3">
+                    <a href="{% url 'pedidos:pedido_list' %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-pizza-600 text-white rounded-lg hover:bg-pizza-700 transition-colors">
+                        Alterar Senha
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Alternar visibilidade da senha
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    field.type = field.type === 'password' ? 'text' : 'password';
+}
+
+// Verificar força da senha
+function verificarForcaSenha() {
+    const senha = document.getElementById('senha_nova').value;
+    const forcaDiv = document.getElementById('forca-senha');
+    const barra = document.getElementById('barra-forca');
+    const texto = document.getElementById('texto-forca');
+    
+    if (senha.length === 0) {
+        forcaDiv.classList.add('hidden');
+        return;
+    }
+    
+    forcaDiv.classList.remove('hidden');
+    
+    let forca = 0;
+    if (senha.length >= 4) forca++;
+    if (senha.length >= 6) forca++;
+    if (senha.length >= 8) forca++;
+    if (/[0-9]/.test(senha)) forca++;
+    if (/[A-Z]/.test(senha)) forca++;
+    if (/[!@#$%^&*]/.test(senha)) forca++;
+    
+    const porcentagem = (forca / 6) * 100;
+    barra.style.width = porcentagem + '%';
+    
+    if (porcentagem <= 33) {
+        barra.className = 'h-2 rounded-full transition-all duration-300 bg-red-500';
+        texto.textContent = 'Fraca';
+        texto.className = 'ml-2 text-xs font-medium text-red-600';
+    } else if (porcentagem <= 66) {
+        barra.className = 'h-2 rounded-full transition-all duration-300 bg-yellow-500';
+        texto.textContent = 'Média';
+        texto.className = 'ml-2 text-xs font-medium text-yellow-600';
+    } else {
+        barra.className = 'h-2 rounded-full transition-all duration-300 bg-green-500';
+        texto.textContent = 'Forte';
+        texto.className = 'ml-2 text-xs font-medium text-green-600';
+    }
+}
+
+// Verificar se as senhas coincidem
+function verificarSenhasIguais() {
+    const senha = document.getElementById('senha_nova').value;
+    const confirmacao = document.getElementById('senha_confirmacao').value;
+    const matchText = document.getElementById('senha-match');
+    
+    if (confirmacao.length === 0) {
+        matchText.classList.add('hidden');
+        return;
+    }
+    
+    matchText.classList.remove('hidden');
+    
+    if (senha === confirmacao) {
+        matchText.textContent = '✓ As senhas coincidem';
+        matchText.className = 'mt-1 text-xs text-green-600';
+    } else {
+        matchText.textContent = '✗ As senhas não coincidem';
+        matchText.className = 'mt-1 text-xs text-red-600';
+    }
+}
+
+// Validar formulário antes de enviar
+function validarFormulario() {
+    const senhaAtual = document.getElementById('senha_atual').value;
+    const senhaNova = document.getElementById('senha_nova').value;
+    const senhaConfirmacao = document.getElementById('senha_confirmacao').value;
+    
+    if (!senhaAtual) {
+        alert('Por favor, informe a senha atual.');
+        return false;
+    }
+    
+    if (!senhaNova) {
+        alert('Por favor, informe a nova senha.');
+        return false;
+    }
+    
+    if (senhaNova.length < 4) {
+        alert('A nova senha deve ter pelo menos 4 caracteres.');
+        return false;
+    }
+    
+    if (senhaNova !== senhaConfirmacao) {
+        alert('As senhas não coincidem.');
+        return false;
+    }
+    
+    return confirm('Tem certeza que deseja alterar a senha de cancelamento?');
+}
+</script>
+{% endblock %}
