@@ -148,6 +148,104 @@
         border-color: #DC2626;
     }
     
+    /* Botão Meio a Meio - Estados */
+    .meio-a-meio-btn {
+        background: #FEF3C7 !important;
+        border-color: #F59E0B !important;
+        color: #92400E !important;
+        font-weight: 600;
+        position: relative;
+    }
+    
+    .meio-a-meio-btn:hover {
+        background: #FDE68A !important;
+        border-color: #F59E0B !important;
+        color: #78350F !important;
+    }
+    
+    .meio-a-meio-btn.primeiro-sabor {
+        background: #DBEAFE !important;
+        border-color: #3B82F6 !important;
+        color: #1E40AF !important;
+    }
+    
+    .meio-a-meio-btn.primeiro-sabor:hover {
+        background: #BFDBFE !important;
+        border-color: #2563EB !important;
+        color: #1D4ED8 !important;
+    }
+    
+    .meio-a-meio-btn.opcao-segundo {
+        background: #FEE2E2 !important;
+        border-color: #EF4444 !important;
+        color: #DC2626 !important;
+        animation: pulse-meio-a-meio 1.5s infinite;
+    }
+    
+    .meio-a-meio-btn.opcao-segundo:hover {
+        background: #FECACA !important;
+        border-color: #DC2626 !important;
+        color: #B91C1C !important;
+    }
+    
+    /* Animação para opções de segundo sabor */
+    @keyframes pulse-meio-a-meio {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+        }
+        50% {
+            transform: scale(1.02);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+        }
+    }
+    
+    /* Estados para botões de preço com tamanho */
+    .preco-opcao.primeiro-sabor-tamanho {
+        background: #DBEAFE !important;
+        border-color: #3B82F6 !important;
+        color: #1E40AF !important;
+        font-weight: 600;
+        position: relative;
+    }
+    
+    .preco-opcao.primeiro-sabor-tamanho:hover {
+        background: #BFDBFE !important;
+        border-color: #2563EB !important;
+        color: #1D4ED8 !important;
+    }
+    
+    .preco-opcao.opcao-segundo-tamanho {
+        background: #FEE2E2 !important;
+        border-color: #EF4444 !important;
+        color: #DC2626 !important;
+        font-weight: 600;
+        animation: pulse-meio-a-meio 1.5s infinite;
+    }
+    
+    .preco-opcao.opcao-segundo-tamanho:hover {
+        background: #FECACA !important;
+        border-color: #DC2626 !important;
+        color: #B91C1C !important;
+    }
+    
+    /* Botão meio a meio opcional (menos proeminente) */
+    .meio-a-meio-btn-opcional {
+        background: #F3F4F6 !important;
+        border-color: #D1D5DB !important;
+        color: #6B7280 !important;
+        font-size: 0.75rem;
+        opacity: 0.7;
+        transition: all 0.2s;
+    }
+    
+    .meio-a-meio-btn-opcional:hover {
+        background: #FEF3C7 !important;
+        border-color: #F59E0B !important;
+        color: #92400E !important;
+        opacity: 1;
+    }
+    
     /* Carrinho lateral compacto */
     .carrinho-area {
         display: flex;
@@ -425,8 +523,33 @@
                 <button @click="abrirModalMeioAMeio()" 
                         class="filtro-chip" 
                         style="background: #fef3c7; border-color: #f59e0b;">
-                    ⚡ Pizza Meio a Meio
+                    ⚡ Pizza Meio a Meio (Modal)
                 </button>
+            </div>
+            
+            <!-- Indicador de modo meio a meio ativo -->
+            <div x-show="aguardandoSegundoSabor" 
+                 class="bg-gradient-to-r from-blue-100 to-red-100 border-2 border-dashed border-blue-300 rounded-lg p-3 mt-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">🍕</span>
+                        <div>
+                            <div class="font-semibold text-blue-800">Modo Meio a Meio Ativo</div>
+                            <div class="text-sm text-gray-600">
+                                1º sabor: <span class="font-medium text-blue-600" x-text="primeiroSabor?.nome"></span>
+                                <span x-show="primeiroSaborTamanho" class="font-medium text-blue-600">
+                                    (<span x-text="primeiroSaborTamanho?.tamanho"></span>)
+                                </span>
+                                <span x-show="primeiroSaborTamanho" class="text-green-600"> • Clique no mesmo tamanho em outra pizza</span>
+                                <span x-show="!primeiroSaborTamanho" class="text-red-600"> • Escolha o 2º sabor clicando em ½ + ½</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="cancelarMeioAMeio()" 
+                            class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-md text-sm transition-colors">
+                        Cancelar
+                    </button>
+                </div>
             </div>
             
             <!-- Lista de Produtos -->
@@ -442,13 +565,32 @@
                             <h3 class="produto-nome" x-text="produto.nome"></h3>
                             <p class="produto-descricao" x-text="produto.descricao || 'Delicioso produto artesanal'"></p>
                             <div class="produto-precos">
+                                <!-- Preços normais -->
                                 <template x-for="preco in produto.precos" :key="preco.id">
-                                    <button @click="adicionarAoCarrinho(produto, preco)"
-                                            class="preco-opcao">
+                                    <button @click="produto.categoria === 'pizzas' ? selecionarPizzaComTamanho(produto, preco) : adicionarAoCarrinho(produto, preco)"
+                                            class="preco-opcao"
+                                            :class="{
+                                                'primeiro-sabor-tamanho': primeiroSabor?.id === produto.id && primeiroSaborTamanho?.id === preco.id,
+                                                'opcao-segundo-tamanho': aguardandoSegundoSabor && primeiroSabor?.id !== produto.id && primeiroSaborTamanho?.tamanho === preco.tamanho
+                                            }">
                                         <span x-text="preco.tamanho"></span> - 
                                         R$ <span x-text="preco.preco.toFixed(2).replace('.', ',')"></span>
+                                        
+                                        <!-- Indicadores visuais -->
+                                        <span x-show="primeiroSabor?.id === produto.id && primeiroSaborTamanho?.id === preco.id" 
+                                              class="ml-1 text-xs">1º ✓</span>
+                                        <span x-show="aguardandoSegundoSabor && primeiroSabor?.id !== produto.id && primeiroSaborTamanho?.tamanho === preco.tamanho" 
+                                              class="ml-1 text-xs">2º →</span>
                                     </button>
                                 </template>
+                                
+                                <!-- Botão Meio a Meio Opcional (apenas para pizzas sem tamanho selecionado) -->
+                                <button x-show="produto.categoria === 'pizzas' && !aguardandoSegundoSabor"
+                                        @click="selecionarParaMeioAMeio(produto)"
+                                        class="preco-opcao meio-a-meio-btn-opcional"
+                                        title="Modo meio a meio sem tamanho específico">
+                                    <span class="text-xs">⚡ Meio a Meio</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -951,6 +1093,112 @@
         </div>
     </div>
     
+    <!-- Modal Seletor de Tamanho (Meio a Meio Integrado) -->
+    <div x-show="modalSeletorTamanho" 
+         x-cloak 
+         class="modal-rapido" 
+         @click.self="cancelarMeioAMeio()">
+        <div class="modal-content" style="max-width: 500px;">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800">🍕 Escolha o Tamanho</h3>
+                <button @click="cancelarMeioAMeio()" 
+                        class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Resumo dos sabores selecionados -->
+            <div class="bg-gradient-to-r from-blue-50 to-red-50 rounded-lg p-4 mb-6">
+                <div class="text-sm text-gray-600 mb-1">Sua pizza meio a meio:</div>
+                <div class="font-bold text-lg flex items-center justify-center">
+                    <span class="text-blue-600" x-text="primeiroSabor?.nome"></span>
+                    <span class="mx-2 text-gray-400">+</span>
+                    <span class="text-red-600" x-text="segundoSabor?.nome"></span>
+                </div>
+            </div>
+            
+            <!-- Seleção de tamanho -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <!-- Pequena -->
+                <button @click="adicionarMeioAMeioInline('P', 'Pequena')" 
+                        class="p-4 border-2 border-gray-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-center">
+                    <div class="text-2xl mb-2">🍕</div>
+                    <div class="font-semibold">Pequena</div>
+                    <div class="text-sm text-gray-500">4 fatias</div>
+                    <div class="text-sm font-medium text-red-600 mt-1">
+                        R$ <span x-text="Math.max(
+                            primeiroSabor?.precos?.find(p => p.tamanho === 'Pequena')?.preco || 0,
+                            segundoSabor?.precos?.find(p => p.tamanho === 'Pequena')?.preco || 0
+                        ).toFixed(2).replace('.', ',')"></span>
+                    </div>
+                </button>
+                
+                <!-- Média -->
+                <button @click="adicionarMeioAMeioInline('M', 'Média')" 
+                        class="p-4 border-2 border-gray-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-center">
+                    <div class="text-2xl mb-2">🍕🍕</div>
+                    <div class="font-semibold">Média</div>
+                    <div class="text-sm text-gray-500">8 fatias</div>
+                    <div class="text-sm font-medium text-red-600 mt-1">
+                        R$ <span x-text="Math.max(
+                            primeiroSabor?.precos?.find(p => p.tamanho === 'Média')?.preco || 0,
+                            segundoSabor?.precos?.find(p => p.tamanho === 'Média')?.preco || 0
+                        ).toFixed(2).replace('.', ',')"></span>
+                    </div>
+                </button>
+                
+                <!-- Grande -->
+                <button @click="adicionarMeioAMeioInline('G', 'Grande')" 
+                        class="p-4 border-2 border-gray-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-center">
+                    <div class="text-2xl mb-2">🍕🍕🍕</div>
+                    <div class="font-semibold">Grande</div>
+                    <div class="text-sm text-gray-500">12 fatias</div>
+                    <div class="text-sm font-medium text-red-600 mt-1">
+                        R$ <span x-text="Math.max(
+                            primeiroSabor?.precos?.find(p => p.tamanho === 'Grande')?.preco || 0,
+                            segundoSabor?.precos?.find(p => p.tamanho === 'Grande')?.preco || 0
+                        ).toFixed(2).replace('.', ',')"></span>
+                    </div>
+                </button>
+                
+                <!-- Família -->
+                <button @click="adicionarMeioAMeioInline('F', 'Família')" 
+                        class="p-4 border-2 border-gray-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-center">
+                    <div class="text-2xl mb-2">🍕🍕🍕🍕</div>
+                    <div class="font-semibold">Família</div>
+                    <div class="text-sm text-gray-500">16 fatias</div>
+                    <div class="text-sm font-medium text-red-600 mt-1">
+                        R$ <span x-text="Math.max(
+                            primeiroSabor?.precos?.find(p => p.tamanho === 'Família')?.preco || 0,
+                            segundoSabor?.precos?.find(p => p.tamanho === 'Família')?.preco || 0
+                        ).toFixed(2).replace('.', ',')"></span>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Informação sobre preço -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm text-yellow-800">
+                        <strong>Preço:</strong> Cobramos o valor do sabor mais caro
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Botão cancelar -->
+            <button @click="cancelarMeioAMeio()" 
+                    class="w-full py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors text-center">
+                Cancelar
+            </button>
+        </div>
+    </div>
+    
 </div>
 {% endblock %}
 
@@ -977,6 +1225,13 @@ function pedidoRapido() {
         },
         modalMeioAMeio: false,
         modalMultiplasPagamento: false,
+        modalSeletorTamanho: false,
+        
+        // Estado para meio a meio integrado
+        primeiroSabor: null,
+        primeiroSaborTamanho: null, // Novo: armazena o tamanho escolhido
+        segundoSabor: null,
+        aguardandoSegundoSabor: false,
         meioAMeio: {
             sabor1: '',
             sabor1Nome: '',
@@ -1091,7 +1346,136 @@ function pedidoRapido() {
             this.carrinho.splice(index, 1);
         },
         
-        // Modal meio a meio
+        // Nova lógica: seleção com tamanho direto
+        selecionarPizzaComTamanho(produto, preco) {
+            if (!this.primeiroSabor) {
+                // Primeira seleção: pizza + tamanho
+                this.primeiroSabor = produto;
+                this.primeiroSaborTamanho = preco;
+                this.aguardandoSegundoSabor = true;
+                this.mostrarNotificacao(`1º sabor: ${produto.nome} (${preco.tamanho}). Escolha o 2º sabor no mesmo tamanho.`, 'info');
+            } else if (this.primeiroSabor.id === produto.id && this.primeiroSaborTamanho.id === preco.id) {
+                // Cancelar seleção (clicou no mesmo sabor e tamanho)
+                this.cancelarMeioAMeio();
+            } else if (this.primeiroSabor.id === produto.id) {
+                // Mesmo produto, tamanho diferente - cancelar e selecionar novo
+                this.primeiroSabor = produto;
+                this.primeiroSaborTamanho = preco;
+                this.mostrarNotificacao(`1º sabor alterado: ${produto.nome} (${preco.tamanho})`, 'info');
+            } else if (this.primeiroSaborTamanho.tamanho === preco.tamanho) {
+                // Tamanho igual - criar meio a meio automaticamente!
+                this.segundoSabor = produto;
+                this.criarMeioAMeioAutomatico(preco);
+            } else {
+                // Tamanho diferente - mostrar opções
+                this.segundoSabor = produto;
+                this.mostrarModalEscolhaTamanho();
+            }
+        },
+        
+        // Cria meio a meio automaticamente quando tamanhos são iguais
+        criarMeioAMeioAutomatico(segundoPreco) {
+            const precoFinal = Math.max(this.primeiroSaborTamanho.preco, segundoPreco.preco);
+            
+            // Guardar nomes antes de limpar
+            const nome1 = this.primeiroSabor.nome;
+            const nome2 = this.segundoSabor.nome;
+            const tamanho = this.primeiroSaborTamanho.tamanho;
+            const sabor1Id = this.primeiroSabor.id;
+            const sabor2Id = this.segundoSabor.id;
+            
+            // Adicionar ao carrinho
+            this.carrinho.push({
+                nome: `${nome1} + ${nome2}`,
+                tamanho: tamanho,
+                preco: precoFinal,
+                quantidade: 1,
+                meio_a_meio: true,
+                sabor1_id: sabor1Id,
+                sabor2_id: sabor2Id,
+                observacoes: ''
+            });
+            
+            // Limpar seleção
+            this.cancelarMeioAMeio();
+            
+            this.mostrarNotificacao(`🍕 Pizza meio a meio criada! ${nome1} + ${nome2} (${tamanho})`, 'success');
+        },
+        
+        // Modal quando tamanhos são diferentes
+        mostrarModalEscolhaTamanho() {
+            this.modalSeletorTamanho = true;
+            this.mostrarNotificacao('Tamanhos diferentes. Escolha o tamanho para a pizza meio a meio.', 'info');
+        },
+
+        // Função original (mantida para compatibilidade com botão ½ + ½)
+        selecionarParaMeioAMeio(produto) {
+            if (!this.primeiroSabor) {
+                // Primeira seleção sem tamanho específico
+                this.primeiroSabor = produto;
+                this.primeiroSaborTamanho = null; // Sem tamanho específico
+                this.aguardandoSegundoSabor = true;
+                this.mostrarNotificacao(`1º sabor: ${produto.nome}. Agora escolha o 2º sabor.`, 'info');
+            } else if (this.primeiroSabor.id === produto.id) {
+                // Cancelar seleção (clicou no mesmo sabor)
+                this.cancelarMeioAMeio();
+            } else {
+                // Segunda seleção - abrir seletor de tamanho
+                this.segundoSabor = produto;
+                this.abrirSeletorTamanhoInline();
+            }
+        },
+        
+        cancelarMeioAMeio() {
+            this.primeiroSabor = null;
+            this.primeiroSaborTamanho = null; // Limpar tamanho também
+            this.segundoSabor = null;
+            this.aguardandoSegundoSabor = false;
+            this.modalSeletorTamanho = false;
+            this.mostrarNotificacao('Seleção de meio a meio cancelada', 'info');
+        },
+        
+        abrirSeletorTamanhoInline() {
+            this.modalSeletorTamanho = true;
+            this.mostrarNotificacao(`Sabores: ${this.primeiroSabor.nome} + ${this.segundoSabor.nome}. Escolha o tamanho.`, 'success');
+        },
+        
+        adicionarMeioAMeioInline(tamanho, tamanhoLabel) {
+            if (!this.primeiroSabor || !this.segundoSabor) return;
+            
+            // Calcular preço (usar o maior valor)
+            const preco1 = this.primeiroSabor.precos.find(p => p.tamanho === tamanhoLabel);
+            const preco2 = this.segundoSabor.precos.find(p => p.tamanho === tamanhoLabel);
+            
+            if (!preco1 || !preco2) {
+                this.mostrarNotificacao('Erro: tamanho não encontrado para um dos sabores', 'error');
+                return;
+            }
+            
+            const precoFinal = Math.max(preco1.preco, preco2.preco);
+            
+            // Adicionar ao carrinho
+            this.carrinho.push({
+                nome: `${this.primeiroSabor.nome} + ${this.segundoSabor.nome}`,
+                tamanho: tamanhoLabel,
+                preco: precoFinal,
+                quantidade: 1,
+                meio_a_meio: true,
+                sabor1_id: this.primeiroSabor.id,
+                sabor2_id: this.segundoSabor.id,
+                observacoes: ''
+            });
+            
+            // Limpar seleção
+            this.primeiroSabor = null;
+            this.segundoSabor = null;
+            this.aguardandoSegundoSabor = false;
+            this.modalSeletorTamanho = false;
+            
+            this.mostrarNotificacao('Pizza meio a meio adicionada ao carrinho!', 'success');
+        },
+
+        // Modal meio a meio (manter para compatibilidade)
         abrirModalMeioAMeio() {
             this.modalMeioAMeio = true;
             this.meioAMeio = { 
