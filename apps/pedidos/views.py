@@ -46,9 +46,8 @@ class PedidoViewSet(viewsets.ModelViewSet):
     def pendentes(self, request):
         # Pedidos recém criados (sem preparação iniciada)
         pendentes = self.queryset.filter(
-            preparacao_iniciada_em__isnull=True,
-            cancelado_em__isnull=True
-        )
+            preparacao_iniciada_em__isnull=True
+        ).exclude(status='cancelado')
         serializer = PedidoListSerializer(pendentes, many=True)
         return Response(serializer.data)
     
@@ -57,9 +56,8 @@ class PedidoViewSet(viewsets.ModelViewSet):
         # Pedidos com preparação iniciada mas não finalizados
         em_prep = self.queryset.filter(
             preparacao_iniciada_em__isnull=False,
-            entregue_em__isnull=True,
-            cancelado_em__isnull=True
-        )
+            entregue_em__isnull=True
+        ).exclude(status='cancelado')
         serializer = PedidoListSerializer(em_prep, many=True)
         return Response(serializer.data)
     
@@ -111,9 +109,8 @@ class PedidoViewSet(viewsets.ModelViewSet):
             # Contadores por tipo (apenas ativos)
             # Pedidos ativos (não entregues e não cancelados)
             pedidos_ativos = Pedido.objects.filter(
-                entregue_em__isnull=True,
-                cancelado_em__isnull=True
-            )
+                entregue_em__isnull=True
+            ).exclude(status='cancelado')
             pedidos_mesa_count = pedidos_ativos.filter(tipo='mesa').count()
             pedidos_delivery_count = pedidos_ativos.filter(tipo='delivery').count()
             

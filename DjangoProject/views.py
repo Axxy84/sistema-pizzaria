@@ -35,9 +35,8 @@ def home_view(request):
         
         # Calcular faturamento hoje (pedidos não cancelados)
         faturamento_hoje = Pedido.objects.filter(
-            criado_em__date=timezone.now().date(),
-            cancelado_em__isnull=True
-        ).aggregate(total=Sum('total'))['total'] or 0
+            criado_em__date=timezone.now().date()
+        ).exclude(status='cancelado').aggregate(total=Sum('total'))['total'] or 0
         
         context.update({
             'total_produtos': Produto.objects.count(),

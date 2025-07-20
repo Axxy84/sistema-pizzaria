@@ -178,6 +178,11 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+# Login URLs
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 # Session configuration
 # SESSION_ENGINE está definido mais abaixo após a configuração de cache
 SESSION_COOKIE_NAME = 'pizzaria_sessionid'

@@ -67,6 +67,13 @@ class Pedido(models.Model):
     # Novo campo para número da mesa
     mesa_numero = models.CharField(max_length=10, blank=True, help_text='Número da mesa para pedidos de mesa')
     
+    # Campos de status baseados em timestamp
+    cancelado_em = models.DateTimeField(null=True, blank=True)
+    entregue_em = models.DateTimeField(null=True, blank=True)
+    motivo_cancelamento = models.TextField(blank=True)
+    preparacao_iniciada_em = models.DateTimeField(null=True, blank=True)
+    saida_confirmada_em = models.DateTimeField(null=True, blank=True)
+    
     @property
     def tempo_desde_criacao(self):
         """Retorna o tempo decorrido desde a criação do pedido"""

@@ -14,7 +14,7 @@ from decimal import Decimal
 
 from .models import Pedido, ItemPedido
 from .models_mesa import Mesa
-from .forms import PedidoForm, ItemPedidoFormSet, CancelamentoPedidoForm
+from .forms import PedidoForm, ItemPedidoFormSet
 from apps.clientes.models import Cliente, Endereco
 from apps.produtos.models import Produto, ProdutoPreco
 
@@ -102,7 +102,6 @@ class PedidoListView(LoginRequiredMixin, ListView):
         # Contadores por tipo para as abas (pedidos não finalizados)
         pedidos_ativos = Pedido.objects.filter(
             entregue_em__isnull=True,
-            cancelado_em__isnull=True
         )
         context['pedidos_mesa_count'] = pedidos_ativos.filter(tipo='mesa').count()
         context['pedidos_delivery_count'] = pedidos_ativos.filter(tipo='delivery').count()
@@ -292,8 +291,7 @@ def pedido_cancelar_com_senha(request, pk):
     senha_correta = getattr(settings, 'PEDIDO_CANCELAMENTO_SENHA', '1234')
     
     if password == senha_correta:
-        pedido.cancelado_em = timezone.now()
-        pedido.motivo_cancelamento = motivo
+        pedido.status = 'cancelado'
         pedido.save()
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -869,11 +867,10 @@ def pedido_atualizar_status(request, pk):
                     success_message = f'Entrega do pedido {pedido.numero} confirmada!'
                     
             elif status == 'cancelar':
-                if pedido.cancelado_em:
+                if pedido.status == 'cancelado':
                     success_message = f'Pedido {pedido.numero} já está cancelado!'
                 else:
-                    pedido.cancelado_em = timezone.now()
-                    pedido.motivo_cancelamento = 'Cancelado via interface'
+                    pedido.status = 'cancelado'
                     pedido.save()
                     success_message = f'Pedido {pedido.numero} cancelado!'
                 
@@ -921,8 +918,7 @@ def pedido_cancelar_com_senha(request, pk):
         
         if senha == SENHA_CANCELAMENTO:
             try:
-                pedido.cancelado_em = timezone.now()
-                pedido.motivo_cancelamento = motivo
+                pedido.status = 'cancelado'
                 pedido.save()
                 messages.success(request, f'Pedido {pedido.numero} cancelado com sucesso!')
                 return redirect('pedidos:pedido_detail', pk=pedido.pk)
@@ -1008,11 +1004,10 @@ def pedido_cancelar(request, pk):
         motivo = request.POST.get('motivo', 'Cancelado pelo usuário')
         
         try:
-            if pedido.cancelado_em:
+            if pedido.status == 'cancelado':
                 messages.warning(request, f'Pedido {pedido.numero} já está cancelado!')
             else:
-                pedido.cancelado_em = timezone.now()
-                pedido.motivo_cancelamento = motivo
+                pedido.status = 'cancelado'
                 pedido.save()
                 messages.success(request, f'Pedido {pedido.numero} cancelado com sucesso!')
                 

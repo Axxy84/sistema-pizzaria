@@ -5,7 +5,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'pedidos', views.PedidoViewSet)
 
-app_name = 'pedidos'
+app_name = 'pedidos_api'
 
 urlpatterns = [
     path('', include(router.urls)),
