@@ -1163,13 +1163,30 @@ function carrinhoPromocional() {
                     pagamento: {
                         forma: this.pedido.pagamento.forma
                     },
-                    itens: this.carrinho.map(item => ({
-                        produto_id: item.id,
-                        nome: item.nome,
-                        preco_unitario: item.preco,
-                        quantidade: item.quantidade,
-                        observacoes: item.detalhes || ''
-                    })),
+                    itens: this.carrinho.map(item => {
+                        if (item.meio_a_meio) {
+                            // Para pizzas meio a meio, enviar dados específicos
+                            return {
+                                nome: item.nome,
+                                preco_unitario: item.preco,
+                                quantidade: item.quantidade,
+                                observacoes: item.detalhes || '',
+                                meio_a_meio: true,
+                                sabor1_id: item.sabor1_id,
+                                sabor2_id: item.sabor2_id,
+                                tipo: 'pizza'
+                            };
+                        } else {
+                            // Para produtos normais
+                            return {
+                                produto_id: item.id,
+                                nome: item.nome,
+                                preco_unitario: item.preco,
+                                quantidade: item.quantidade,
+                                observacoes: item.detalhes || ''
+                            };
+                        }
+                    }),
                     observacoes: this.pedido.observacoes || ''
                 };
                 

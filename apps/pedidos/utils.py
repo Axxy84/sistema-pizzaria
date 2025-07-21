@@ -46,8 +46,13 @@ class PedidoValidator:
         for i, item in enumerate(itens):
             item_prefix = f"Item {i+1}: "
             
-            if not item.get('produto_id'):
-                erros.append(f"{item_prefix}produto_id é obrigatório")
+            # Para pizzas meio a meio, verificar sabores; para produtos normais, verificar produto_id
+            if item.get('meio_a_meio'):
+                if not item.get('sabor1_id') or not item.get('sabor2_id'):
+                    erros.append(f"{item_prefix}pizza meio a meio deve ter sabor1_id e sabor2_id")
+            else:
+                if not item.get('produto_id'):
+                    erros.append(f"{item_prefix}produto_id é obrigatório")
             
             quantidade = item.get('quantidade', 0)
             if not isinstance(quantidade, int) or quantidade <= 0:
@@ -207,40 +212,88 @@ class PedidoSupabaseManager:
                 # Adicionar itens
                 itens_criados = []
                 for item in dados_pedido['itens']:
-                    # Buscar produto
-                    produto = Produto.objects.filter(id=item['produto_id'], ativo=True).first()
-                    if not produto:
-                        raise ValidationError(f"Produto {item['produto_id']} não encontrado")
-                    
-                    # Buscar preço do produto
-                    produto_preco = ProdutoPreco.objects.filter(produto=produto).first()
-                    if not produto_preco:
-                        # Se não tem preço específico, criar um ProdutoPreco
-                        if not produto.preco_unitario:
-                            raise ValidationError(f"Produto {produto.nome} sem preço configurado")
+                    if item.get('meio_a_meio'):
+                        # Processar pizza meio a meio
+                        sabor1_id = item.get('sabor1_id')
+                        sabor2_id = item.get('sabor2_id')
                         
-                        # Criar ProdutoPreco com base no preço unitário do produto
-                        # Buscar tamanho padrão (primeiro tamanho disponível)
-                        from apps.produtos.models import Tamanho
-                        tamanho_padrao = Tamanho.objects.first()
-                        if not tamanho_padrao:
-                            raise ValidationError("Nenhum tamanho cadastrado no sistema")
+                        if not sabor1_id or not sabor2_id:
+                            raise ValidationError("Pizza meio a meio deve ter dois sabores válidos")
                         
-                        produto_preco = ProdutoPreco.objects.create(
-                            produto=produto,
-                            tamanho=tamanho_padrao,
-                            preco=produto.preco_unitario
+                        # Buscar produtos dos sabores
+                        produto1 = Produto.objects.filter(id=sabor1_id, ativo=True).first()
+                        produto2 = Produto.objects.filter(id=sabor2_id, ativo=True).first()
+                        
+                        if not produto1:
+                            raise ValidationError(f"Produto sabor 1 (ID: {sabor1_id}) não encontrado")
+                        if not produto2:
+                            raise ValidationError(f"Produto sabor 2 (ID: {sabor2_id}) não encontrado")
+                        
+                        # Para pizza meio a meio, usar o primeiro produto como base
+                        produto_preco = ProdutoPreco.objects.filter(produto=produto1).first()
+                        if not produto_preco:
+                            # Criar ProdutoPreco se não existir
+                            from apps.produtos.models import Tamanho
+                            tamanho_padrao = Tamanho.objects.first()
+                            if not tamanho_padrao:
+                                raise ValidationError("Nenhum tamanho cadastrado no sistema")
+                            
+                            produto_preco = ProdutoPreco.objects.create(
+                                produto=produto1,
+                                tamanho=tamanho_padrao,
+                                preco=Decimal(str(item['preco_unitario']))
+                            )
+                        
+                        # Criar item com observações especiais para meio a meio
+                        observacoes_completas = f"MEIO A MEIO: {produto1.nome} + {produto2.nome}"
+                        if item.get('observacoes'):
+                            observacoes_completas += f" | {item['observacoes']}"
+                        
+                        item_pedido = ItemPedido.objects.create(
+                            pedido=pedido,
+                            produto_preco=produto_preco,
+                            quantidade=item['quantidade'],
+                            preco_unitario=Decimal(str(item['preco_unitario'])),
+                            subtotal=Decimal(str(item['preco_unitario'])) * item['quantidade'],
+                            observacoes=observacoes_completas
                         )
-                    
-                    item_pedido = ItemPedido.objects.create(
-                        pedido=pedido,
-                        produto_preco=produto_preco,
-                        quantidade=item['quantidade'],
-                        preco_unitario=Decimal(str(item['preco_unitario'])),
-                        subtotal=Decimal(str(item['preco_unitario'])) * item['quantidade'],
-                        observacoes=item.get('observacoes', '')
-                    )
-                    itens_criados.append(item_pedido)
+                        itens_criados.append(item_pedido)
+                        
+                    else:
+                        # Processar produto normal
+                        produto = Produto.objects.filter(id=item['produto_id'], ativo=True).first()
+                        if not produto:
+                            raise ValidationError(f"Produto {item['produto_id']} não encontrado")
+                        
+                        # Buscar preço do produto
+                        produto_preco = ProdutoPreco.objects.filter(produto=produto).first()
+                        if not produto_preco:
+                            # Se não tem preço específico, criar um ProdutoPreco
+                            if not produto.preco_unitario:
+                                raise ValidationError(f"Produto {produto.nome} sem preço configurado")
+                            
+                            # Criar ProdutoPreco com base no preço unitário do produto
+                            # Buscar tamanho padrão (primeiro tamanho disponível)
+                            from apps.produtos.models import Tamanho
+                            tamanho_padrao = Tamanho.objects.first()
+                            if not tamanho_padrao:
+                                raise ValidationError("Nenhum tamanho cadastrado no sistema")
+                            
+                            produto_preco = ProdutoPreco.objects.create(
+                                produto=produto,
+                                tamanho=tamanho_padrao,
+                                preco=produto.preco_unitario
+                            )
+                        
+                        item_pedido = ItemPedido.objects.create(
+                            pedido=pedido,
+                            produto_preco=produto_preco,
+                            quantidade=item['quantidade'],
+                            preco_unitario=Decimal(str(item['preco_unitario'])),
+                            subtotal=Decimal(str(item['preco_unitario'])) * item['quantidade'],
+                            observacoes=item.get('observacoes', '')
+                        )
+                        itens_criados.append(item_pedido)
                 
                 logger.info(f"Pedido {pedido.numero} criado com sucesso: {len(itens_criados)} itens, total R$ {total}")
                 
