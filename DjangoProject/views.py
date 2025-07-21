@@ -165,6 +165,8 @@ def dashboard_data_api(request):
 def pizzas_promocionais_view(request):
     """View para página de pizzas promocionais"""
     from apps.produtos.models import Produto
+    from decimal import Decimal
+    import json
     
     # Buscar pizzas promocionais por categoria
     pizzas_salgadas = Produto.objects.filter(
@@ -182,6 +184,37 @@ def pizzas_promocionais_view(request):
         ativo=True
     ).order_by('preco_unitario')
     
+    # Adicionar preço promocional fixo para pizzas que não têm preco_unitario
+    preco_promocional = Decimal('40.00')
+    
+    # Processar pizzas salgadas
+    for pizza in pizzas_salgadas:
+        if not pizza.preco_unitario:
+            pizza.preco_unitario = preco_promocional
+            # Tentar obter preços dos tamanhos se existir
+            if pizza.tamanhos_precos:
+                try:
+                    tamanhos_data = json.loads(pizza.tamanhos_precos) if isinstance(pizza.tamanhos_precos, str) else pizza.tamanhos_precos
+                    pizza.precos_disponiveis = tamanhos_data
+                except:
+                    pizza.precos_disponiveis = {}
+            else:
+                pizza.precos_disponiveis = {}
+    
+    # Processar pizzas doces
+    for pizza in pizzas_doces:
+        if not pizza.preco_unitario:
+            pizza.preco_unitario = preco_promocional
+            # Tentar obter preços dos tamanhos se existir
+            if pizza.tamanhos_precos:
+                try:
+                    tamanhos_data = json.loads(pizza.tamanhos_precos) if isinstance(pizza.tamanhos_precos, str) else pizza.tamanhos_precos
+                    pizza.precos_disponiveis = tamanhos_data
+                except:
+                    pizza.precos_disponiveis = {}
+            else:
+                pizza.precos_disponiveis = {}
+    
     # Calcular total de pizzas
     total_pizzas = pizzas_salgadas.count() + pizzas_doces.count()
     
@@ -190,6 +223,7 @@ def pizzas_promocionais_view(request):
         'pizzas_doces': pizzas_doces,
         'bordas': bordas,
         'total_pizzas': total_pizzas,
+        'preco_promocional': preco_promocional,
     }
     
     return render(request, 'produtos/pizzas_promocionais.html', context)

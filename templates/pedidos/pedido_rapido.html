@@ -252,7 +252,8 @@
         border-color: #3B82F6 !important;
         color: #1E40AF !important;
         font-weight: 600;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3), 0 4px 15px rgba(59, 130, 246, 0.4);
+        transform: scale(1.02);
     }
     
     .preco-opcao.pizza-selecionada:hover {
@@ -522,10 +523,30 @@
 <div x-data="pedidoRapido()">
     {% csrf_token %}
     
-    <!-- Header -->
-    <div class="mb-4">
-        <h1 class="text-2xl font-bold text-gray-800">Novo Pedido Rápido</h1>
-        <p class="text-gray-600">Busque e adicione produtos instantaneamente</p>
+    <!-- Header com Acesso Rápido -->
+    <div class="mb-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Novo Pedido Rápido</h1>
+            <p class="text-gray-600">Busque e adicione produtos instantaneamente</p>
+        </div>
+        <div class="flex gap-3">
+            <!-- Acesso Rápido Gestão de Pedidos -->
+            <a href="{% url 'pedidos:pedido_list' %}" 
+               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Gestão de Pedidos
+            </a>
+            <!-- Acesso Rápido Mesas -->
+            <a href="{% url 'pedidos:listar_mesas' %}" 
+               class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                Mesas
+            </a>
+        </div>
     </div>
     
     <!-- Layout Principal -->
@@ -615,9 +636,71 @@
                 </div>
             </div>
             
+            <!-- Pizza Promocional -->
+            <div x-show="!aguardandoDecisao && (filtroCategoria === '' || filtroCategoria === 'pizzas')" 
+                 class="pizza-promocional bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 border-2 border-red-200 rounded-xl p-4 md:p-6 mb-4">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div class="text-6xl animate-bounce">🍕</div>
+                            <div class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                                PROMO
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3 class="text-2xl font-bold text-red-600">Pizza do Dia</h3>
+                                <span class="bg-red-500 text-white text-sm px-3 py-1 rounded-full font-semibold animate-pulse">
+                                    🔥 Oferta Especial
+                                </span>
+                            </div>
+                            <p class="text-lg text-gray-700 mb-2">
+                                <span class="font-semibold text-red-700">Margherita Premium</span> - 
+                                Molho especial, mussarela, tomate cherry e manjericão fresco
+                            </p>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-sm text-gray-500 line-through">De R$ 35,00</span>
+                                    <span class="text-2xl font-bold text-red-600">R$ 25,00</span>
+                                    <span class="bg-green-100 text-green-800 text-sm px-2 py-1 rounded-full font-semibold">
+                                        29% OFF
+                                    </span>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    ⏰ Válido até 23:59h
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-row md:flex-col gap-2 md:gap-3 w-full md:w-auto">
+                        <button @click="adicionarPizzaPromocional('Pequena')" 
+                                class="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+                            <div class="text-center">
+                                <div class="text-xs md:text-sm">Pequena</div>
+                                <div class="text-sm md:text-lg">R$ 25,00</div>
+                            </div>
+                        </button>
+                        <button @click="adicionarPizzaPromocional('Média')" 
+                                class="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+                            <div class="text-center">
+                                <div class="text-xs md:text-sm">Média</div>
+                                <div class="text-sm md:text-lg">R$ 32,00</div>
+                            </div>
+                        </button>
+                        <button @click="adicionarPizzaPromocional('Grande')" 
+                                class="flex-1 md:flex-none px-4 md:px-6 py-2 md:py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+                            <div class="text-center">
+                                <div class="text-xs md:text-sm">Grande</div>
+                                <div class="text-sm md:text-lg">R$ 39,00</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Lista de Produtos -->
             <div class="produtos-lista">
-                <template x-for="produto in produtosFiltrados" :key="produto.id">
+                <template x-for="produto in produtosFiltrados" :key="`produto_${produto.id}`">
                     <div class="produto-card">
                         <div class="produto-imagem">
                             <span x-text="produto.categoria === 'pizzas' ? '🍕' : 
@@ -629,23 +712,23 @@
                             <p class="produto-descricao" x-text="produto.descricao || 'Delicioso produto artesanal'"></p>
                             <div class="produto-precos">
                                 <!-- Preços normais -->
-                                <template x-for="preco in produto.precos" :key="preco.id">
+                                <template x-for="preco in produto.precos" :key="`${produto.id}_${preco.id}`">
                                     <button @click="produto.categoria === 'pizzas' ? selecionarPizzaComTamanho(produto, preco) : adicionarAoCarrinho(produto, preco)"
                                             class="preco-opcao"
                                             :class="{
-                                                'pizza-selecionada': pizzaSelecionada?.id === produto.id && pizzaSelecionadaTamanho?.id === preco.id,
-                                                'opcao-meio-a-meio-compativel': aguardandoDecisao && pizzaSelecionada?.id !== produto.id && pizzaSelecionadaTamanho?.tamanho === preco.tamanho,
-                                                'opcao-meio-a-meio-modal': aguardandoDecisao && pizzaSelecionada?.id !== produto.id && pizzaSelecionadaTamanho?.tamanho !== preco.tamanho
+                                                'pizza-selecionada': produto.categoria === 'pizzas' && pizzaSelecionada?.id === produto.id && pizzaSelecionadaTamanho?.id === preco.id,
+                                                'opcao-meio-a-meio-compativel': produto.categoria === 'pizzas' && aguardandoDecisao && pizzaSelecionada?.id !== produto.id && pizzaSelecionadaTamanho?.tamanho === preco.tamanho,
+                                                'opcao-meio-a-meio-modal': produto.categoria === 'pizzas' && aguardandoDecisao && pizzaSelecionada?.id !== produto.id && pizzaSelecionadaTamanho?.tamanho !== preco.tamanho
                                             }">
                                         <span x-text="preco.tamanho"></span> - 
                                         R$ <span x-text="preco.preco.toFixed(2).replace('.', ',')"></span>
                                         
-                                        <!-- Indicadores visuais -->
-                                        <span x-show="pizzaSelecionada?.id === produto.id && pizzaSelecionadaTamanho?.id === preco.id" 
+                                        <!-- Indicadores visuais (apenas para pizzas) -->
+                                        <span x-show="produto.categoria === 'pizzas' && pizzaSelecionada?.id === produto.id && pizzaSelecionadaTamanho?.id === preco.id" 
                                               class="ml-1 text-xs">✓ Selecionada</span>
-                                        <span x-show="aguardandoDecisao && pizzaSelecionada?.id !== produto.id && pizzaSelecionadaTamanho?.tamanho === preco.tamanho" 
+                                        <span x-show="produto.categoria === 'pizzas' && aguardandoDecisao && pizzaSelecionada?.id !== produto.id && pizzaSelecionadaTamanho?.tamanho === preco.tamanho" 
                                               class="ml-1 text-xs">+ Meio a Meio</span>
-                                        <span x-show="aguardandoDecisao && pizzaSelecionada?.id !== produto.id && pizzaSelecionadaTamanho?.tamanho !== preco.tamanho" 
+                                        <span x-show="produto.categoria === 'pizzas' && aguardandoDecisao && pizzaSelecionada?.id !== produto.id && pizzaSelecionadaTamanho?.tamanho !== preco.tamanho" 
                                               class="ml-1 text-xs">⚙️ Modal</span>
                                     </button>
                                 </template>
@@ -773,12 +856,25 @@
                 <template x-if="carrinho.length > 0">
                     <div>
                         <template x-for="(item, index) in carrinho" :key="index">
-                            <div class="item-compacto">
+                            <div class="item-compacto" :class="{'bg-red-50 border-l-4 border-red-400': item.promocional}">
                                 <div class="item-info-compacto">
-                                    <div class="text-sm font-medium" x-text="item.nome"></div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="text-sm font-medium" x-text="item.nome"></div>
+                                        <span x-show="item.promocional" class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
+                                            PROMO
+                                        </span>
+                                    </div>
                                     <div class="text-xs text-gray-500">
                                         <span x-text="item.tamanho"></span> • 
-                                        R$ <span x-text="item.preco.toFixed(2).replace('.', ',')"></span>
+                                        <template x-if="item.promocional && item.preco_original">
+                                            <span>
+                                                <span class="line-through text-gray-400">R$ <span x-text="item.preco_original.toFixed(2).replace('.', ',')"></span></span>
+                                                <span class="font-bold text-red-600 ml-1">R$ <span x-text="item.preco.toFixed(2).replace('.', ',')"></span></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!item.promocional">
+                                            <span>R$ <span x-text="item.preco.toFixed(2).replace('.', ',')"></span></span>
+                                        </template>
                                     </div>
                                     <!-- Campo de observações -->
                                     <div class="mt-1">
@@ -1411,8 +1507,11 @@ function pedidoRapido() {
         
         // Nova lógica: sempre seleciona primeiro, usuário decide depois
         selecionarPizzaComTamanho(produto, preco) {
+            console.log('🍕 CLIQUE NA PIZZA:', produto.nome, preco.tamanho, 'Selecionada atual:', this.pizzaSelecionada?.nome);
+            
             // PRIMEIRA SELEÇÃO: sempre seleciona (nunca adiciona direto)
             if (!this.pizzaSelecionada) {
+                console.log('🔵 PRIMEIRO CLIQUE - Selecionando pizza');
                 this.pizzaSelecionada = produto;
                 this.pizzaSelecionadaTamanho = preco;
                 this.aguardandoDecisao = true;
@@ -1423,12 +1522,15 @@ function pedidoRapido() {
             // SEGUNDA SELEÇÃO: usuário decidindo
             if (this.pizzaSelecionada.id === produto.id && this.pizzaSelecionadaTamanho.id === preco.id) {
                 // Mesma pizza+tamanho = CONFIRMA PIZZA INTEIRA
+                console.log('🔵 SEGUNDO CLIQUE - Mesma pizza, confirmando inteira');
                 this.confirmarPizzaInteira();
             } else if (this.pizzaSelecionadaTamanho.tamanho === preco.tamanho) {
                 // Pizza diferente, MESMO TAMANHO = MEIO A MEIO AUTOMÁTICO
+                console.log('🟢 SEGUNDO CLIQUE - Pizza diferente, mesmo tamanho, criando meio a meio');
                 this.criarMeioAMeioComSelecionada(produto, preco);
             } else {
                 // Pizza diferente, TAMANHO DIFERENTE = MODAL PARA ESCOLHER
+                console.log('🟡 SEGUNDO CLIQUE - Pizza diferente, tamanho diferente, abrindo modal');
                 this.segundoSabor = produto;
                 this.mostrarModalEscolhaTamanhoComSelecionada();
             }
@@ -1835,6 +1937,40 @@ function pedidoRapido() {
                 this.mostrarNotificacao('Erro ao criar pedido', 'error');
                 console.error(error);
             }
+        },
+        
+        // Adicionar pizza promocional
+        adicionarPizzaPromocional(tamanho) {
+            const precos = {
+                'Pequena': 25.00,
+                'Média': 32.00,
+                'Grande': 39.00
+            };
+            
+            const precoOriginal = {
+                'Pequena': 35.00,
+                'Média': 42.00,
+                'Grande': 49.00
+            };
+            
+            if (!precos[tamanho]) {
+                this.mostrarNotificacao('Tamanho inválido para pizza promocional', 'error');
+                return;
+            }
+            
+            // Adicionar ao carrinho
+            this.carrinho.push({
+                nome: 'Margherita Premium (PROMOÇÃO)',
+                tamanho: tamanho,
+                preco: precos[tamanho],
+                preco_original: precoOriginal[tamanho],
+                quantidade: 1,
+                promocional: true,
+                observacoes: 'Pizza do Dia - Molho especial, mussarela, tomate cherry e manjericão fresco'
+            });
+            
+            const desconto = ((precoOriginal[tamanho] - precos[tamanho]) / precoOriginal[tamanho] * 100).toFixed(0);
+            this.mostrarNotificacao(`🔥 Pizza promocional adicionada! ${desconto}% de desconto aplicado!`, 'success');
         }
     }
 }

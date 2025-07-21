@@ -156,6 +156,74 @@
         transform: translateY(-1px);
     }
     
+    /* Estados de seleção de pizzas */
+    .pizza-selecionada {
+        border: 3px solid #3B82F6 !important;
+        background: #EBF8FF !important;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        transform: scale(1.02);
+    }
+    
+    .pizza-aguardando-segundo {
+        border: 3px solid #10B981 !important;
+        background: #F0FDF4 !important;
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        animation: pulse-green 1.5s infinite;
+    }
+    
+    @keyframes pulse-green {
+        0%, 100% {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+        50% {
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+        }
+    }
+    
+    .indicador-selecionada {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #3B82F6;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        z-index: 10;
+    }
+    
+    .indicador-aguardando {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #10B981;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        z-index: 10;
+        animation: pulse 1s infinite;
+    }
+    
+    /* Botões com estados específicos */
+    .adicionar-carrinho-btn.bg-blue-500 {
+        background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
+    }
+    
+    .adicionar-carrinho-btn.bg-blue-500:hover {
+        background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+    }
+    
+    .adicionar-carrinho-btn.bg-green-500 {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
+    }
+    
+    .adicionar-carrinho-btn.bg-green-500:hover {
+        background: linear-gradient(135deg, #059669, #047857) !important;
+    }
+    
     .stats-promocional {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -218,6 +286,39 @@
     </div>
 </div>
 
+<!-- Indicador de Seleção -->
+<div x-show="aguardandoSegundoSabor" class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">
+    <div class="flex items-center">
+        <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+            </svg>
+        </div>
+        <div class="ml-3 flex-1">
+            <p class="text-sm text-blue-700">
+                <span class="font-medium">Pizza selecionada:</span>
+                <span x-text="pizzaSelecionada ? pizzaSelecionada.nome : ''"></span>
+            </p>
+            <p class="text-xs text-blue-600 mt-1">
+                Clique em outra pizza para fazer meio a meio ou clique novamente para pizza inteira
+            </p>
+        </div>
+        <div class="ml-3">
+            <button @click="adicionarPizzaInteira()" 
+                    class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-medium mr-2">
+                ✓ Confirmar Inteira
+            </button>
+        </div>
+        <div class="ml-auto">
+            <button @click="limparSelecao()" class="text-blue-400 hover:text-blue-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Pizzas Salgadas -->
 {% if pizzas_salgadas %}
 <div class="categoria-section">
@@ -228,7 +329,20 @@
     
     <div class="pizza-promocional-grid">
         {% for pizza in pizzas_salgadas %}
-        <div class="pizza-promocional-card">
+        <div class="pizza-promocional-card"
+             :class="{
+                 'pizza-selecionada': pizzaSelecionada && pizzaSelecionada.id === {{ pizza.id }},
+                 'pizza-aguardando-segundo': aguardandoSegundoSabor && pizzaSelecionada && pizzaSelecionada.id !== {{ pizza.id }}
+             }">
+            
+            <!-- Indicadores visuais -->
+            <div x-show="pizzaSelecionada && pizzaSelecionada.id === {{ pizza.id }}" class="indicador-selecionada">
+                ✓ Selecionada
+            </div>
+            <div x-show="aguardandoSegundoSabor && pizzaSelecionada && pizzaSelecionada.id !== {{ pizza.id }}" class="indicador-aguardando">
+                + Meio a Meio
+            </div>
+            
             <span class="pizza-emoji">🍕</span>
             <h3 class="pizza-nome">{{ pizza.nome }}</h3>
             <p class="pizza-descricao">{{ pizza.descricao }}</p>
@@ -246,8 +360,24 @@
             <button class="adicionar-carrinho-btn" 
                     @click="adicionarPizza({{ pizza.id }}, '{{ pizza.nome }}', {{ pizza.preco_unitario }}, 'pizza')"
                     :disabled="carregando"
-                    :class="{ 'opacity-50 cursor-not-allowed': carregando }">
-                <span x-show="!carregando">🛒 Adicionar ao Carrinho</span>
+                    :class="{ 
+                        'opacity-50 cursor-not-allowed': carregando,
+                        'bg-blue-500 hover:bg-blue-600': pizzaSelecionada && pizzaSelecionada.id === {{ pizza.id }},
+                        'bg-green-500 hover:bg-green-600': aguardandoSegundoSabor && pizzaSelecionada && pizzaSelecionada.id !== {{ pizza.id }}
+                    }">
+                <!-- Estado normal -->
+                <span x-show="!carregando && (!pizzaSelecionada || pizzaSelecionada.id !== {{ pizza.id }})">
+                    🛒 Adicionar ao Carrinho
+                </span>
+                <!-- Pizza selecionada -->
+                <span x-show="!carregando && pizzaSelecionada && pizzaSelecionada.id === {{ pizza.id }}">
+                    ✓ Confirmar Pizza Inteira
+                </span>
+                <!-- Disponível para meio a meio -->
+                <span x-show="!carregando && aguardandoSegundoSabor && pizzaSelecionada && pizzaSelecionada.id !== {{ pizza.id }}">
+                    + Fazer Meio a Meio
+                </span>
+                <!-- Carregando -->
                 <span x-show="carregando">⏳ Adicionando...</span>
             </button>
         </div>
@@ -266,7 +396,20 @@
     
     <div class="pizza-promocional-grid">
         {% for pizza in pizzas_doces %}
-        <div class="pizza-promocional-card">
+        <div class="pizza-promocional-card"
+             :class="{
+                 'pizza-selecionada': pizzaSelecionada && pizzaSelecionada.id === {{ pizza.id }},
+                 'pizza-aguardando-segundo': aguardandoSegundoSabor && pizzaSelecionada && pizzaSelecionada.id !== {{ pizza.id }}
+             }">
+            
+            <!-- Indicadores visuais -->
+            <div x-show="pizzaSelecionada && pizzaSelecionada.id === {{ pizza.id }}" class="indicador-selecionada">
+                ✓ Selecionada
+            </div>
+            <div x-show="aguardandoSegundoSabor && pizzaSelecionada && pizzaSelecionada.id !== {{ pizza.id }}" class="indicador-aguardando">
+                + Meio a Meio
+            </div>
+            
             <span class="pizza-emoji">🍰</span>
             <h3 class="pizza-nome">{{ pizza.nome }}</h3>
             <p class="pizza-descricao">{{ pizza.descricao }}</p>
@@ -284,8 +427,24 @@
             <button class="adicionar-carrinho-btn" 
                     @click="adicionarPizza({{ pizza.id }}, '{{ pizza.nome }}', {{ pizza.preco_unitario }}, 'pizza')"
                     :disabled="carregando"
-                    :class="{ 'opacity-50 cursor-not-allowed': carregando }">
-                <span x-show="!carregando">🛒 Adicionar ao Carrinho</span>
+                    :class="{ 
+                        'opacity-50 cursor-not-allowed': carregando,
+                        'bg-blue-500 hover:bg-blue-600': pizzaSelecionada && pizzaSelecionada.id === {{ pizza.id }},
+                        'bg-green-500 hover:bg-green-600': aguardandoSegundoSabor && pizzaSelecionada && pizzaSelecionada.id !== {{ pizza.id }}
+                    }">
+                <!-- Estado normal -->
+                <span x-show="!carregando && (!pizzaSelecionada || pizzaSelecionada.id !== {{ pizza.id }})">
+                    🛒 Adicionar ao Carrinho
+                </span>
+                <!-- Pizza selecionada -->
+                <span x-show="!carregando && pizzaSelecionada && pizzaSelecionada.id === {{ pizza.id }}">
+                    ✓ Confirmar Pizza Inteira
+                </span>
+                <!-- Disponível para meio a meio -->
+                <span x-show="!carregando && aguardandoSegundoSabor && pizzaSelecionada && pizzaSelecionada.id !== {{ pizza.id }}">
+                    + Fazer Meio a Meio
+                </span>
+                <!-- Carregando -->
                 <span x-show="carregando">⏳ Adicionando...</span>
             </button>
         </div>
@@ -728,6 +887,11 @@ function carrinhoPromocional() {
         mostrarModalPedido: false,
         enviandoPedido: false,
         
+        // Sistema de seleção de 2 sabores
+        pizzaSelecionada: null,
+        aguardandoSegundoSabor: false,
+        segundoSabor: null,
+        
         // Dados do pedido
         pedido: {
             tipo: 'balcao', // balcao, mesa, delivery
@@ -757,12 +921,86 @@ function carrinhoPromocional() {
             observacoes: ''
         },
         
-        // Adicionar pizza ao carrinho
+        // Sistema de seleção de pizzas (1 ou 2 sabores)
         adicionarPizza(id, nome, preco, tipo) {
+            if (tipo !== 'pizza') {
+                // Para bordas e outros, adicionar diretamente
+                this.adicionarAoCarrinhoDirecto(id, nome, preco, tipo);
+                return;
+            }
+            
+            // Para pizzas, implementar lógica de 1 ou 2 sabores
+            if (!this.pizzaSelecionada) {
+                // PRIMEIRA SELEÇÃO
+                this.pizzaSelecionada = { id, nome, preco };
+                this.aguardandoSegundoSabor = true;
+                this.mostrarNotificacao(`🍕 ${nome} selecionada! Clique em outra pizza para meio a meio ou clique novamente para pizza inteira.`, 'info');
+            } else if (this.pizzaSelecionada.id === id) {
+                // MESMA PIZZA = PIZZA INTEIRA
+                this.adicionarPizzaInteira();
+            } else {
+                // SEGUNDA PIZZA = MEIO A MEIO
+                this.segundoSabor = { id, nome, preco };
+                this.criarPizzaMeioAMeio();
+            }
+        },
+        
+        // Adicionar pizza inteira ao carrinho
+        adicionarPizzaInteira() {
+            const pizza = this.pizzaSelecionada;
+            this.adicionarAoCarrinhoDirecto(pizza.id, pizza.nome, pizza.preco, 'pizza');
+            this.limparSelecao();
+        },
+        
+        // Criar pizza meio a meio
+        criarPizzaMeioAMeio() {
+            const preco1 = parseFloat(this.pizzaSelecionada.preco);
+            const preco2 = parseFloat(this.segundoSabor.preco);
+            const precoFinal = Math.max(preco1, preco2); // Regra: preço do sabor mais caro
+            
+            const nomeMeioAMeio = `${this.pizzaSelecionada.nome} + ${this.segundoSabor.nome}`;
+            
+            // Verificar se já existe no carrinho
+            const itemExistente = this.carrinho.find(item => 
+                item.meio_a_meio && 
+                item.sabor1_id === this.pizzaSelecionada.id && 
+                item.sabor2_id === this.segundoSabor.id
+            );
+            
+            if (itemExistente) {
+                itemExistente.quantidade += 1;
+            } else {
+                this.carrinho.push({
+                    id: `meio_a_meio_${this.pizzaSelecionada.id}_${this.segundoSabor.id}`,
+                    nome: nomeMeioAMeio,
+                    preco: precoFinal,
+                    quantidade: 1,
+                    tipo: 'pizza',
+                    meio_a_meio: true,
+                    sabor1_id: this.pizzaSelecionada.id,
+                    sabor2_id: this.segundoSabor.id,
+                    detalhes: 'Pizza Meio a Meio - Tamanho Grande (8 fatias)'
+                });
+            }
+            
+            this.mostrarNotificacao(`🍕 Pizza meio a meio criada: ${nomeMeioAMeio}!`, 'success');
+            this.salvarCarrinho();
+            this.limparSelecao();
+        },
+        
+        // Limpar seleção
+        limparSelecao() {
+            this.pizzaSelecionada = null;
+            this.aguardandoSegundoSabor = false;
+            this.segundoSabor = null;
+        },
+        
+        // Adicionar item diretamente ao carrinho (bordas, bebidas, etc)
+        adicionarAoCarrinhoDirecto(id, nome, preco, tipo) {
             this.carregando = true;
             
             // Verificar se o item já existe
-            const itemExistente = this.carrinho.find(item => item.id === id);
+            const itemExistente = this.carrinho.find(item => item.id === id && !item.meio_a_meio);
             
             if (itemExistente) {
                 itemExistente.quantidade += 1;
