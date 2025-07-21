@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Gestão{% endblock %} - Pizzaria</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        pizza: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Heroicons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.18/24/outline/index.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    
+    <!-- Extra head content -->
+    {% block extra_head %}{% endblock %}
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Remove custom scrollbar styles - using CSS variables from base.css */
+        
+        /* Transition utilities */
+        .transition-slide {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        /* Loading animation */
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="h-full bg-gray-50" x-data="{ 
+    sidebarOpen: false,
+    userDropdownOpen: false,
+    showAlert: false,
+    alertMessage: '',
+    alertType: 'info'
+}" x-init="
+    // Auto-hide alerts after 5 seconds
+    $watch('showAlert', value => {
+        if (value) {
+            setTimeout(() => { showAlert = false }, 5000)
+        }
+    })
+">
+    <!-- Loading overlay -->
+    <div x-show="false" x-data="{ loading: false }" 
+         x-show="loading" 
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+         style="display: none;">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-3 shadow-lg border border-gray-200">
+            <div class="loading-spinner w-6 h-6 border-2 border-pizza-600 border-t-transparent rounded-full"></div>
+            <span class="text-gray-900 font-medium">Carregando...</span>
+        </div>
+    </div>
+
+    <div class="min-h-full">
+        {% include 'base/navbar.html' %}
+        
+        <!-- Main content area -->
+        <div class="flex">
+            {% block sidebar %}
+                {% include 'base/sidebar.html' %}
+            {% endblock %}
+            
+            <!-- Main content -->
+            <div class="flex-1 lg:ml-64">
+                <main class="py-6">
+                    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                        {% block breadcrumb %}
+                            {% include 'components/breadcrumb.html' %}
+                        {% endblock %}
+                        
+                        {% block messages %}
+                            {% include 'base/messages.html' %}
+                        {% endblock %}
+                        
+                        {% block page_header %}{% endblock %}
+                        
+                        {% block content %}{% endblock %}
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile sidebar overlay -->
+    <div x-show="sidebarOpen" 
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 lg:hidden" 
+         @click="sidebarOpen = false"
+         style="display: none;">
+        <div class="fixed inset-0 bg-gray-900/80"></div>
+    </div>
+    
+    <!-- JavaScript Otimizado com Lazy Loading -->
+    <script src="{% static 'js/base-optimized.js' %}?v={% now 'U' %}" defer></script>
+    
+    <!-- Lazy Loading para Chart.js apenas quando necessário -->
+    {% if 'dashboard' in request.resolver_match.url_name or 'home' in request.resolver_match.url_name %}
+        <script>
+            // Lazy load Chart.js apenas quando necessário
+            window.addEventListener('DOMContentLoaded', function() {
+                if (document.querySelector('canvas')) {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+                    script.defer = true;
+                    script.onload = function() {
+                        // Chart.js carregado, disparar evento
+                        window.dispatchEvent(new Event('chartjs-loaded'));
+                    };
+                    document.head.appendChild(script);
+                }
+            });
+        </script>
+    {% endif %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

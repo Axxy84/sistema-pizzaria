@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PIT STOP{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/clean-dashboard.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div class="app-container">
+    <!-- Mobile Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="{% url 'home' %}" class="logo">
+                <div class="logo-icon">🍕</div>
+                <div class="logo-text">PIT STOP</div>
+            </a>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="{% url 'home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'product_list' %}" class="nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">📦</span>
+                <span>Produtos</span>
+            </a>
+            <a href="{% url 'pedidos:pedido_list' %}" class="nav-item {% if 'pedido' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">📋</span>
+                <span>Pedidos</span>
+                {% if pedidos_pendentes > 0 %}
+                <span class="nav-badge">{{ pedidos_pendentes }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'clientes:cliente-list' %}" class="nav-item {% if 'cliente' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">👥</span>
+                <span>Clientes</span>
+            </a>
+            <a href="{% url 'estoque:dashboard' %}" class="nav-item {% if 'estoque' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">🏷️</span>
+                <span>Estoque</span>
+                {% if estoque_baixo > 0 %}
+                <span class="nav-badge">!</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'financeiro:dashboard' %}" class="nav-item {% if 'financeiro' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">💰</span>
+                <span>Financeiro</span>
+            </a>
+            <a href="{% url 'financeiro:historico' %}" class="nav-item">
+                <span class="nav-icon">📈</span>
+                <span>Relatórios</span>
+            </a>
+            <a href="/admin/" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span>Configurações</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="icon-btn" onclick="toggleSidebar()">
+                    <span>☰</span>
+                </button>
+                <div class="breadcrumb">
+                    {% block breadcrumb %}
+                    <span>🏠</span>
+                    <span>/</span>
+                    <span>Dashboard</span>
+                    {% endblock %}
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button class="icon-btn">
+                    <span>🔍</span>
+                </button>
+                <button class="icon-btn">
+                    <span>🔔</span>
+                    {% if notificacoes > 0 %}
+                    <span class="notification-dot"></span>
+                    {% endif %}
+                </button>
+                <div class="user-menu">
+                    <div class="user-avatar">{{ user.first_name|slice:":1"|upper|default:"U" }}</div>
+                    <span>{{ user.first_name|default:user.username }}</span>
+                    <span>▼</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+    
+    // Fechar sidebar ao clicar em link no mobile
+    document.addEventListener('DOMContentLoaded', function() {
+        const navItems = document.querySelectorAll('.nav-item');
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile) {
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    document.getElementById('sidebar').classList.remove('active');
+                    document.getElementById('sidebar-overlay').classList.remove('active');
+                });
+            });
+        }
+    });
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

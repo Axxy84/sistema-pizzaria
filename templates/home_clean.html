@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIT STOP - Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/clean-dashboard.css' %}">
+</head>
+<body>
+<div class="app-container">
+    <!-- Mobile Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="{% url 'home' %}" class="logo">
+                <div class="logo-icon">🍕</div>
+                <div class="logo-text">PIT STOP</div>
+            </a>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="{% url 'home' %}" class="nav-item active">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'product_list' %}" class="nav-item">
+                <span class="nav-icon">📦</span>
+                <span>Produtos</span>
+            </a>
+            <a href="{% url 'pedidos:pedido_list' %}" class="nav-item">
+                <span class="nav-icon">📋</span>
+                <span>Pedidos</span>
+                {% if pedidos_pendentes > 0 %}
+                <span class="nav-badge">{{ pedidos_pendentes }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'clientes:cliente-list' %}" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <span>Clientes</span>
+            </a>
+            <a href="{% url 'estoque:dashboard' %}" class="nav-item">
+                <span class="nav-icon">🏷️</span>
+                <span>Estoque</span>
+                {% if estoque_baixo > 0 %}
+                <span class="nav-badge">!</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'financeiro:dashboard' %}" class="nav-item">
+                <span class="nav-icon">💰</span>
+                <span>Financeiro</span>
+            </a>
+            <a href="{% url 'financeiro:historico' %}" class="nav-item">
+                <span class="nav-icon">📈</span>
+                <span>Relatórios</span>
+            </a>
+            <a href="/admin/" class="nav-item">
+                <span class="nav-icon">⚙️</span>
+                <span>Configurações</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="icon-btn" onclick="toggleSidebar()">
+                    <span>☰</span>
+                </button>
+                <div class="breadcrumb">
+                    <span>🏠</span>
+                    <span>/</span>
+                    <span>Dashboard</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button class="icon-btn">
+                    <span>🔍</span>
+                </button>
+                <button class="icon-btn">
+                    <span>🔔</span>
+                    {% if notificacoes > 0 %}
+                    <span class="notification-dot"></span>
+                    {% endif %}
+                </button>
+                <div class="user-menu">
+                    <div class="user-avatar">{{ user.first_name|slice:":1"|upper|default:"U" }}</div>
+                    <span>{{ user.first_name|default:user.username }}</span>
+                    <span>▼</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1 class="hero-title">PIT STOP PIZZARIA</h1>
+                    <p class="hero-subtitle">
+                        <span>📍</span>
+                        <span>Bem-vindo, {{ user.first_name|default:user.username }}! Parada rápida para sabores inesquecíveis</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon bg-info-light">📦</div>
+                        <div class="stat-trend trend-up">
+                            <span>↑</span>
+                            <span>12%</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ pedidos_hoje|default:0 }}</div>
+                    <div class="stat-label">Pedidos Hoje</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon bg-success-light">💰</div>
+                        <div class="stat-trend trend-up">
+                            <span>↑</span>
+                            <span>8%</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">R$ {{ faturamento_hoje|floatformat:2|default:"0,00" }}</div>
+                    <div class="stat-label">Faturamento Hoje</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon bg-warning-light">👥</div>
+                        <div class="stat-trend trend-up">
+                            <span>↑</span>
+                            <span>3</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ total_clientes|default:0 }}</div>
+                    <div class="stat-label">Total de Clientes</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon bg-primary-light">🍕</div>
+                        <div class="stat-trend trend-up">
+                            <span>↑</span>
+                            <span>15</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ total_produtos|default:0 }}</div>
+                    <div class="stat-label">Produtos Ativos</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <h2 class="section-title">Acesso Rápido</h2>
+            <div class="quick-actions">
+                <a href="{% url 'pedidos:pedido_rapido' %}" class="action-card">
+                    <div class="action-icon bg-success-light">🛒</div>
+                    <h3 class="action-title">Novo Pedido</h3>
+                    <p class="action-desc">Criar um novo pedido para cliente</p>
+                </a>
+
+                <a href="{% url 'pizzas_promocionais' %}" class="action-card">
+                    <div class="action-icon bg-primary-light">🎯</div>
+                    <h3 class="action-title">Pizzas Promocionais</h3>
+                    <p class="action-desc">Todas por R$ 40,00 - 8 fatias tamanho grande</p>
+                </a>
+
+                <a href="{% url 'pedidos:listar_mesas' %}" class="action-card">
+                    <div class="action-icon bg-warning-light">🍽️</div>
+                    <h3 class="action-title">Mesas Abertas</h3>
+                    <p class="action-desc">Gerenciar mesas do restaurante</p>
+                </a>
+
+                <a href="{% url 'pedidos:pedido_list' %}" class="action-card">
+                    <div class="action-icon bg-info-light">📋</div>
+                    <h3 class="action-title">Gestão de Pedidos</h3>
+                    <p class="action-desc">Gerenciar todos os pedidos do dia</p>
+                </a>
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="bottom-grid">
+                <a href="{% url 'financeiro:dashboard' %}" class="bottom-card">
+                    <div class="bottom-icon bg-warning-light">💰</div>
+                    <span class="bottom-text">Financeiro</span>
+                </a>
+
+                <a href="{% url 'product_list' %}" class="bottom-card">
+                    <div class="bottom-icon bg-success-light">📦</div>
+                    <span class="bottom-text">Produtos</span>
+                </a>
+
+                <a href="{% url 'clientes:cliente-list' %}" class="bottom-card">
+                    <div class="bottom-icon bg-info-light">👥</div>
+                    <span class="bottom-text">Clientes</span>
+                </a>
+
+                <a href="{% url 'financeiro:historico' %}" class="bottom-card">
+                    <div class="bottom-icon bg-primary-light">📊</div>
+                    <span class="bottom-text">Relatórios</span>
+                </a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    // Animações ao carregar
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.stat-card, .action-card, .bottom-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 50);
+        });
+    });
+</script>
+</body>
+</html>
