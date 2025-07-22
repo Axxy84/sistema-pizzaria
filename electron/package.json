@@ -1,0 +1,66 @@
+{
+  "name": "pizzaria-sistema",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão para Pizzaria",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build-win": "electron-builder --win",
+    "build-linux": "electron-builder --linux",
+    "dist": "electron-builder"
+  },
+  "author": "Pizzaria",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "electron-is-dev": "^2.0.0",
+    "electron-store": "^8.1.0"
+  },
+  "build": {
+    "appId": "com.pizzaria.sistema",
+    "productName": "Sistema Pizzaria",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "icon.ico",
+      "django/**/*",
+      "!django/.venv/**/*",
+      "!django/**/__pycache__",
+      "!django/**/*.pyc"
+    ],
+    "extraResources": [
+      {
+        "from": "../",
+        "to": "django",
+        "filter": [
+          "**/*",
+          "!.venv/**/*",
+          "!**/__pycache__",
+          "!**/*.pyc",
+          "!electron/**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Sistema Pizzaria"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "icon.png"
+    }
+  }
+}

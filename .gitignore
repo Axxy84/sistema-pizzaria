@@ -48,3 +48,11 @@ coverage.xml
 # Static files
 staticfiles/
 static_root/
+
+# Electron
+electron/node_modules/
+electron/dist/
+electron/out/
+electron/*.log
+electron/icon.ico
+electron/icon.png
