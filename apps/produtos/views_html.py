@@ -429,7 +429,7 @@ class ProductCreateWizardView(LoginRequiredMixin, TemplateView):
             return JsonResponse({
                 "success": True,
                 "redirect_url": str(redirect_url),
-                "message": f"{produto.nome} cadastrado com sucesso\!"
+                "message": f"{produto.nome} cadastrado com sucesso!"
             })
             
         except Exception as e:

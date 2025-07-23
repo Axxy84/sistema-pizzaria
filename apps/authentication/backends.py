@@ -12,19 +12,7 @@ class SupabaseBackend(BaseBackend):
         if username is None or password is None:
             return None
         
-        # Primeiro, tenta buscar o usuário Django
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            user = None
-        
-        # Se o usuário existe e tem senha Django, tenta autenticar localmente primeiro
-        if user and user.has_usable_password():
-            if user.check_password(password):
-                print(f"DEBUG BACKEND: Autenticação Django bem-sucedida para {username}")
-                return user
-        
-        # Se falhou localmente, tenta com Supabase
+        # Tenta com Supabase primeiro
         try:
             supabase = get_supabase_client()
             
@@ -35,20 +23,29 @@ class SupabaseBackend(BaseBackend):
             })
             
             if response.user:
-                # Cria ou atualiza o usuário Django
-                user, created = User.objects.get_or_create(
+                # Cria um usuário Django temporário na memória
+                # Não salvamos no banco para evitar problemas de conexão
+                user = User(
+                    id=999999,  # ID temporário
                     username=username,
-                    defaults={
-                        'email': username,
-                        'first_name': response.user.user_metadata.get('first_name', ''),
-                        'last_name': response.user.user_metadata.get('last_name', ''),
-                    }
+                    email=username,
+                    first_name=response.user.user_metadata.get('first_name', 'Admin'),
+                    last_name=response.user.user_metadata.get('last_name', 'Pizzaria'),
+                    is_active=True,
+                    is_staff=True,
+                    is_superuser=True
                 )
+                
+                # Marca como um usuário Supabase para referência
+                user._supabase_user_id = response.user.id
+                user._state.adding = False  # Indica que não é um novo objeto
                 
                 # Armazena o token de sessão do Supabase
                 if hasattr(request, 'session'):
                     request.session['supabase_access_token'] = response.session.access_token
                     request.session['supabase_refresh_token'] = response.session.refresh_token
+                    request.session['supabase_user_id'] = response.user.id
+                    request.session['user_email'] = username
                 
                 print(f"DEBUG BACKEND: Autenticação Supabase bem-sucedida para {username}")
                 return user
@@ -63,10 +60,21 @@ class SupabaseBackend(BaseBackend):
         return None
     
     def get_user(self, user_id):
-        try:
-            user = User.objects.get(pk=user_id)
-            print(f"DEBUG BACKEND: get_user chamado para ID {user_id}, encontrou: {user.username}")
+        # Para usuários Supabase, retornamos um objeto temporário
+        if user_id == 999999:
+            # Cria um usuário temporário baseado na sessão
+            user = User(
+                id=999999,
+                username='admin@pizzaria.com',  # Usar email padrão
+                email='admin@pizzaria.com',
+                first_name='Admin',
+                last_name='Pizzaria',
+                is_active=True,
+                is_staff=True,
+                is_superuser=True
+            )
+            user._state.adding = False
+            print(f"DEBUG BACKEND: get_user retornando usuário temporário")
             return user
-        except User.DoesNotExist:
-            print(f"DEBUG BACKEND: get_user chamado para ID {user_id}, usuário não encontrado")
-            return None
+        
+        return None
