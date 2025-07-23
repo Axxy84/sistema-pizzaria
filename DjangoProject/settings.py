@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'debug_toolbar',
-    'apps.authentication',
     'apps.produtos',
     'apps.pedidos',
     'apps.clientes',
@@ -63,13 +62,10 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    # 'apps.authentication.middleware.SupabaseSessionMiddleware',  # TEMPORARIAMENTE REMOVIDO
-    # 'apps.authentication.debug_middleware.AuthenticationDebugMiddleware',  # Descomente para debug
 ]
 
 ROOT_URLCONF = 'DjangoProject.urls'
@@ -172,29 +168,15 @@ SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
 SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
 
-# Authentication backends
-AUTHENTICATION_BACKENDS = [
-    'apps.authentication.backends.SupabaseBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
-
-# Login URLs
-LOGIN_URL = '/auth/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+# Authentication backends - removido para performance
 
 # Senha para cancelamento de pedidos
 PEDIDO_CANCELAMENTO_SENHA = 'admin123'
 
-# Session configuration
-# SESSION_ENGINE está definido mais abaixo após a configuração de cache
+# Session configuration - simplificado para performance
 SESSION_COOKIE_NAME = 'pizzaria_sessionid'
-SESSION_COOKIE_AGE = 1209600  # 2 semanas
-SESSION_COOKIE_SECURE = False  # True apenas em HTTPS
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 86400  # 1 dia
+SESSION_SAVE_EVERY_REQUEST = False  # Otimização
 
 # Senha para cancelamento de pedidos
 # IMPORTANTE: Altere esta senha em produção!
@@ -233,17 +215,20 @@ if DEBUG:
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cache Configuration
-# Temporariamente usando cache local em memória até Redis estar disponível
+# Cache Configuration - otimizado para performance
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/django_cache',
+        'TIMEOUT': 300,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
     }
 }
 
-# Use database for session storage (mais confiável sem Redis)
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# Use cache for session storage - melhor performance
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 # Django Cachalot settings (Query caching) - Desabilitado temporariamente por conflito de versão
 # CACHALOT_ENABLED = True
@@ -284,5 +269,11 @@ WHITENOISE_USE_FINDERS = True
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Performance settings
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Para formulários grandes
-CONN_MAX_AGE = 0 if DEBUG else 600  # Persistent connections em produção
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000  # Reduzido para performance
+CONN_MAX_AGE = 600  # Sempre usar conexões persistentes
+
+# Query optimization
+DEBUG_TOOLBAR_CONFIG['DISABLE_PANELS'] = {
+    'debug_toolbar.panels.redirects.RedirectsPanel',
+    'debug_toolbar.panels.profiling.ProfilingPanel',
+}

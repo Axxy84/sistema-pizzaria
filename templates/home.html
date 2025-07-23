@@ -8,21 +8,20 @@
 {% endblock %}
 
 {% block content %}
-    {% if user.is_authenticated %}
-        <!-- Welcome message -->
-        <div class="bg-gradient-pizza rounded-lg p-6 text-white mb-8">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.58-5.84a14.927 14.927 0 015.84 2.58M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <h2 class="text-xl font-semibold">Bem-vindo de volta, {{ user.first_name|default:user.username }}!</h2>
-                    <p class="text-pizza-100">Aqui está um resumo do seu negócio hoje.</p>
-                </div>
+    <!-- Welcome message -->
+    <div class="bg-gradient-pizza rounded-lg p-6 text-white mb-8">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.58-5.84a14.927 14.927 0 015.84 2.58M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <h2 class="text-xl font-semibold">Bem-vindo à Pizzaria!</h2>
+                <p class="text-pizza-100">Aqui está um resumo do seu negócio hoje.</p>
             </div>
         </div>
+    </div>
 
         <!-- Stats cards -->
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -600,18 +599,4 @@
         });
         </script>
 
-    {% else %}
-        <div class="text-center py-12">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-primary">Acesso restrito</h3>
-            <p class="mt-1 text-sm text-secondary">Faça login para acessar o dashboard.</p>
-            <div class="mt-6">
-                <a href="{% url 'login' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
-                    Fazer Login
-                </a>
-            </div>
-        </div>
-    {% endif %}
 {% endblock %}

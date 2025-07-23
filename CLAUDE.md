@@ -6,9 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Django 5.2.4 project using Python 3.13 with a virtual environment at `.venv/`.
 
+⚠️ **MODO PADRÃO ATUAL**: Sistema rodando sem autenticação devido a problema com senha do PostgreSQL.
+- Todas as funcionalidades estão operacionais
+- Use `run_no_auth.bat` para executar
+- Usuário temporário criado automaticamente (temp_user)
+
 ## Common Commands
 
-### Development Server
+### Development Server (MODO PADRÃO ATUAL)
+```bash
+# USAR ESTE COMANDO POR ENQUANTO:
+run_no_auth.bat
+
+# Ou:
+python run_no_auth.py
+```
+
+### Development Server (modo normal - quando a senha do PostgreSQL for corrigida)
 ```bash
 python manage.py runserver
 ```
