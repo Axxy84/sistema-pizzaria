@@ -143,7 +143,6 @@ class ContaPagarViewSet(viewsets.ModelViewSet):
 
 
 # Template-based views for cash closing system
-@method_decorator(login_required, name='dispatch')
 class CaixaDashboardView(View):
     """Dashboard principal do controle de caixa"""
     
@@ -211,7 +210,6 @@ class CaixaDashboardView(View):
         return render(request, 'financeiro/dashboard.html', context)
 
 
-@method_decorator(login_required, name='dispatch')
 class AbrirCaixaView(View):
     """View para abrir o caixa"""
     
@@ -245,7 +243,6 @@ class AbrirCaixaView(View):
             return render(request, 'financeiro/abrir_caixa.html')
 
 
-@method_decorator(login_required, name='dispatch')
 class FecharCaixaView(View):
     """View para fechar o caixa com reconciliação"""
     
@@ -333,7 +330,6 @@ class FecharCaixaView(View):
             return self.get(request)
 
 
-@method_decorator(login_required, name='dispatch')
 class AdicionarMovimentoView(View):
     """View para adicionar movimentos (despesas/receitas) ao caixa"""
     
@@ -375,7 +371,6 @@ class AdicionarMovimentoView(View):
             return self.get(request)
 
 
-@method_decorator(login_required, name='dispatch')
 class HistoricoCaixaView(ListView):
     """Lista histórico de caixas fechados"""
     
@@ -388,7 +383,6 @@ class HistoricoCaixaView(ListView):
         return Caixa.objects.filter(status='fechado').order_by('-data_fechamento')
 
 
-@method_decorator(login_required, name='dispatch')
 class DetalhesCaixaView(DetailView):
     """Detalhes de um caixa específico"""
     
