@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
 from apps.clientes.models import Cliente, Endereco
 from apps.produtos.models import Produto, ProdutoPreco
 from decimal import Decimal
@@ -33,7 +32,7 @@ class Pedido(models.Model):
     # Identificação
     numero = models.CharField(max_length=20, unique=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name='pedidos', null=True, blank=True)
-    usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name='pedidos_atendidos')
+    usuario = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='pedidos_atendidos')
     
     # Tipo e endereço
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)

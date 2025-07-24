@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 
 class UnidadeMedida(models.Model):
@@ -73,7 +72,7 @@ class MovimentoEstoque(models.Model):
     )
     custo_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     motivo = models.CharField(max_length=200)
-    usuario = models.ForeignKey(User, on_delete=models.PROTECT)
+    usuario = models.ForeignKey('auth.User', on_delete=models.PROTECT)
     data = models.DateTimeField(auto_now_add=True)
     
     class Meta:

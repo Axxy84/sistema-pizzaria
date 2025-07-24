@@ -17,6 +17,7 @@ ALLOWED_HOSTS = ['*']
 # Apps mínimos necessários
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'django.contrib.auth',  # Necessário para o Django funcionar
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',

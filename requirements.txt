@@ -34,4 +34,3 @@ redis==5.2.1
 django-redis==5.4.0
 django-debug-toolbar==5.1.0
 whitenoise==6.9.0
-hiredis==3.0.0

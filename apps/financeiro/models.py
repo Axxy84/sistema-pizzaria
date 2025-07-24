@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 
@@ -9,7 +8,7 @@ class Caixa(models.Model):
         ('fechado', 'Fechado'),
     ]
     
-    usuario = models.ForeignKey(User, on_delete=models.PROTECT, related_name='caixas')
+    usuario = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='caixas')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='aberto')
     valor_abertura = models.DecimalField(
         max_digits=10, 
@@ -83,7 +82,7 @@ class MovimentoCaixa(models.Model):
         blank=True,
         related_name='movimentos_caixa'
     )
-    usuario = models.ForeignKey(User, on_delete=models.PROTECT)
+    usuario = models.ForeignKey('auth.User', on_delete=models.PROTECT)
     data = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -122,7 +121,7 @@ class ContaPagar(models.Model):
     data_pagamento = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
     observacoes = models.TextField(blank=True)
-    criado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='contas_criadas')
+    criado_por = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='contas_criadas')
     pago_por = models.ForeignKey(
         User, 
         on_delete=models.PROTECT, 
