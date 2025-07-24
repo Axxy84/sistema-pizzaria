@@ -167,8 +167,7 @@ class PedidoSupabaseManager:
                 from apps.clientes.models import Cliente
                 from apps.pedidos.models import Pedido, ItemPedido
                 from apps.produtos.models import Produto, ProdutoPreco
-                from django.contrib.auth.models import User
-                
+                                
                 # Criar ou buscar cliente
                 dados_cliente = dados_pedido['cliente']
                 cliente, created = Cliente.objects.get_or_create(
@@ -180,7 +179,7 @@ class PedidoSupabaseManager:
                 )
                 
                 # Buscar usuário para o pedido
-                usuario = User.objects.first()
+                usuario = get_user_model().objects.first()
                 if not usuario:
                     return None, ["Nenhum usuário encontrado no sistema"]
                 

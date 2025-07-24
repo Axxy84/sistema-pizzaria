@@ -14,7 +14,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
 from apps.estoque.models import UnidadeMedida, Ingrediente, MovimentoEstoque
-from django.contrib.auth.models import User
 
 def create_unidades_medida():
     """Criar unidades de medida básicas"""
@@ -118,7 +117,7 @@ def create_movimentos_exemplo():
     """Criar alguns movimentos de exemplo"""
     # Buscar usuário admin
     try:
-        user = User.objects.filter(is_superuser=True).first()
+        user = get_user_model().objects.filter(is_superuser=True).first()
         if not user:
             print("❌ Erro: Nenhum superusuário encontrado. Crie um primeiro.")
             return

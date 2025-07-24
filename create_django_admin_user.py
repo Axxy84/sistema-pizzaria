@@ -17,7 +17,6 @@ os.environ['USE_SUPABASE_DB'] = 'False'
 
 django.setup()
 
-from django.contrib.auth.models import User
 
 def create_admin_user():
     """Cria usuário admin no Django"""
@@ -30,7 +29,7 @@ def create_admin_user():
     password = 'admin8477thygas'
     
     try:
-        user, created = User.objects.get_or_create(
+        user, created = get_user_model().objects.get_or_create(
             username=email,
             defaults={
                 'email': email,

@@ -15,7 +15,6 @@ django.setup()
 
 from supabase import create_client
 from django.conf import settings
-from django.contrib.auth.models import User
 
 def check_users():
     """Verifica usuários no Django e tenta criar/resetar no Supabase"""
@@ -26,7 +25,7 @@ def check_users():
     
     # Listar usuários Django
     print("\n1. Usuários no Django:")
-    django_users = User.objects.all()
+    django_users = get_user_model().objects.all()
     for user in django_users:
         print(f"   - {user.username} (email: {user.email}, id: {user.id})")
     

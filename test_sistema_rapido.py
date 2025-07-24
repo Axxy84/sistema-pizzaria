@@ -6,7 +6,6 @@ import json
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
-from django.contrib.auth.models import User
 from django.test import Client
 
 # Criar cliente de teste
@@ -14,7 +13,7 @@ client = Client()
 
 # Fazer login
 try:
-    user = User.objects.get(username='admin')
+    user = get_user_model().objects.get(username='admin')
     client.force_login(user)
     print("✓ Login realizado com sucesso")
 except User.DoesNotExist:

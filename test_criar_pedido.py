@@ -11,7 +11,6 @@ django.setup()
 
 from apps.pedidos.views import criar_pedido_seguro
 from django.test import RequestFactory
-from django.contrib.auth.models import User
 
 # Criar dados de teste
 pedido_data = {
@@ -51,7 +50,7 @@ request = factory.post('/api/pedidos/pedidos/criar_pedido_seguro/',
                       content_type='application/json')
 
 # Simular usuário autenticado (se necessário)
-request.user = None  # Ou User.objects.first() se precisar de autenticação
+request.user = None  # Ou get_user_model().objects.first() se precisar de autenticação
 
 # Chamar a view diretamente
 print("🧪 Testando endpoint criar_pedido_seguro...")

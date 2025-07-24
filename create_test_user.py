@@ -10,7 +10,6 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
-from django.contrib.auth.models import User
 
 def create_test_user():
     """Cria usuário de teste com senha"""
@@ -19,13 +18,13 @@ def create_test_user():
     # Verificar se já existe
     username = 'test@test.com'
     try:
-        user = User.objects.get(username=username)
+        user = get_user_model().objects.get(username=username)
         print(f"Usuário {username} já existe. Atualizando senha...")
         user.set_password('test123')
         user.save()
     except User.DoesNotExist:
         print(f"Criando usuário {username}...")
-        user = User.objects.create_user(
+        user = get_user_model().objects.create_user(
             username=username,
             email=username,
             password='test123',

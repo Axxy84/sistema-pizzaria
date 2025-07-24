@@ -13,7 +13,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
 from django.test import RequestFactory, Client
 from apps.authentication.backends import SupabaseBackend
 import json
@@ -23,7 +22,7 @@ def test_authentication():
     
     # 1. Verificar usuários existentes
     print("1. Usuários no banco Django:")
-    users = User.objects.all()
+    users = get_user_model().objects.all()
     for user in users:
         print(f"   - {user.username} (email: {user.email}, ativo: {user.is_active})")
     print()

@@ -104,12 +104,11 @@ print(f"\nTotal: {clientes_criados} clientes criados")
 
 # 3. Abrir o caixa do dia
 print("\n💰 Configurando caixa...")
-from django.contrib.auth.models import User
 
 # Buscar usuário admin
-admin_user = User.objects.filter(is_superuser=True).first()
+admin_user = get_user_model().objects.filter(is_superuser=True).first()
 if not admin_user:
-    admin_user = User.objects.first()
+    admin_user = get_user_model().objects.first()
 
 # Verificar se já existe caixa aberto
 caixa_aberto = Caixa.objects.filter(status='aberto').first()

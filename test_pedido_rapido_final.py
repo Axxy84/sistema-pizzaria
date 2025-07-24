@@ -6,13 +6,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
 from django.test import Client
-from django.contrib.auth.models import User
 
 # Cliente de teste
 client = Client()
 
 # Login
-user = User.objects.get(username='admin')
+user = get_user_model().objects.get(username='admin')
 client.force_login(user)
 
 print("=== TESTE FINAL DO SISTEMA DE PEDIDO RÁPIDO ===\n")

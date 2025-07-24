@@ -10,7 +10,6 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.test import RequestFactory
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -21,12 +20,12 @@ def debug_authentication():
     print("=== DEBUG AUTENTICAÇÃO DJANGO ===")
     
     # Verificar usuários
-    users = User.objects.all()
+    users = get_user_model().objects.all()
     print(f"Usuários no banco: {users.count()}")
     
     if not users.exists():
         print("Criando usuário de teste...")
-        user = User.objects.create_user(
+        user = get_user_model().objects.create_user(
             username='test@test.com',
             email='test@test.com',
             password='test123'

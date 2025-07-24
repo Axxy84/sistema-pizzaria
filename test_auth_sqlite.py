@@ -17,7 +17,6 @@ os.environ['USE_SUPABASE_DB'] = 'False'
 django.setup()
 
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
 from django.test import Client
 
 def test_auth_sqlite():
@@ -26,10 +25,10 @@ def test_auth_sqlite():
     # 1. Criar/atualizar usuário admin
     print("1. Criando/atualizando usuário admin@pizzaria.com:")
     try:
-        user = User.objects.get(username='admin@pizzaria.com')
+        user = get_user_model().objects.get(username='admin@pizzaria.com')
         print(f"   - Usuário já existe: {user.username}")
     except User.DoesNotExist:
-        user = User.objects.create_user(
+        user = get_user_model().objects.create_user(
             username='admin@pizzaria.com',
             email='admin@pizzaria.com',
             password='admin8477thygas'

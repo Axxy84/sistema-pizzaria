@@ -10,7 +10,6 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
-from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.test import Client
 from django.utils import timezone
@@ -26,7 +25,7 @@ def diagnose_session_issue():
     print(f"   SESSION_COOKIE_NAME: {settings.SESSION_COOKIE_NAME}")
     
     # 2. Verificar usuários
-    users = User.objects.all()
+    users = get_user_model().objects.all()
     print(f"\n2. Usuários no banco: {users.count()}")
     for user in users:
         print(f"   {user.id}: {user.username} - Senha? {user.has_usable_password()}")

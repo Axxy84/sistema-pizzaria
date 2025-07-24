@@ -85,8 +85,7 @@ def fix_user_password():
         print("\n4. Criando usuário correspondente no Django...")
         print("   Execute o seguinte comando no Django shell:")
         print(f"""
-from django.contrib.auth.models import User
-user, created = User.objects.get_or_create(
+user, created = get_user_model().objects.get_or_create(
     username='{alt_email}',
     defaults={{
         'email': '{alt_email}',

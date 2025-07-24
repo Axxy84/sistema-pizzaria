@@ -12,7 +12,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
 from django.test import Client
-from django.contrib.auth.models import User
 from apps.authentication.backends import SupabaseBackend
 
 def debug_session():

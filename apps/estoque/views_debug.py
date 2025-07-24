@@ -9,7 +9,6 @@ from django.db.models import Q, F
 from django.http import JsonResponse
 from .models import Ingrediente, MovimentoEstoque, UnidadeMedida, ReceitaProduto
 from .forms import IngredienteForm, MovimentoEstoqueForm
-from django.contrib.auth.models import User
 
 def estoque_dashboard_debug(request):
     """Dashboard principal do estoque - VERSÃO DEBUG SEM LOGIN"""

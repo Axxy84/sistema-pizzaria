@@ -13,7 +13,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
-from django.contrib.auth.models import User
 
 def reset_admin_password():
     """Redefine a senha do usuário admin"""
@@ -21,7 +20,7 @@ def reset_admin_password():
     
     # Buscar usuário admin (ID 7)
     try:
-        admin_user = User.objects.get(id=7, username='admin')
+        admin_user = get_user_model().objects.get(id=7, username='admin')
         print(f"✓ Usuário encontrado: {admin_user.username}")
         print(f"  Email: {admin_user.email}")
         print(f"  Is_staff: {admin_user.is_staff}")
@@ -42,7 +41,7 @@ def reset_admin_password():
         print("❌ Usuário admin (ID 7) não encontrado\!")
         
         # Listar admins disponíveis
-        admins = User.objects.filter(is_superuser=True)
+        admins = get_user_model().objects.filter(is_superuser=True)
         if admins.exists():
             print("\n📋 Usuários admin disponíveis:")
             for admin in admins:

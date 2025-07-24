@@ -13,7 +13,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
 from apps.estoque.models import UnidadeMedida, Ingrediente, MovimentoEstoque
-from django.contrib.auth.models import User
 
 def limpar_estoque():
     """Limpar todos os ingredientes e movimentos atuais"""
@@ -98,7 +97,7 @@ def criar_movimentos_refrigerantes():
     print("📦 Criando movimentos de exemplo...")
     
     try:
-        user = User.objects.filter(is_superuser=True).first()
+        user = get_user_model().objects.filter(is_superuser=True).first()
         if not user:
             print("   ⚠️  Nenhum superusuário encontrado. Pulando criação de movimentos.")
             return

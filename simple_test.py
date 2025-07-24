@@ -10,7 +10,6 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
-from django.contrib.auth.models import User
 from django.test import Client
 
 def test_corrections():
@@ -18,7 +17,7 @@ def test_corrections():
     print("=== TESTE DAS CORREÇÕES ===")
     
     # Teste 1: Verificar usuários
-    users = User.objects.all()
+    users = get_user_model().objects.all()
     print(f"✅ Usuários no banco: {users.count()}")
     
     # Teste 2: Verificar templates

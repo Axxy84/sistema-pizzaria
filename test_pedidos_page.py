@@ -14,7 +14,6 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
 from django.test import Client
-from django.contrib.auth.models import User
 
 def test_pedidos_page():
     """Testa o acesso à página de pedidos"""
@@ -32,7 +31,7 @@ def test_pedidos_page():
     
     # Faz login
     print("\n2. Fazendo login...")
-    user = User.objects.filter(username='Axxycorporation@gmail.com').first()
+    user = get_user_model().objects.filter(username='Axxycorporation@gmail.com').first()
     if user:
         client.force_login(user)
         print(f"   Login realizado: {user.username}")

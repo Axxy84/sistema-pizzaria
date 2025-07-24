@@ -17,7 +17,6 @@ django.setup()
 from apps.produtos.models import Produto, ProdutoPreco, Tamanho
 from apps.pedidos.models import Pedido, ItemPedido
 from apps.clientes.models import Cliente
-from django.contrib.auth.models import User
 
 def test_meio_a_meio():
     print("=== TESTE COMPLETO DA FUNCIONALIDADE MEIO A MEIO ===\n")
@@ -122,7 +121,7 @@ def test_meio_a_meio():
     
     try:
         # Buscar ou criar cliente e usuário
-        user, _ = User.objects.get_or_create(username='teste_meio_a_meio', defaults={'email': 'teste@teste.com'})
+        user, _ = get_user_model().objects.get_or_create(username='teste_meio_a_meio', defaults={'email': 'teste@teste.com'})
         cliente, _ = Cliente.objects.get_or_create(
             nome='Cliente Teste Meio a Meio',
             defaults={'telefone': '11999999999', 'email': 'cliente@teste.com'}

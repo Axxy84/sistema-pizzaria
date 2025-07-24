@@ -11,7 +11,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
-from django.contrib.auth.models import User
 
 def create_test_user():
     """Cria usuário de teste com senha Django"""
@@ -19,7 +18,7 @@ def create_test_user():
     password = 'A1'
     
     # Buscar usuário existente
-    user = User.objects.filter(username=email).first()
+    user = get_user_model().objects.filter(username=email).first()
     
     if user:
         print(f"Usuário {email} já existe (ID: {user.id})")
@@ -39,7 +38,7 @@ def create_test_user():
             print(f"❌ Falha na autenticação Django")
     else:
         # Criar novo usuário
-        user = User.objects.create_user(
+        user = get_user_model().objects.create_user(
             username=email,
             email=email,
             password=password
@@ -50,9 +49,9 @@ def create_test_user():
     admin_email = 'admin@pizzaria.com'
     admin_password = 'admin123'
     
-    admin_user = User.objects.filter(username=admin_email).first()
+    admin_user = get_user_model().objects.filter(username=admin_email).first()
     if not admin_user:
-        admin_user = User.objects.create_superuser(
+        admin_user = get_user_model().objects.create_superuser(
             username=admin_email,
             email=admin_email,
             password=admin_password

@@ -17,7 +17,6 @@ django.setup()
 
 from django.core.cache import cache
 from django.test import Client
-from django.contrib.auth.models import User
 from apps.produtos.models import Produto
 
 def test_performance():
@@ -39,7 +38,7 @@ def test_performance():
     client = Client()
     
     # Login
-    user = User.objects.first()
+    user = get_user_model().objects.first()
     if user:
         client.force_login(user)
     

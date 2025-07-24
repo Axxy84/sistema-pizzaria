@@ -7,14 +7,13 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 django.setup()
 
 from django.test import Client
-from django.contrib.auth.models import User
 from apps.produtos.models import Produto, Categoria
 
 # Cliente de teste
 client = Client()
 
 # Login
-user = User.objects.get(username='admin')
+user = get_user_model().objects.get(username='admin')
 client.force_login(user)
 
 # 1. Verificar produtos no banco
