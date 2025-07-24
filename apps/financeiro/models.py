@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.contrib.auth.models import User
 
 class Caixa(models.Model):
     STATUS_CHOICES = [
