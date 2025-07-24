@@ -53,6 +53,9 @@ urlpatterns = [
     path('api/financeiro/', include('apps.financeiro.api_urls')),
     path('api/dashboard/', include('apps.dashboard.urls')),
     
+    # API de monitoramento (health check)
+    path('api/', include('apps.core.urls')),
+    
     # Settings/Preferences API
     path('', include('settings.urls')),
 ]
