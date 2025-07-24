@@ -10,19 +10,11 @@ echo.
 cd /d "%~dp0"
 call .venv\Scripts\activate.bat
 
-echo [1/5] Fazendo backup do banco atual...
-if exist "db.sqlite3" (
-    copy "db.sqlite3" "db.sqlite3.backup_%date:~-4,4%%date:~-10,2%%date:~-7,2%_%time:~0,2%%time:~3,2%.bak" >nul
-    echo [✓] Backup criado
-)
-
+echo [1/3] Verificando conexão com Supabase...
+python -c "import os; print(f'Host: {os.getenv(\"DATABASE_HOST\", \"aws-0-sa-east-1.pooler.supabase.com\")}'); print(f'User: {os.getenv(\"DATABASE_USER\", \"postgres.aewcurtmikqelqykpqoa\")}')"
 echo.
-echo [2/5] Removendo banco com problemas...
-if exist "db.sqlite3" del "db.sqlite3"
-echo [✓] Banco removido
 
-echo.
-echo [3/5] Criando novo banco...
+echo [2/3] Aplicando migrações no Supabase...
 python manage.py migrate --run-syncdb --settings=settings_fast
 if %errorlevel% neq 0 (
     echo [!] Erro ao criar banco. Tentando alternativa...

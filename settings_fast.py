@@ -72,17 +72,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'DjangoProject.wsgi.application'
 
-# Database otimizado
+# Database - APENAS SUPABASE
+import dj_database_url
+
+DATABASE_URL = os.getenv('DATABASE_URL', 
+    f"postgresql://{os.getenv('DATABASE_USER', 'postgres.aewcurtmikqelqykpqoa')}:"
+    f"{os.getenv('DATABASE_PASSWORD', 'sua_senha_aqui')}@"
+    f"{os.getenv('DATABASE_HOST', 'aws-0-sa-east-1.pooler.supabase.com')}:"
+    f"{os.getenv('DATABASE_PORT', '5432')}/"
+    f"{os.getenv('DATABASE_NAME', 'postgres')}?sslmode=require"
+)
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'timeout': 20,
-            'check_same_thread': False,
-            'init_command': "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
-        }
-    }
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 }
 
 # Cache em memória - mais rápido

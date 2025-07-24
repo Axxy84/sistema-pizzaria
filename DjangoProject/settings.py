@@ -94,25 +94,22 @@ WSGI_APPLICATION = 'DjangoProject.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database Configuration
-# NOTA: Usando SQLite temporariamente devido a problemas de conectividade IPv6
-# Para produção, use PostgreSQL do Supabase com IPv4 ou conexão pooler
+# APENAS SUPABASE - PostgreSQL
 
-USE_SUPABASE_DB = os.getenv('USE_SUPABASE_DB', 'False').lower() == 'true'
+import dj_database_url
 
-if USE_SUPABASE_DB:
-    import dj_database_url
-    DATABASE_URL = os.getenv('DATABASE_URL', f"postgresql://{os.getenv('DATABASE_USER')}:{os.getenv('DATABASE_PASSWORD')}@{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_NAME')}?sslmode=require")
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=0)
-    }
-else:
-    # SQLite para desenvolvimento local
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# Configurações do Supabase
+DATABASE_URL = os.getenv('DATABASE_URL', 
+    f"postgresql://{os.getenv('DATABASE_USER', 'postgres.aewcurtmikqelqykpqoa')}:"
+    f"{os.getenv('DATABASE_PASSWORD', 'sua_senha_aqui')}@"
+    f"{os.getenv('DATABASE_HOST', 'aws-0-sa-east-1.pooler.supabase.com')}:"
+    f"{os.getenv('DATABASE_PORT', '5432')}/"
+    f"{os.getenv('DATABASE_NAME', 'postgres')}?sslmode=require"
+)
+
+DATABASES = {
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=0)
+}
 
 
 # Password validation
