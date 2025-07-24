@@ -3,7 +3,6 @@ Módulo de impressão usando python-escpos
 Suporte nativo para impressoras térmicas ESC/POS
 """
 from escpos.printer import Serial, Usb, Dummy
-from escpos import *
 import os
 from .utils_impressao import limpar_texto_impressora, formatar_dinheiro
 from decimal import Decimal
@@ -77,23 +76,20 @@ class ImpressoraTermica:
             raise Exception("Impressora não conectada")
         
         try:
-            # Configurações iniciais
-            self.printer.init()
-            
             # Cabeçalho centralizado
-            self.printer.set(align='center', text_type='B', width=2, height=2)
+            self.printer.set(align='center', font='a', text_type='B', width=2, height=2)
             self.printer.text("PIZZARIA SISTEMA\n")
             
-            self.printer.set(align='center', text_type='NORMAL')
+            self.printer.set(align='center', font='a', text_type='normal', width=1, height=1)
             self.printer.text("Tel: (11) 99999-9999\n")
             self.printer.text("Rua da Pizzaria, 123\n")
             self.printer.text("="*32 + "\n\n")
             
             # Informações do pedido
-            self.printer.set(align='left', text_type='B')
+            self.printer.set(align='left', font='a', text_type='B')
             self.printer.text(f"COMANDA: #{limpar_texto_impressora(pedido.numero)}\n")
             
-            self.printer.set(text_type='NORMAL')
+            self.printer.set(text_type='normal')
             self.printer.text(f"Data: {pedido.criado_em.strftime('%d/%m/%Y %H:%M')}\n")
             self.printer.text(f"Tipo: {limpar_texto_impressora(pedido.get_tipo_display())}\n")
             
@@ -110,7 +106,7 @@ class ImpressoraTermica:
             # Itens
             self.printer.set(text_type='B')
             self.printer.text("ITENS DO PEDIDO:\n\n")
-            self.printer.set(text_type='NORMAL')
+            self.printer.set(text_type='normal')
             
             for item in pedido.itens.all():
                 nome = limpar_texto_impressora(item.produto_preco.produto.nome)
@@ -153,7 +149,7 @@ class ImpressoraTermica:
             self.printer.text("="*32 + "\n")
             self.printer.set(text_type='B', width=2, height=2)
             self.printer.text(f"TOTAL: R$ {formatar_dinheiro(pedido.total)}\n")
-            self.printer.set(text_type='NORMAL', width=1, height=1)
+            self.printer.set(text_type='normal', width=1, height=1)
             self.printer.text("="*32 + "\n\n")
             
             # Forma de pagamento
@@ -191,10 +187,8 @@ class ImpressoraTermica:
             raise Exception("Impressora não conectada")
         
         try:
-            self.printer.init()
-            
-            # Teste de tamanhos
-            self.printer.set(align='center', text_type='B', width=2, height=2)
+            # Teste de tamanhos - REMOVIDO printer.init()
+            self.printer.set(align='center', font='a', text_type='B', width=2, height=2)
             self.printer.text("TESTE DE IMPRESSAO\n")
             
             self.printer.set(width=1, height=1)
@@ -211,7 +205,7 @@ class ImpressoraTermica:
             self.printer.text("Alinhado a direita\n")
             
             # Teste de estilos
-            self.printer.set(align='left', text_type='NORMAL')
+            self.printer.set(align='left', text_type='normal')
             self.printer.text("\nTexto normal\n")
             
             self.printer.set(text_type='B')
@@ -224,7 +218,7 @@ class ImpressoraTermica:
             self.printer.text("Texto sublinhado duplo\n")
             
             # Teste de código de barras
-            self.printer.set(text_type='NORMAL')
+            self.printer.set(text_type='normal')
             self.printer.text("\n" + "="*32 + "\n")
             
             try:
