@@ -12,8 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent
 sys.path.append(str(BASE_DIR))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DjangoProject.settings')
 
-# Desabilitar temporariamente o banco Supabase para usar SQLite
-os.environ['USE_SUPABASE_DB'] = 'False'
+# Sistema agora usa apenas Supabase
 
 django.setup()
 

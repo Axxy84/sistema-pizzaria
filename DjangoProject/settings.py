@@ -241,13 +241,13 @@ DEBUG_TOOLBAR_CONFIG = {
     'ENABLE_STACKTRACES': True,
 }
 
-# Database optimization
-if USE_SUPABASE_DB:
-    DATABASES['default']['CONN_MAX_AGE'] = 600  # Persistent connections for 10 minutes
-    DATABASES['default']['OPTIONS'] = {
-        'connect_timeout': 10,
-        'options': '-c statement_timeout=30000'  # 30 seconds
-    }
+# Database optimization - Sempre para Supabase
+DATABASES['default']['CONN_MAX_AGE'] = 600  # Persistent connections for 10 minutes
+DATABASES['default']['OPTIONS'] = {
+    'connect_timeout': 10,
+    'options': '-c statement_timeout=30000',  # 30 seconds
+    'sslmode': 'require'
+}
 
 # Django Compressor settings - Desabilitado temporariamente
 # COMPRESS_ENABLED = not DEBUG

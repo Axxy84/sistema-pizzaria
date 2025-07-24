@@ -107,8 +107,12 @@ if not exist ".env" (
         echo SECRET_KEY=sua-chave-secreta-aqui-mude-em-producao
         echo ALLOWED_HOSTS=localhost,127.0.0.1
         echo.
-        echo # Banco de dados
-        echo USE_SUPABASE_DB=False
+        echo # Banco de dados Supabase
+        echo DATABASE_HOST=aws-0-sa-east-1.pooler.supabase.com
+        echo DATABASE_PORT=5432
+        echo DATABASE_NAME=postgres
+        echo DATABASE_USER=postgres.aewcurtmikqelqykpqoa
+        echo DATABASE_PASSWORD=sua_senha_aqui
         echo # DATABASE_URL=postgresql://user:pass@host:port/dbname
         echo.
         echo # Redis Cache (opcional)
