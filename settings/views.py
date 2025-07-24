@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
@@ -8,7 +7,6 @@ from django.views import View
 import json
 from .models import UserPreference
 
-@login_required
 @require_http_methods(["GET", "POST"])
 def user_preferences_api(request):
     """
@@ -75,7 +73,6 @@ def user_preferences_api(request):
             }, status=500)
 
 
-@login_required
 def get_theme_preference(request):
     """
     API específica para obter apenas a preferência de tema
@@ -92,7 +89,6 @@ def get_theme_preference(request):
         }, status=500)
 
 
-@login_required
 @require_http_methods(["POST"])
 def set_theme_preference(request):
     """

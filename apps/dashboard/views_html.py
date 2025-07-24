@@ -1,12 +1,10 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum, Q
 from datetime import datetime, timedelta
 from apps.pedidos.models import Pedido
 from apps.produtos.models import Produto
 from apps.clientes.models import Cliente
 
-@login_required
 def dashboard_view(request):
     """View HTML do dashboard principal"""
     hoje = datetime.now().date()

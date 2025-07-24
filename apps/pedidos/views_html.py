@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, TemplateView
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
@@ -19,7 +17,7 @@ from apps.clientes.models import Cliente, Endereco
 from apps.produtos.models import Produto, ProdutoPreco
 
 
-class PedidoListView(LoginRequiredMixin, ListView):
+class PedidoListView(ListView):
     """Lista de pedidos com filtros e busca"""
     model = Pedido
     template_name = 'pedidos/pedido_list.html'
@@ -115,7 +113,7 @@ class PedidoListView(LoginRequiredMixin, ListView):
         return context
 
 
-class PedidoCreateView(LoginRequiredMixin, CreateView):
+class PedidoCreateView(CreateView):
     """Criar novo pedido com wizard"""
     model = Pedido
     form_class = PedidoForm
@@ -162,7 +160,7 @@ class PedidoCreateView(LoginRequiredMixin, CreateView):
             return self.form_invalid(form)
 
 
-class PedidoDetailView(LoginRequiredMixin, DetailView):
+class PedidoDetailView(DetailView):
     """Detalhes do pedido com timeline"""
     model = Pedido
     template_name = 'pedidos/pedido_detail.html'
@@ -174,7 +172,7 @@ class PedidoDetailView(LoginRequiredMixin, DetailView):
         ).prefetch_related('itens__produto_preco__produto')
 
 
-class PedidoUpdateView(LoginRequiredMixin, UpdateView):
+class PedidoUpdateView(UpdateView):
     """Editar pedido existente"""
     model = Pedido
     form_class = PedidoForm
@@ -219,7 +217,6 @@ class PedidoUpdateView(LoginRequiredMixin, UpdateView):
 
 
 
-@login_required
 def pedido_atualizar_status(request, pk):
     """Atualizar status do pedido com validação"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -262,14 +259,12 @@ def pedido_atualizar_status(request, pk):
     }, status=400)
 
 
-@login_required
 def pedido_cancelar(request, pk):
     """Cancelar pedido - redireciona para cancelamento com senha"""
     messages.info(request, 'Use o botão de cancelar com senha para cancelar o pedido.')
     return redirect('pedidos:pedido_detail', pk=pk)
 
 
-@login_required
 def pedido_cancelar_com_senha_ajax(request, pk):
     """Cancelar pedido com verificação de senha via AJAX"""
     if request.method != 'POST':
@@ -314,7 +309,6 @@ def pedido_cancelar_com_senha_ajax(request, pk):
     return redirect('pedidos:pedido_detail', pk=pk)
 
 
-@login_required
 def pedido_iniciar_preparo(request, pk):
     """Inicia o preparo do pedido"""
     if request.method != 'POST':
@@ -341,7 +335,6 @@ def pedido_iniciar_preparo(request, pk):
     return redirect('pedidos:pedido_detail', pk=pk)
 
 
-@login_required
 def pedido_confirmar_saida(request, pk):
     """Confirma saída do pedido para entrega"""
     if request.method != 'POST':
@@ -368,7 +361,6 @@ def pedido_confirmar_saida(request, pk):
     return redirect('pedidos:pedido_detail', pk=pk)
 
 
-@login_required
 def pedido_confirmar_entrega(request, pk):
     """Confirma entrega do pedido"""
     if request.method != 'POST':
@@ -395,14 +387,12 @@ def pedido_confirmar_entrega(request, pk):
     return redirect('pedidos:pedido_detail', pk=pk)
 
 
-@login_required
 def pedido_imprimir(request, pk):
     """Imprimir cupom do pedido"""
     pedido = get_object_or_404(Pedido, pk=pk)
     return render(request, 'pedidos/pedido_print.html', {'pedido': pedido})
 
 
-@login_required
 def pedido_comanda_cozinha(request, pk):
     """Imprimir comanda simplificada para cozinha"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -410,7 +400,6 @@ def pedido_comanda_cozinha(request, pk):
 
 
 # Views AJAX
-@login_required
 def ajax_buscar_cliente(request):
     """Buscar cliente por nome ou telefone"""
     termo = request.GET.get('termo', '')
@@ -442,7 +431,6 @@ def ajax_buscar_cliente(request):
     return JsonResponse({'clientes': []})
 
 
-@login_required
 def ajax_buscar_produtos(request):
     """Buscar produtos para adicionar ao pedido"""
     termo = request.GET.get('termo', '')
@@ -481,7 +469,6 @@ def ajax_buscar_produtos(request):
     return JsonResponse({'produtos': data})
 
 
-@login_required
 def ajax_calcular_taxa_entrega(request):
     """Calcular taxa de entrega baseado no endereço"""
     endereco_id = request.GET.get('endereco_id')
@@ -503,7 +490,6 @@ def ajax_calcular_taxa_entrega(request):
     return JsonResponse({'taxa_entrega': 0})
 
 
-@login_required
 def ajax_cliente_enderecos(request, cliente_id):
     """Retornar endereços de um cliente"""
     cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -520,7 +506,7 @@ def ajax_cliente_enderecos(request, cliente_id):
     return JsonResponse({'enderecos': enderecos})
 
 
-class PedidoRapidoView(LoginRequiredMixin, TemplateView):
+class PedidoRapidoView(TemplateView):
     """View para novo sistema de pedido rápido unificado"""
     template_name = 'pedidos/pedido_rapido.html'
     
@@ -826,7 +812,6 @@ def api_criar_pedido_rapido(request):
 
 # Views para atualização de status de pedidos
 
-@login_required
 def pedido_atualizar_status(request, pk):
     """View genérica para atualizar status do pedido"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -904,7 +889,6 @@ def pedido_atualizar_status(request, pk):
     return redirect('pedidos:pedido_detail', pk=pedido.pk)
 
 
-@login_required
 def pedido_cancelar_com_senha(request, pk):
     """View para cancelar pedido com senha de proteção (suporta AJAX e HTML)"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -959,7 +943,6 @@ def pedido_cancelar_com_senha(request, pk):
     return render(request, 'pedidos/cancelar_com_senha.html', {'pedido': pedido})
 
 
-@login_required
 def pedido_iniciar_preparo(request, pk):
     """View específica para iniciar preparação"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -979,7 +962,6 @@ def pedido_iniciar_preparo(request, pk):
     return redirect('pedidos:pedido_detail', pk=pedido.pk)
 
 
-@login_required
 def pedido_confirmar_saida(request, pk):
     """View específica para confirmar saída para entrega"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -1001,7 +983,6 @@ def pedido_confirmar_saida(request, pk):
     return redirect('pedidos:pedido_detail', pk=pedido.pk)
 
 
-@login_required
 def pedido_confirmar_entrega(request, pk):
     """View específica para confirmar entrega"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -1023,7 +1004,6 @@ def pedido_confirmar_entrega(request, pk):
     return redirect('pedidos:pedido_detail', pk=pedido.pk)
 
 
-@login_required
 def pedido_cancelar(request, pk):
     """View simples para cancelar pedido (sem senha)"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -1045,7 +1025,6 @@ def pedido_cancelar(request, pk):
     return redirect('pedidos:pedido_detail', pk=pedido.pk)
 
 
-@login_required
 def pedido_imprimir(request, pk):
     """View para imprimir pedido"""
     pedido = get_object_or_404(Pedido, pk=pk)
@@ -1060,7 +1039,6 @@ def pedido_imprimir(request, pk):
     return render(request, 'pedidos/pedido_print.html', context)
 
 
-@login_required
 def configuracao_senha_cancelamento(request):
     """View para alterar a senha de cancelamento de pedidos"""
     # Verificar se o usuário é admin

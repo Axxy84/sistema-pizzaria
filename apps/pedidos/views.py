@@ -6,7 +6,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from .models import Pedido, ItemPedido, Mesa
@@ -375,7 +374,6 @@ def pedido_confirmacao_view(request, pedido_id):
     return render(request, 'pedidos/confirmacao.html', {'pedido': pedido})
 
 
-@login_required
 def mesas_abertas_view(request):
     """View principal para gerenciar mesas abertas"""
     mesas = Mesa.objects.filter(status='aberta').order_by('numero')
@@ -512,7 +510,6 @@ def criar_pedido_promocional(request):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@login_required
 @require_http_methods(["POST"])
 def abrir_mesa_view(request):
     """View para abrir uma nova mesa"""
@@ -547,7 +544,6 @@ def abrir_mesa_view(request):
     return redirect('pedidos:mesas_abertas')
 
 
-@login_required
 @require_http_methods(["POST"])
 def fechar_mesa_view(request, mesa_id):
     """View para fechar uma mesa"""
@@ -575,7 +571,6 @@ def fechar_mesa_view(request, mesa_id):
     return redirect('pedidos:mesas_abertas')
 
 
-@login_required
 def mesa_detalhes_view(request, mesa_id):
     """View para exibir detalhes de uma mesa"""
     mesa = get_object_or_404(Mesa, id=mesa_id)
@@ -590,7 +585,6 @@ def mesa_detalhes_view(request, mesa_id):
     return render(request, 'pedidos/mesa_detalhes.html', context)
 
 
-@login_required
 @require_http_methods(["POST"])
 def adicionar_pedido_mesa_view(request, mesa_id):
     """View para adicionar um pedido rápido a uma mesa"""
@@ -603,7 +597,6 @@ def adicionar_pedido_mesa_view(request, mesa_id):
     return redirect(f'/pedidos/novo/?mesa={mesa.numero}')
 
 
-@login_required
 def imprimir_comanda_view(request, mesa_id):
     """View para imprimir a comanda de uma mesa"""
     mesa = get_object_or_404(Mesa, id=mesa_id)

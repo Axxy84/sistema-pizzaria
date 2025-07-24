@@ -1,5 +1,4 @@
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q, Count, ProtectedError
 from django.http import JsonResponse
@@ -11,7 +10,7 @@ from .models import Produto, Categoria, ProdutoPreco, Tamanho
 from .forms import ProdutoForm, PizzaForm
 
 
-class ProductListView(LoginRequiredMixin, ListView):
+class ProductListView(ListView):
     model = Produto
     template_name = 'produtos/product_list.html'
     context_object_name = 'produtos'
@@ -75,7 +74,7 @@ class ProductListView(LoginRequiredMixin, ListView):
         return context
 
 
-class ProductFilterView(LoginRequiredMixin, TemplateView):
+class ProductFilterView(TemplateView):
     template_name = 'produtos/product_list.html'
     
     def get_context_data(self, **kwargs):
@@ -150,7 +149,7 @@ class ProductFilterView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class ProductSearchView(LoginRequiredMixin, TemplateView):
+class ProductSearchView(TemplateView):
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q', '')
         tipo = request.GET.get('tipo', '')
@@ -190,7 +189,7 @@ class ProductSearchView(LoginRequiredMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
 
-class ProductCreateView(LoginRequiredMixin, CreateView):
+class ProductCreateView(CreateView):
     model = Produto
     form_class = ProdutoForm
     template_name = 'produtos/product_form.html'
@@ -202,14 +201,14 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         return response
 
 
-class ProductUpdateView(LoginRequiredMixin, UpdateView):
+class ProductUpdateView(UpdateView):
     model = Produto
     form_class = ProdutoForm
     template_name = 'produtos/product_form.html'
     success_url = reverse_lazy('product_list')
 
 
-class ProductDeleteView(LoginRequiredMixin, DeleteView):
+class ProductDeleteView(DeleteView):
     model = Produto
     template_name = 'produtos/product_confirm_delete.html'
     success_url = reverse_lazy('product_list')
@@ -251,7 +250,7 @@ def product_toggle_status(request, pk):
     return JsonResponse({'success': False, 'message': 'Método não permitido'}, status=405)
 
 
-class PizzaTableView(LoginRequiredMixin, ListView):
+class PizzaTableView(ListView):
     """View para listagem de pizzas estilo cardápio"""
     model = Produto
     template_name = 'produtos/pizza_table.html'
@@ -283,7 +282,7 @@ class PizzaTableView(LoginRequiredMixin, ListView):
         return context
 
 
-class PizzaCreateView(LoginRequiredMixin, CreateView):
+class PizzaCreateView(CreateView):
     """View para criar pizza com formulário específico"""
     model = Produto
     form_class = PizzaForm
@@ -315,7 +314,7 @@ class PizzaCreateView(LoginRequiredMixin, CreateView):
         return response
 
 
-class PizzaUpdateView(LoginRequiredMixin, UpdateView):
+class PizzaUpdateView(UpdateView):
     """View para editar pizza com formulário específico"""
     model = Produto
     form_class = PizzaForm
@@ -368,7 +367,7 @@ class PizzaUpdateView(LoginRequiredMixin, UpdateView):
         return response
 
 
-class ProductCreateWizardView(LoginRequiredMixin, TemplateView):
+class ProductCreateWizardView(TemplateView):
     """View para o formulário wizard de criação de produtos"""
     template_name = "produtos/product_form_wizard.html"
     

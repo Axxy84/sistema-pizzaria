@@ -1,13 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q, F
 from django.http import JsonResponse
 from .models import Ingrediente, MovimentoEstoque, UnidadeMedida, ReceitaProduto
 from .forms import IngredienteForm, MovimentoEstoqueForm
 
-@login_required
 def estoque_dashboard(request):
     """Dashboard principal do estoque"""
     # Estatísticas gerais
@@ -44,7 +42,6 @@ def estoque_dashboard(request):
     
     return render(request, 'estoque/dashboard.html', context)
 
-@login_required
 def ingrediente_list(request):
     """Lista todos os ingredientes"""
     search = request.GET.get('search', '')
@@ -83,7 +80,6 @@ def ingrediente_list(request):
     
     return render(request, 'estoque/ingrediente_list.html', context)
 
-@login_required
 def ingrediente_detail(request, pk):
     """Detalhes de um ingrediente"""
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
@@ -110,7 +106,6 @@ def ingrediente_detail(request, pk):
     
     return render(request, 'estoque/ingrediente_detail.html', context)
 
-@login_required
 def ingrediente_create(request):
     """Criar novo ingrediente"""
     if request.method == 'POST':
@@ -125,7 +120,6 @@ def ingrediente_create(request):
     context = {'form': form, 'title': 'Criar Ingrediente'}
     return render(request, 'estoque/ingrediente_form.html', context)
 
-@login_required
 def ingrediente_edit(request, pk):
     """Editar ingrediente"""
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
@@ -146,7 +140,6 @@ def ingrediente_edit(request, pk):
     }
     return render(request, 'estoque/ingrediente_form.html', context)
 
-@login_required
 def movimento_list(request):
     """Lista movimentos de estoque"""
     search = request.GET.get('search', '')
@@ -189,7 +182,6 @@ def movimento_list(request):
     
     return render(request, 'estoque/movimento_list.html', context)
 
-@login_required
 def movimento_create(request):
     """Criar movimento de estoque"""
     if request.method == 'POST':
@@ -217,7 +209,6 @@ def movimento_create(request):
     context = {'form': form, 'title': 'Novo Movimento'}
     return render(request, 'estoque/movimento_form.html', context)
 
-@login_required
 def estoque_baixo(request):
     """Lista ingredientes com estoque baixo"""
     ingredientes = Ingrediente.objects.filter(
@@ -228,7 +219,6 @@ def estoque_baixo(request):
     context = {'ingredientes': ingredientes}
     return render(request, 'estoque/estoque_baixo.html', context)
 
-@login_required
 def relatorio_movimentos(request):
     """Relatório de movimentos por período"""
     from django.utils import timezone
@@ -280,7 +270,6 @@ def relatorio_movimentos(request):
     
     return render(request, 'estoque/relatorio_movimentos.html', context)
 
-@login_required
 def ingrediente_ajax_search(request):
     """Busca AJAX para ingredientes"""
     term = request.GET.get('term', '')

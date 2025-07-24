@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
@@ -9,7 +8,7 @@ from .models import Cliente, Endereco
 from .forms import ClienteForm, EnderecoForm
 
 
-class ClienteListView(LoginRequiredMixin, ListView):
+class ClienteListView(ListView):
     model = Cliente
     template_name = 'clientes/cliente_list.html'
     context_object_name = 'clientes'
@@ -43,7 +42,7 @@ class ClienteListView(LoginRequiredMixin, ListView):
         return context
 
 
-class ClienteDetailView(LoginRequiredMixin, DetailView):
+class ClienteDetailView(DetailView):
     model = Cliente
     template_name = 'clientes/cliente_detail.html'
     context_object_name = 'cliente'
@@ -54,7 +53,7 @@ class ClienteDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class ClienteCreateView(LoginRequiredMixin, CreateView):
+class ClienteCreateView(CreateView):
     model = Cliente
     form_class = ClienteForm
     template_name = 'clientes/cliente_form.html'
@@ -68,7 +67,7 @@ class ClienteCreateView(LoginRequiredMixin, CreateView):
         return reverse('clientes:cliente-detail', kwargs={'pk': self.object.pk})
 
 
-class ClienteUpdateView(LoginRequiredMixin, UpdateView):
+class ClienteUpdateView(UpdateView):
     model = Cliente
     form_class = ClienteForm
     template_name = 'clientes/cliente_form.html'
@@ -81,7 +80,7 @@ class ClienteUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('clientes:cliente-detail', kwargs={'pk': self.object.pk})
 
 
-class ClienteDeleteView(LoginRequiredMixin, DeleteView):
+class ClienteDeleteView(DeleteView):
     model = Cliente
     template_name = 'clientes/cliente_confirm_delete.html'
     success_url = reverse_lazy('clientes:cliente-list')
@@ -92,7 +91,7 @@ class ClienteDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # Views de Endereço
-class EnderecoCreateView(LoginRequiredMixin, CreateView):
+class EnderecoCreateView(CreateView):
     model = Endereco
     form_class = EnderecoForm
     template_name = 'clientes/endereco_form.html'
@@ -120,7 +119,7 @@ class EnderecoCreateView(LoginRequiredMixin, CreateView):
         return reverse('clientes:cliente-detail', kwargs={'pk': self.cliente.pk})
 
 
-class EnderecoUpdateView(LoginRequiredMixin, UpdateView):
+class EnderecoUpdateView(UpdateView):
     model = Endereco
     form_class = EnderecoForm
     template_name = 'clientes/endereco_form.html'
@@ -145,7 +144,7 @@ class EnderecoUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('clientes:cliente-detail', kwargs={'pk': self.object.cliente.pk})
 
 
-class EnderecoDeleteView(LoginRequiredMixin, DeleteView):
+class EnderecoDeleteView(DeleteView):
     model = Endereco
     template_name = 'clientes/endereco_confirm_delete.html'
     

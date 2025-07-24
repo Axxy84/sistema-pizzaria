@@ -6,7 +6,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, DetailView

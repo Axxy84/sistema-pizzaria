@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.db import transaction
@@ -13,7 +12,6 @@ from .models import Pedido, ItemPedido
 from apps.produtos.models import ProdutoPreco
 from apps.clientes.models import Cliente
 
-@login_required
 def listar_mesas(request):
     """Lista todas as mesas abertas"""
     mesas_abertas = Mesa.objects.filter(status='aberta').order_by('numero')
@@ -27,7 +25,6 @@ def listar_mesas(request):
     
     return render(request, 'pedidos/mesas_abertas.html', context)
 
-@login_required
 def abrir_mesa(request):
     """Abre uma nova mesa"""
     if request.method == 'POST':
@@ -59,7 +56,6 @@ def abrir_mesa(request):
     
     return redirect('pedidos:listar_mesas')
 
-@login_required
 def detalhes_mesa(request, mesa_id):
     """Exibe detalhes de uma mesa específica"""
     mesa = get_object_or_404(Mesa, id=mesa_id)
@@ -73,7 +69,6 @@ def detalhes_mesa(request, mesa_id):
     
     return render(request, 'pedidos/mesa_detalhes.html', context)
 
-@login_required
 def adicionar_pedido_mesa(request, mesa_id):
     """Adiciona um novo pedido à mesa"""
     mesa = get_object_or_404(Mesa, id=mesa_id)
@@ -135,7 +130,6 @@ def adicionar_pedido_mesa(request, mesa_id):
     
     return render(request, 'pedidos/adicionar_pedido_mesa.html', context)
 
-@login_required
 def fechar_mesa(request, mesa_id):
     """Fecha uma mesa e permite imprimir comanda"""
     mesa = get_object_or_404(Mesa, id=mesa_id)
@@ -171,7 +165,6 @@ def fechar_mesa(request, mesa_id):
     
     return render(request, 'pedidos/fechar_mesa.html', context)
 
-@login_required
 def imprimir_comanda_mesa(request, mesa_id):
     """Gera comanda completa da mesa para impressão"""
     mesa = get_object_or_404(Mesa, id=mesa_id)
@@ -194,7 +187,6 @@ def imprimir_comanda_mesa(request, mesa_id):
     
     return render(request, 'pedidos/comanda_mesa_impressao.html', context)
 
-@login_required
 def api_status_mesa(request, mesa_id):
     """API para obter status atualizado da mesa"""
     mesa = get_object_or_404(Mesa, id=mesa_id)
