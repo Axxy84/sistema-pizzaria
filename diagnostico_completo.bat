@@ -1,93 +1,97 @@
 @echo off
-REM Script melhorado para diagnóstico completo
-
 echo ============================================
-echo   DIAGNOSTICO COMPLETO - DJANGO SERVER
+echo   DIAGNOSTICO COMPLETO DO SERVIDOR
 echo ============================================
 echo.
 
-echo [1] Status do Servico:
-echo --------------------------------------------
-sc query DjangoPizzaria
+echo [1] Informacoes do Sistema
+echo ----------------------------
+echo Usuario: %USERNAME%
+echo Diretorio: %CD%
 echo.
 
-echo [2] Verificando porta 8080:
-echo --------------------------------------------
-netstat -an | findstr :8080
-if errorlevel 1 (
-    echo Porta 8080 LIVRE - Nenhum processo escutando
-) else (
-    echo Porta 8080 EM USO - Processos:
-    for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8080 ^| findstr LISTENING') do (
-        echo PID: %%a
-        for /f "tokens=1" %%b in ('tasklist /FI "PID eq %%a" ^| findstr %%a') do echo Processo: %%b
-    )
-)
+echo [2] Verificando Python
+echo ----------------------------
+where python
+python --version
 echo.
 
-echo [3] Verificando logs do servico:
-echo --------------------------------------------
-cd /d "%~dp0"
-
-if exist "logs\service\servico.log" (
-    echo === CONTEUDO DE servico.log ===
-    type "logs\service\servico.log"
-    echo.
-    echo === FIM DO LOG ===
-) else (
-    echo [!] Arquivo logs\service\servico.log NAO encontrado
-    echo Criando pasta de logs...
-    if not exist "logs\service" mkdir "logs\service"
-)
+echo [3] Verificando Django
+echo ----------------------------
+python -c "import django; print(f'Django {django.get_version()}')"
 echo.
 
-if exist "logs\service\erro.log" (
-    echo === CONTEUDO DE erro.log ===
-    type "logs\service\erro.log"
-    echo.
-    echo === FIM DO LOG ===
-) else (
-    echo [!] Arquivo logs\service\erro.log NAO encontrado
-)
+echo [4] Verificando Variaveis de Ambiente
+echo ----------------------------
+echo DJANGO_SETTINGS_MODULE = %DJANGO_SETTINGS_MODULE%
+echo PYTHONPATH = %PYTHONPATH%
 echo.
 
-echo [4] Verificando ambiente Python:
-echo --------------------------------------------
-if exist ".venv\Scripts\python.exe" (
-    echo [OK] Python encontrado em .venv
-    call .venv\Scripts\activate.bat
-    python --version
-    where python
-) else (
-    echo [ERRO] Python NAO encontrado em .venv\Scripts\
-    echo Verifique se o ambiente virtual esta correto
-)
+echo [5] Testando importacao do settings
+echo ----------------------------
+python -c "from DjangoProject import settings; print('Settings OK')" 2>&1
 echo.
 
-echo [5] Verificando arquivo run_no_auth.py:
-echo --------------------------------------------
-if exist "run_no_auth.py" (
-    echo [OK] Arquivo run_no_auth.py encontrado
-    echo Tamanho: 
-    for %%A in (run_no_auth.py) do echo %%~zA bytes
-) else (
-    echo [ERRO] Arquivo run_no_auth.py NAO encontrado!
-    echo.
-    echo Arquivos Python na pasta:
-    dir /b *.py
-)
+echo [6] Verificando ALLOWED_HOSTS
+echo ----------------------------
+python -c "from DjangoProject.settings import ALLOWED_HOSTS; print(f'ALLOWED_HOSTS = {ALLOWED_HOSTS}')" 2>&1
 echo.
 
-echo [6] Testando conexao com banco de dados:
-echo --------------------------------------------
-if exist ".env" (
-    echo [OK] Arquivo .env encontrado
-) else (
-    echo [!] Arquivo .env NAO encontrado
-    if exist ".env.example" (
-        echo Copie .env.example para .env e configure
-    )
-)
+echo [7] Verificando Firewall Windows
+echo ----------------------------
+netsh advfirewall show currentprofile | findstr "State"
 echo.
 
+echo [8] Regras de Firewall para Python
+echo ----------------------------
+netsh advfirewall firewall show rule name=all | findstr /i "python" | findstr /i "8080\|8000"
+echo.
+
+echo [9] Testando localhost vs 0.0.0.0
+echo ----------------------------
+echo.
+echo Teste 1: localhost:8080
+curl -I http://localhost:8080 2>&1 | findstr /i "HTTP\|refused\|timeout"
+echo.
+echo Teste 2: 127.0.0.1:8080
+curl -I http://127.0.0.1:8080 2>&1 | findstr /i "HTTP\|refused\|timeout"
+echo.
+echo Teste 3: 0.0.0.0:8080 (invalido para cliente)
+echo [Info] 0.0.0.0 e endereco de bind, nao de acesso
+echo.
+
+echo [10] Portas em uso
+echo ----------------------------
+netstat -an | findstr "LISTENING" | findstr ":80"
+echo.
+
+echo [11] Processos Python rodando
+echo ----------------------------
+tasklist | findstr python
+echo.
+
+echo [12] Testando DNS local
+echo ----------------------------
+nslookup localhost
+ping -n 1 localhost | findstr /i "bytes\|unreachable"
+echo.
+
+echo [13] Arquivo hosts
+echo ----------------------------
+type C:\Windows\System32\drivers\etc\hosts | findstr -v "^#" | findstr "."
+echo.
+
+echo ============================================
+echo   INICIANDO SERVIDOR DE TESTE
+echo ============================================
+echo.
+echo O servidor sera iniciado em modo DEBUG
+echo Observe as mensagens de erro
+echo.
+echo Pressione Ctrl+C quando terminar o teste
+echo.
 pause
+
+call .venv\Scripts\activate.bat
+set DJANGO_DEBUG=True
+python manage.py runserver --verbosity 3 127.0.0.1:8080
