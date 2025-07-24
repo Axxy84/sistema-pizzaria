@@ -73,7 +73,7 @@ def get_vendas_chart_data():
     
     return json.dumps(data)
 
-@cache_query(timeout=300)
+# @cache_query(timeout=300)
 def get_produtos_chart_data():
     """Dados para gráfico de produtos mais vendidos - cacheado"""
     produtos_mock = [
@@ -86,7 +86,7 @@ def get_produtos_chart_data():
     
     return json.dumps(produtos_mock)
 
-@cache_query(timeout=600)
+# @cache_query(timeout=600)
 def get_clientes_chart_data():
     """Dados para gráfico de crescimento de clientes - cacheado"""
     today = timezone.now().date()
@@ -104,7 +104,7 @@ def get_clientes_chart_data():
     
     return json.dumps(data)
 
-@cache_query(timeout=1800)
+# @cache_query(timeout=1800)
 def get_receita_chart_data():
     """Dados para gráfico de receita mensal - cacheado 30min"""
     receita_mock = [
