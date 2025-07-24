@@ -122,18 +122,26 @@ if not exist ".env" (
 :: Executar migrações
 echo.
 echo [7/8] Configurando banco de dados...
-python manage.py migrate --run-syncdb --noinput
+python manage.py migrate --run-syncdb --noinput --settings=settings_fast
 if %errorlevel% neq 0 (
     echo [ERRO] Falha ao aplicar migrações
-    pause
-    exit /b 1
+    echo Tentando com configurações padrão...
+    python manage.py migrate --run-syncdb --noinput
+    if %errorlevel% neq 0 (
+        echo [ERRO] Falha persistente nas migrações
+        pause
+        exit /b 1
+    )
 )
 echo [✓] Banco de dados configurado
 
 :: Coletar arquivos estáticos
 echo.
 echo [8/8] Preparando arquivos estáticos...
-python manage.py collectstatic --noinput --clear >nul 2>&1
+python manage.py collectstatic --noinput --clear --settings=settings_fast >nul 2>&1
+if %errorlevel% neq 0 (
+    python manage.py collectstatic --noinput --clear >nul 2>&1
+)
 echo [✓] Arquivos estáticos preparados
 
 :: Criar usuário admin
@@ -146,7 +154,10 @@ echo Deseja criar um usuário administrador agora? (S/N)
 set /p criar_admin=Resposta: 
 if /i "%criar_admin%"=="S" (
     echo.
-    python manage.py createsuperuser
+    python manage.py createsuperuser --settings=settings_fast
+    if %errorlevel% neq 0 (
+        python manage.py createsuperuser
+    )
 )
 
 :: Carregar dados iniciais
