@@ -6,6 +6,10 @@ from django.http import JsonResponse
 from django.core.cache import cache
 from django.conf import settings
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from django.db import connection
+import django
 from apps.core.cache_utils import CacheManager
 
 
@@ -120,3 +124,98 @@ def cache_test(request):
             'invalidated': product_after is None
         }
     })
+
+
+@require_http_methods(["GET"])
+@never_cache
+def health_check(request):
+    """
+    Endpoint de health check para o indicador de status
+    Retorna informações sobre o estado do sistema
+    """
+    try:
+        # Verificar conexão com banco de dados
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            db_status = "ok"
+    except:
+        db_status = "error"
+    
+    # Verificar cache
+    try:
+        cache.set('health_check', 'ok', 10)
+        cache_status = "ok" if cache.get('health_check') == 'ok' else "error"
+    except:
+        cache_status = "error"
+    
+    # Informações do sistema
+    try:
+        import psutil
+        import os
+        
+        process = psutil.Process(os.getpid())
+        memory_info = process.memory_info()
+        cpu_percent = process.cpu_percent(interval=0.1)
+        
+        system_info = {
+            "memory_mb": round(memory_info.rss / 1024 / 1024, 2),
+            "cpu_percent": round(cpu_percent, 2),
+            "threads": process.num_threads(),
+        }
+    except:
+        system_info = {
+            "memory_mb": 0,
+            "cpu_percent": 0,
+            "threads": 0,
+        }
+    
+    # Status geral
+    all_ok = db_status == "ok" and cache_status == "ok"
+    
+    return JsonResponse({
+        "status": "healthy" if all_ok else "degraded",
+        "services": {
+            "database": db_status,
+            "cache": cache_status,
+        },
+        "system": system_info,
+        "timestamp": str(timezone.now())
+    })
+
+
+@require_http_methods(["GET"])
+def server_status_view(request):
+    """
+    View para página de status detalhado do servidor
+    """
+    import platform
+    
+    context = {
+        "python_version": platform.python_version(),
+        "django_version": django.get_version(),
+        "system": platform.system(),
+        "node": platform.node(),
+        "uptime": get_uptime(),
+        "current_time": timezone.now()
+    }
+    
+    return render(request, 'core/server_status.html', context)
+
+
+def get_uptime():
+    """Calcula o uptime do processo"""
+    try:
+        import psutil
+        import os
+        from datetime import datetime
+        
+        process = psutil.Process(os.getpid())
+        create_time = datetime.fromtimestamp(process.create_time())
+        uptime = datetime.now() - create_time
+        
+        hours, remainder = divmod(uptime.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        return f"{uptime.days}d {hours}h {minutes}m {seconds}s"
+    except:
+        return "N/A"

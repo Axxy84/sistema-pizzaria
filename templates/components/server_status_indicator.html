@@ -1,0 +1,178 @@
+<!-- Indicador de Status do Servidor - Estilo Painel de Carro -->
+<div id="server-status-indicator" class="fixed bottom-4 right-4 z-50">
+    <div class="bg-gray-900 rounded-lg p-3 shadow-xl border border-gray-700">
+        <!-- Container das luzes -->
+        <div class="flex items-center space-x-3">
+            <!-- Luz Verde - Servidor Online -->
+            <div id="status-online" class="hidden">
+                <div class="relative">
+                    <!-- Efeito de brilho -->
+                    <div class="absolute inset-0 bg-green-500 rounded-full blur-md animate-pulse"></div>
+                    <!-- Luz principal -->
+                    <div class="relative w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow-lg flex items-center justify-center">
+                        <!-- Reflexo -->
+                        <div class="absolute top-1 left-1 w-2 h-2 bg-white rounded-full opacity-60"></div>
+                        <!-- Ícone -->
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Luz Vermelha - Servidor Offline -->
+            <div id="status-offline" class="hidden">
+                <div class="relative">
+                    <!-- Efeito de brilho piscante -->
+                    <div class="absolute inset-0 bg-red-500 rounded-full blur-md animate-ping"></div>
+                    <!-- Luz principal -->
+                    <div class="relative w-8 h-8 bg-gradient-to-br from-red-400 to-red-600 rounded-full shadow-lg flex items-center justify-center animate-pulse">
+                        <!-- Reflexo -->
+                        <div class="absolute top-1 left-1 w-2 h-2 bg-white rounded-full opacity-60"></div>
+                        <!-- Ícone -->
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Luz Amarela - Verificando -->
+            <div id="status-checking" class="">
+                <div class="relative">
+                    <!-- Efeito de brilho -->
+                    <div class="absolute inset-0 bg-yellow-500 rounded-full blur-md animate-pulse"></div>
+                    <!-- Luz principal -->
+                    <div class="relative w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full shadow-lg flex items-center justify-center">
+                        <!-- Reflexo -->
+                        <div class="absolute top-1 left-1 w-2 h-2 bg-white rounded-full opacity-60"></div>
+                        <!-- Ícone girando -->
+                        <svg class="w-5 h-5 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Texto do Status -->
+            <div class="text-sm font-medium">
+                <div id="status-text" class="text-gray-400">Verificando...</div>
+                <div id="status-detail" class="text-xs text-gray-500"></div>
+            </div>
+        </div>
+
+        <!-- Botão de Ação -->
+        <div id="status-action" class="hidden mt-2">
+            <button onclick="window.location.reload()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-2 py-1 rounded transition-colors">
+                Recarregar Página
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Sistema de Monitoramento do Servidor
+(function() {
+    let statusOnline = document.getElementById('status-online');
+    let statusOffline = document.getElementById('status-offline');
+    let statusChecking = document.getElementById('status-checking');
+    let statusText = document.getElementById('status-text');
+    let statusDetail = document.getElementById('status-detail');
+    let statusAction = document.getElementById('status-action');
+    
+    let checkInterval;
+    let errorCount = 0;
+    const MAX_ERRORS = 3;
+
+    function updateStatus(status, message = '', detail = '') {
+        // Esconder todas as luzes
+        statusOnline.classList.add('hidden');
+        statusOffline.classList.add('hidden');
+        statusChecking.classList.add('hidden');
+        statusAction.classList.add('hidden');
+        
+        // Mostrar luz apropriada
+        switch(status) {
+            case 'online':
+                statusOnline.classList.remove('hidden');
+                statusText.textContent = message || 'Servidor Online';
+                statusText.className = 'text-green-400';
+                errorCount = 0;
+                break;
+                
+            case 'offline':
+                statusOffline.classList.remove('hidden');
+                statusText.textContent = message || 'Servidor Offline';
+                statusText.className = 'text-red-400';
+                statusAction.classList.remove('hidden');
+                break;
+                
+            case 'checking':
+                statusChecking.classList.remove('hidden');
+                statusText.textContent = message || 'Verificando...';
+                statusText.className = 'text-yellow-400';
+                break;
+        }
+        
+        statusDetail.textContent = detail;
+    }
+
+    function checkServerStatus() {
+        updateStatus('checking');
+        
+        // Fazer requisição para verificar status
+        fetch('/api/health/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            // Timeout de 5 segundos
+            signal: AbortSignal.timeout(5000)
+        })
+        .then(response => {
+            if (response.ok) {
+                updateStatus('online', 'Sistema Operacional', 'Última verificação: ' + new Date().toLocaleTimeString());
+            } else {
+                throw new Error('Server returned ' + response.status);
+            }
+        })
+        .catch(error => {
+            errorCount++;
+            if (errorCount >= MAX_ERRORS) {
+                updateStatus('offline', 'Conexão Perdida', 'Verifique o servidor');
+                // Para de verificar após muitos erros
+                clearInterval(checkInterval);
+            } else {
+                updateStatus('checking', 'Reconectando...', `Tentativa ${errorCount}/${MAX_ERRORS}`);
+            }
+        });
+    }
+
+    // Verificar imediatamente
+    checkServerStatus();
+    
+    // Verificar a cada 30 segundos
+    checkInterval = setInterval(checkServerStatus, 30000);
+    
+    // Verificar quando a página ganha foco
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            checkServerStatus();
+        }
+    });
+})();
+</script>
+
+<style>
+/* Animações customizadas */
+@keyframes ping {
+    75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.animate-ping {
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+</style>

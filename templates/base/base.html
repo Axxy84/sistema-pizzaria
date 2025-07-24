@@ -179,6 +179,9 @@
     <script src="{% static 'js/lazy-loading.js' %}"></script>
     <script src="{% static 'js/pwa-install.js' %}"></script>
     
+    <!-- Indicador de Status do Servidor -->
+    {% include 'components/server_status_indicator.html' %}
+    
     <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
