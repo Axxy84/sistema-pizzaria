@@ -1,131 +1,157 @@
-# 🍕 Guia de Instalação - Sistema Pizzaria (Windows)
+# 🍕 Guia de Instalação - Sistema Pizzaria para Windows
 
 ## 📋 Pré-requisitos
 
-1. **Python 3.11 ou superior**
-   - Baixar de: https://www.python.org/downloads/
-   - ✅ Marcar "Add Python to PATH" durante instalação
+1. **Python 3.10 ou superior** instalado
+   - Download: https://www.python.org/downloads/
+   - Durante instalação, marque "Add Python to PATH"
 
-2. **Node.js LTS**
-   - Baixar de: https://nodejs.org/
-   - Escolher versão LTS
+2. **Windows 10/11** (64-bit)
 
-## 🚀 Instalação Passo a Passo
+## 🚀 Instalação Rápida
 
-### 1️⃣ Abrir PowerShell como Administrador
-- Clique direito no menu Iniciar
-- "Windows PowerShell (Admin)"
+### Opção 1: Instalação Simples (Recomendado)
 
-### 2️⃣ Navegar até a pasta
-```powershell
-cd C:\Users\User\Documents\sistema-pizzaria-master
+1. **Baixe o projeto** para uma pasta (ex: `C:\Pizzaria`)
+
+2. **Execute o instalador:**
+   ```
+   instalar_windows.bat
+   ```
+   Este script irá:
+   - ✅ Criar ambiente virtual Python
+   - ✅ Instalar todas as dependências
+   - ✅ Configurar o banco de dados
+   - ✅ Preparar arquivos estáticos
+
+3. **Crie os atalhos na área de trabalho:**
+   ```
+   criar_atalhos.bat
+   ```
+
+4. **Inicie o sistema:**
+   - Clique no atalho "Sistema Pizzaria" na área de trabalho
+   - Ou execute: `iniciar_pizzaria.bat`
+
+5. **Acesse o sistema:**
+   - Abra o navegador em: http://localhost:8000
+   - Ou clique no atalho "Pizzaria - Navegador"
+
+### Opção 2: Instalação como Serviço Windows
+
+Para que o sistema inicie automaticamente com o Windows:
+
+1. **Execute como Administrador:**
+   ```
+   instalar_servico.bat
+   ```
+
+2. **Comandos úteis do serviço:**
+   ```batch
+   :: Parar o serviço
+   net stop PizzariaSystem
+   
+   :: Iniciar o serviço
+   net start PizzariaSystem
+   
+   :: Verificar status
+   sc query PizzariaSystem
+   
+   :: Remover o serviço
+   python pizzaria_service.py remove
+   ```
+
+## 📁 Estrutura de Arquivos
+
+```
+C:\Pizzaria\
+├── instalar_windows.bat      # Instalador principal
+├── iniciar_pizzaria.bat      # Iniciar servidor
+├── criar_atalhos.bat         # Criar atalhos
+├── instalar_servico.bat      # Instalar como serviço
+├── run_fast.py              # Script Python otimizado
+├── settings_fast.py         # Configurações otimizadas
+└── db.sqlite3               # Banco de dados
 ```
 
-### 3️⃣ Criar ambiente virtual Python
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate
+## ⚡ Características da Versão Otimizada
+
+- **Sem autenticação** - Acesso direto ao sistema
+- **Performance máxima** - Cache em memória, queries otimizadas
+- **Banco SQLite** - Sem dependências externas
+- **Interface responsiva** - Funciona em qualquer dispositivo
+
+## 🛠️ Solução de Problemas
+
+### Python não encontrado
+- Reinstale Python marcando "Add to PATH"
+- Ou adicione manualmente: `C:\Python310` ao PATH
+
+### Porta 8000 em uso
+Edite `iniciar_pizzaria.bat` e mude a porta:
+```batch
+python manage.py runserver 0.0.0.0:8080
 ```
 
-### 4️⃣ Instalar dependências Python
-```powershell
-pip install -r requirements-windows.txt
+### Erro de permissão
+- Execute os arquivos .bat como Administrador
+- Ou mova o projeto para `C:\` ao invés de `Program Files`
+
+### Sistema não inicia
+1. Verifique se o ambiente virtual foi criado: `.venv\`
+2. Reinstale as dependências:
+   ```
+   .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+## 🔧 Configurações Avançadas
+
+### Mudar porta padrão
+Edite `settings_fast.py`:
+```python
+ALLOWED_HOSTS = ['*']  # Permite acesso de qualquer IP
 ```
 
-Se der erro, tente:
-```powershell
-pip install Django==5.2.4
-pip install psycopg2-binary
-pip install python-dotenv
-pip install supabase
-pip install djangorestframework
-pip install django-cors-headers
+### Habilitar debug
+Em `settings_fast.py`:
+```python
+DEBUG = True  # Já está habilitado por padrão
 ```
 
-### 5️⃣ Configurar variáveis de ambiente
-```powershell
-copy .env.example .env
-notepad .env
-```
+### Backup do banco
+Copie regularmente o arquivo `db.sqlite3`
 
-Editar com suas credenciais Supabase:
-```
-SUPABASE_URL=sua_url_aqui
-SUPABASE_ANON_KEY=sua_chave_aqui
-DATABASE_HOST=aws-0-sa-east-1.pooler.supabase.com
-DATABASE_NAME=postgres
-DATABASE_USER=postgres.aewcurtmikqelqykpqoa
-DATABASE_PASSWORD=sua_senha_aqui
-DATABASE_PORT=5432
-USE_SUPABASE_DB=True
-```
+## 📱 Acesso pela Rede Local
 
-### 6️⃣ Testar o sistema
-```powershell
-python manage.py migrate
-python manage.py runserver
-```
+Para acessar de outros dispositivos na mesma rede:
 
-Abrir no navegador: http://localhost:8000
+1. Descubra o IP do computador:
+   ```
+   ipconfig
+   ```
 
-## 🖥️ Criar Aplicativo Desktop (Opcional)
+2. Acesse de outro dispositivo:
+   ```
+   http://192.168.1.100:8000
+   ```
 
-### 7️⃣ Entrar na pasta Electron
-```powershell
-cd electron
-npm install
-```
+## 🆘 Suporte
 
-### 8️⃣ Criar ícone
-- Converter logo.svg para icon.ico
-- Site: https://convertio.co/pt/svg-ico/
-- Salvar como: `electron\icon.ico`
+Em caso de problemas:
+1. Verifique o arquivo de log em `logs\`
+2. Execute em modo debug: `python manage.py runserver --verbosity 3`
+3. Verifique se todas as dependências foram instaladas
 
-### 9️⃣ Construir instalador
-```powershell
-npm run build-win
-```
+## ✅ Checklist Pós-Instalação
 
-### 🎯 Resultado
-Instalador em: `electron\dist\Sistema Pizzaria Setup 1.0.0.exe`
-
-## 🔧 Solução de Problemas
-
-### Erro: "python não é reconhecido"
-- Reinstalar Python com "Add to PATH" marcado
-- Ou usar: `py -m venv .venv`
-
-### Erro: "cannot import psycopg2"
-```powershell
-pip uninstall psycopg2 psycopg2-binary
-pip install psycopg2-binary
-```
-
-### Erro: "npm não é reconhecido"
-- Instalar Node.js
-- Reiniciar PowerShell
-
-### Erro de conexão Supabase
-- Verificar credenciais no .env
-- Testar conexão internet
-
-## 🚀 Executar o Sistema
-
-### Opção 1: Navegador (Recomendado para teste)
-```powershell
-.venv\Scripts\Activate
-python manage.py runserver
-```
-Acessar: http://localhost:8000
-
-### Opção 2: App Desktop
-Executar o instalador .exe criado
-
-## 📞 Suporte
-
-Em caso de dúvidas:
-- Email: suporte@pizzaria.com
-- WhatsApp: (11) 99999-9999
+- [ ] Sistema acessível em http://localhost:8000
+- [ ] Dashboard carregando corretamente
+- [ ] Atalhos criados na área de trabalho
+- [ ] Produtos e pedidos funcionando
+- [ ] Performance rápida e responsiva
 
 ---
-Versão 1.0.0 - Janeiro 2025
+
+**Versão**: 1.0 - Otimizada para Performance
+**Última atualização**: Janeiro 2025
