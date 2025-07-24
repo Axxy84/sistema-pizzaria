@@ -11,6 +11,11 @@ from .utils_impressao import (
     salvar_comanda_arquivo,
     imprimir_comanda_windows
 )
+try:
+    from .impressao_escpos import imprimir_pedido_escpos
+    ESCPOS_DISPONIVEL = True
+except ImportError:
+    ESCPOS_DISPONIVEL = False
 import json
 import subprocess
 import os
@@ -65,17 +70,28 @@ def imprimir_comanda(request, pedido_id):
     mensagens_erro = []
     
     try:
-        # Método 1: Comando PRINT do Windows
-        if impressora:
-            cmd = f'print /D:"{impressora}" "{arquivo_temp}"'
-        else:
-            cmd = f'print "{arquivo_temp}"'
+        # Tentar primeiro com ESC/POS se disponível
+        if ESCPOS_DISPONIVEL and data.get('usar_escpos', False):
+            try:
+                sucesso, msg = imprimir_pedido_escpos(pedido)
+                if not sucesso:
+                    mensagens_erro.append(f"ESC/POS: {msg}")
+            except Exception as e:
+                mensagens_erro.append(f"ESC/POS: {str(e)}")
         
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
-        if result.returncode == 0:
-            sucesso = True
-        else:
-            mensagens_erro.append(f"PRINT: {result.stderr or 'Falhou'}")
+        # Se não funcionou, usar métodos anteriores
+        if not sucesso:
+            # Método 1: Comando PRINT do Windows
+            if impressora:
+                cmd = f'print /D:"{impressora}" "{arquivo_temp}"'
+            else:
+                cmd = f'print "{arquivo_temp}"'
+            
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                sucesso = True
+            else:
+                mensagens_erro.append(f"PRINT: {result.stderr or 'Falhou'}")
         
         # Se não funcionou, tentar método 2: Notepad silencioso
         if not sucesso:
