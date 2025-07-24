@@ -12,6 +12,8 @@ from .utils_impressao import (
     imprimir_comanda_windows
 )
 import json
+import subprocess
+import os
 
 @require_http_methods(["GET"])
 def visualizar_comanda(request, pedido_id):
@@ -42,7 +44,7 @@ def download_comanda(request, pedido_id):
 @require_http_methods(["POST"])
 def imprimir_comanda(request, pedido_id):
     """
-    Imprime a comanda na impressora térmica
+    Imprime a comanda na impressora térmica com múltiplos métodos
     """
     pedido = get_object_or_404(Pedido, id=pedido_id)
     
@@ -50,23 +52,87 @@ def imprimir_comanda(request, pedido_id):
     data = json.loads(request.body) if request.body else {}
     impressora = data.get('impressora', None)
     
-    # Tentar imprimir
-    sucesso, mensagem = imprimir_comanda_windows(pedido, impressora)
+    # Gerar texto da comanda
+    comanda_texto = gerar_comanda_texto_puro(pedido)
     
-    if sucesso:
-        # Marcar como impresso
-        pedido.comanda_impressa = True
-        pedido.save(update_fields=['comanda_impressa'])
+    # Salvar em arquivo temporário
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='cp850', errors='replace') as f:
+        f.write(comanda_texto)
+        arquivo_temp = f.name
+    
+    sucesso = False
+    mensagens_erro = []
+    
+    try:
+        # Método 1: Comando PRINT do Windows
+        if impressora:
+            cmd = f'print /D:"{impressora}" "{arquivo_temp}"'
+        else:
+            cmd = f'print "{arquivo_temp}"'
         
-        return JsonResponse({
-            'success': True,
-            'message': mensagem
-        })
-    else:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            sucesso = True
+        else:
+            mensagens_erro.append(f"PRINT: {result.stderr or 'Falhou'}")
+        
+        # Se não funcionou, tentar método 2: Notepad silencioso
+        if not sucesso:
+            cmd_notepad = f'notepad /p "{arquivo_temp}"'
+            result2 = subprocess.run(cmd_notepad, shell=True, capture_output=True, text=True, timeout=10)
+            if result2.returncode == 0:
+                sucesso = True
+            else:
+                mensagens_erro.append(f"NOTEPAD: {result2.stderr or 'Falhou'}")
+        
+        # Método 3: Copiar direto para porta (se soubermos qual é)
+        if not sucesso and not impressora:
+            # Tentar descobrir a porta da impressora
+            cmd_porta = 'wmic printer where "name like \'%KNUP%\'" get portname /value'
+            result_porta = subprocess.run(cmd_porta, shell=True, capture_output=True, text=True)
+            
+            if result_porta.stdout:
+                for linha in result_porta.stdout.split('\n'):
+                    if 'PortName=' in linha:
+                        porta = linha.split('=')[1].strip()
+                        if porta:
+                            cmd_copy = f'copy "{arquivo_temp}" {porta}'
+                            result3 = subprocess.run(cmd_copy, shell=True, capture_output=True, text=True)
+                            if result3.returncode == 0:
+                                sucesso = True
+                                break
+                            else:
+                                mensagens_erro.append(f"COPY {porta}: Falhou")
+        
+        if sucesso:
+            # Marcar como impresso
+            pedido.comanda_impressa = True
+            pedido.save(update_fields=['comanda_impressa'])
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Comanda enviada para impressora!'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Não foi possível imprimir. Erros: ' + ' | '.join(mensagens_erro),
+                'sugestao': 'Tente baixar o arquivo .txt e imprimir manualmente'
+            }, status=400)
+            
+    except Exception as e:
         return JsonResponse({
             'success': False,
-            'error': mensagem
-        }, status=400)
+            'error': f'Erro ao imprimir: {str(e)}'
+        }, status=500)
+        
+    finally:
+        # Limpar arquivo temporário
+        try:
+            os.unlink(arquivo_temp)
+        except:
+            pass
 
 @require_http_methods(["GET"])
 def testar_impressora(request):
@@ -133,15 +199,14 @@ def testar_impressora(request):
 @require_http_methods(["POST"])
 def imprimir_teste(request):
     """
-    Imprime página de teste na impressora
+    Imprime página de teste na impressora com múltiplos métodos
     """
     import tempfile
     import os
     from datetime import datetime
     
     # Texto de teste simples
-    texto_teste = f"""
-========================================
+    texto_teste = f"""========================================
          TESTE DE IMPRESSAO
 ========================================
 
@@ -151,11 +216,10 @@ Teste de caracteres:
 - Numeros: 0123456789
 - Letras: ABCDEFGHIJKLMNOPQRSTUVWXYZ
 - Letras: abcdefghijklmnopqrstuvwxyz
-- Especiais: !@#$%&*()_+-=[]{{}}|;:,.<>?
 
 Teste de acentos removidos:
-- Original: ação, você, maçã, José
-- Limpo: acao, voce, maca, Jose
+- Original: acao voce maca Jose
+- Este texto nao tem acentos
 
 Teste de alinhamento:
 Item                    Qtd   Valor
@@ -178,30 +242,49 @@ TOTAL:                        51,00
     impressora = data.get('impressora', None)
     
     # Criar arquivo temporário
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='cp850') as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='cp850', errors='replace') as f:
         f.write(texto_teste)
         arquivo_temp = f.name
     
+    sucesso = False
+    metodo_sucesso = ""
+    
     try:
-        import subprocess
+        # Tentar vários métodos
         
+        # Método 1: PRINT
         if impressora:
             cmd = f'print /D:"{impressora}" "{arquivo_temp}"'
         else:
             cmd = f'print "{arquivo_temp}"'
         
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
+            sucesso = True
+            metodo_sucesso = "PRINT"
+        
+        # Método 2: Notepad
+        if not sucesso:
+            subprocess.run(f'notepad /p "{arquivo_temp}"', shell=True, timeout=5)
+            sucesso = True
+            metodo_sucesso = "NOTEPAD"
+        
+        if sucesso:
             return JsonResponse({
                 'success': True,
-                'message': 'Teste enviado para impressora'
+                'message': f'Teste enviado para impressora usando {metodo_sucesso}'
             })
         else:
             return JsonResponse({
                 'success': False,
-                'error': f'Erro ao imprimir: {result.stderr}'
+                'error': 'Não foi possível imprimir. Verifique se a impressora está configurada como padrão.'
             }, status=400)
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro: {str(e)}'
+        }, status=500)
     
     finally:
         try:
