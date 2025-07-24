@@ -145,5 +145,10 @@ CONN_MAX_AGE = 600
 USE_L10N = False
 USE_THOUSAND_SEPARATOR = False
 
+# Login URL - Sistema sem autenticação
+LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 # Senha para cancelamento
 ADMIN_CANCEL_PASSWORD = '2024pizza'
