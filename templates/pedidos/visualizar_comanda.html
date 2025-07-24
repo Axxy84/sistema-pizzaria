@@ -1,0 +1,118 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}Visualizar Comanda{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Cabeçalho -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Visualizar Comanda</h1>
+            <p class="text-gray-600">Pedido #{{ pedido.numero }}</p>
+        </div>
+
+        <!-- Área de visualização -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <!-- Botões de ação -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex space-x-3">
+                    <button onclick="imprimirComanda()" 
+                            class="bg-pizza-600 text-white px-4 py-2 rounded-lg hover:bg-pizza-700 transition flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Imprimir
+                    </button>
+                    
+                    <a href="{% url 'pedidos:download_comanda' pedido.id %}" 
+                       class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Baixar .txt
+                    </a>
+                </div>
+                
+                <button onclick="window.close()" 
+                        class="text-gray-600 hover:text-gray-800 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Pré-visualização da comanda -->
+            <div class="bg-gray-100 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                <pre id="comanda-texto">{{ comanda_texto }}</pre>
+            </div>
+
+            <!-- Status de impressão -->
+            {% if pedido.comanda_impressa %}
+            <div class="mt-4 p-3 bg-green-100 border border-green-400 rounded-lg text-green-700">
+                <p class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    Comanda já foi impressa
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Informações adicionais -->
+        <div class="mt-6 text-sm text-gray-600">
+            <p>• A comanda será impressa sem acentos para compatibilidade</p>
+            <p>• Largura padrão: 40 caracteres (impressora térmica)</p>
+            <p>• Codificação: CP850 (DOS Latin-1)</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function imprimirComanda() {
+    // Mostrar loading
+    const btn = event.target.closest('button');
+    const textoOriginal = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Imprimindo...';
+    
+    // Enviar para impressão
+    fetch("{% url 'pedidos:imprimir_comanda' pedido.id %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            impressora: null  // Usar impressora padrão
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mostrar sucesso
+            btn.innerHTML = '<svg class="w-5 h-5 mr-2 inline" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Impresso!';
+            btn.classList.remove('bg-pizza-600');
+            btn.classList.add('bg-green-600');
+            
+            // Recarregar página após 2 segundos
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            // Mostrar erro
+            alert('Erro ao imprimir: ' + (data.error || 'Erro desconhecido'));
+            btn.innerHTML = textoOriginal;
+            btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        alert('Erro de conexão: ' + error);
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    });
+}
+</script>
+{% endblock %}

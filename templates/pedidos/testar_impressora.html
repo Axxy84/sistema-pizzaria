@@ -1,0 +1,164 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}Testar Impressora{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Cabeçalho -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Testar Impressora Térmica</h1>
+            <p class="text-gray-600">Verifique se a impressora está funcionando corretamente</p>
+        </div>
+
+        <!-- Área de teste -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <!-- Seletor de impressora -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Selecionar Impressora
+                </label>
+                <select id="impressora-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pizza-500">
+                    <option value="">Impressora Padrão do Windows</option>
+                    <option value="KNUP KP-IM609">KNUP KP-IM609</option>
+                    <option value="Generic / Text Only">Generic / Text Only</option>
+                </select>
+            </div>
+
+            <!-- Botões de teste -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button onclick="imprimirTeste()" 
+                        class="bg-pizza-600 text-white px-6 py-3 rounded-lg hover:bg-pizza-700 transition flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Imprimir Teste Simples
+                </button>
+                
+                <button onclick="imprimirComandaTeste()" 
+                        class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Imprimir Comanda Exemplo
+                </button>
+            </div>
+
+            <!-- Pré-visualização -->
+            <div class="border-t pt-6">
+                <h3 class="text-lg font-semibold mb-3">Pré-visualização da Comanda de Exemplo:</h3>
+                <div class="bg-gray-100 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                    <pre>{{ comanda_texto }}</pre>
+                </div>
+            </div>
+
+            <!-- Dicas -->
+            <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 class="font-semibold text-blue-900 mb-2">Dicas para resolver problemas:</h4>
+                <ul class="text-sm text-blue-800 space-y-1">
+                    <li>• Se aparecerem caracteres estranhos, mude para driver "Generic / Text Only"</li>
+                    <li>• Verifique se a impressora está ligada e com papel</li>
+                    <li>• O cabo USB deve estar bem conectado</li>
+                    <li>• A impressora deve estar configurada como padrão no Windows</li>
+                    <li>• Para impressoras térmicas, use papel térmico de 58mm ou 80mm</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de resultado -->
+<div id="resultado-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div id="resultado-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full">
+                <!-- Ícone será inserido via JS -->
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2" id="resultado-titulo">Resultado</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500" id="resultado-mensagem">
+                    Processando...
+                </p>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button onclick="fecharModal()" 
+                        class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function mostrarModal(sucesso, mensagem) {
+    const modal = document.getElementById('resultado-modal');
+    const icon = document.getElementById('resultado-icon');
+    const titulo = document.getElementById('resultado-titulo');
+    const msg = document.getElementById('resultado-mensagem');
+    
+    if (sucesso) {
+        icon.innerHTML = '<svg class="h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        icon.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100';
+        titulo.textContent = 'Sucesso!';
+        titulo.className = 'text-lg leading-6 font-medium text-green-900 mt-2';
+    } else {
+        icon.innerHTML = '<svg class="h-12 w-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        icon.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100';
+        titulo.textContent = 'Erro!';
+        titulo.className = 'text-lg leading-6 font-medium text-red-900 mt-2';
+    }
+    
+    msg.textContent = mensagem;
+    modal.classList.remove('hidden');
+}
+
+function fecharModal() {
+    document.getElementById('resultado-modal').classList.add('hidden');
+}
+
+function getImpressoraSelecionada() {
+    const select = document.getElementById('impressora-select');
+    return select.value || null;
+}
+
+function imprimirTeste() {
+    const btn = event.target.closest('button');
+    const textoOriginal = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Imprimindo...';
+    
+    fetch("{% url 'pedidos:imprimir_teste' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            impressora: getImpressoraSelecionada()
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarModal(true, 'Teste enviado para impressora! Verifique se o papel saiu corretamente.');
+        } else {
+            mostrarModal(false, data.error || 'Erro ao imprimir');
+        }
+    })
+    .catch(error => {
+        mostrarModal(false, 'Erro de conexão: ' + error);
+    })
+    .finally(() => {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    });
+}
+
+function imprimirComandaTeste() {
+    alert('Funcionalidade em desenvolvimento');
+}
+</script>
+{% endblock %}

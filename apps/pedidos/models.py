@@ -60,6 +60,9 @@ class Pedido(models.Model):
     # Observações
     observacoes = models.TextField(blank=True)
     
+    # Controle de impressão
+    comanda_impressa = models.BooleanField(default=False)
+    
     # Datas
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)

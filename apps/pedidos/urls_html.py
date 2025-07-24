@@ -2,6 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from . import views_html
 from . import views_mesa
+from . import views_impressao
 
 app_name = 'pedidos'
 
@@ -25,6 +26,13 @@ urlpatterns = [
     # Views especiais
     path('<int:pk>/imprimir/', views_html.pedido_imprimir, name='pedido_print'),
     path('<int:pk>/comanda-cozinha/', views_html.pedido_comanda_cozinha, name='pedido_comanda_cozinha'),
+    
+    # Views de impressão
+    path('<int:pedido_id>/visualizar-comanda/', views_impressao.visualizar_comanda, name='visualizar_comanda'),
+    path('<int:pedido_id>/download-comanda/', views_impressao.download_comanda, name='download_comanda'),
+    path('<int:pedido_id>/imprimir-comanda/', views_impressao.imprimir_comanda, name='imprimir_comanda'),
+    path('testar-impressora/', views_impressao.testar_impressora, name='testar_impressora'),
+    path('imprimir-teste/', views_impressao.imprimir_teste, name='imprimir_teste'),
     
     # AJAX endpoints
     path('ajax/buscar-cliente/', views_html.ajax_buscar_cliente, name='ajax_buscar_cliente'),
