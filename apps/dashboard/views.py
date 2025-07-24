@@ -4,6 +4,9 @@ from rest_framework import status
 from datetime import datetime, timedelta
 from django.db.models import Sum, Count, Avg, F
 from django.core.cache import cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from apps.core.cache_utils import cache_result, get_cached_or_compute, CacheManager
 from apps.pedidos.models import Pedido, ItemPedido
 from apps.produtos.models import Produto
 from apps.estoque.models import Ingrediente
@@ -49,6 +52,9 @@ class VendasPeriodoView(APIView):
         else:
             data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
             data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
+        
+        # Cache key baseada no período
+        cache_key = f"vendas:periodo:{data_inicio}:{data_fim}"
         
         # Calcula métricas
         pedidos = Pedido.objects.filter(

@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
+from apps.core.cache_utils import CachedViewSetMixin, cache_result, CacheManager
 from .models import Pedido, ItemPedido, Mesa
 from .models_mesa import Mesa as MesaModel
 from .serializers import (
@@ -17,13 +18,16 @@ from .serializers import (
 from .utils import SupabaseHealthCheck, PedidoSupabaseManager
 from apps.produtos.models import Produto, ProdutoPreco, Tamanho
 
-class PedidoViewSet(viewsets.ModelViewSet):
+class PedidoViewSet(CachedViewSetMixin, viewsets.ModelViewSet):
     queryset = Pedido.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['tipo', 'cliente', 'forma_pagamento']
     search_fields = ['numero', 'cliente__nome', 'cliente__telefone']
     ordering_fields = ['criado_em', 'total']
     ordering = ['-criado_em']
+    # Cache por 2 minutos para pedidos (mudam frequentemente)
+    cache_timeout = 120
+    cache_type = 'pedidos'
     
     def get_serializer_class(self):
         if self.action == 'list':

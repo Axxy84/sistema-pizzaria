@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
+from apps.core.cache_utils import CachedViewSetMixin, cache_result, CacheManager
 from .models import Categoria, Tamanho, Produto, ProdutoPreco
 from .serializers import (
     CategoriaSerializer, TamanhoSerializer,
@@ -14,26 +15,35 @@ from .serializers import (
     ProdutoPrecoSerializer
 )
 
-class CategoriaViewSet(viewsets.ModelViewSet):
+class CategoriaViewSet(CachedViewSetMixin, viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['ativo']
     search_fields = ['nome']
+    # Cache por 1 hora para categorias (mudam pouco)
+    cache_timeout = 3600
+    cache_type = 'produtos'
 
-class TamanhoViewSet(viewsets.ModelViewSet):
+class TamanhoViewSet(CachedViewSetMixin, viewsets.ModelViewSet):
     queryset = Tamanho.objects.all()
     serializer_class = TamanhoSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['ativo']
+    # Cache por 1 hora para tamanhos (mudam pouco)
+    cache_timeout = 3600
+    cache_type = 'produtos'
 
-class ProdutoViewSet(viewsets.ModelViewSet):
+class ProdutoViewSet(CachedViewSetMixin, viewsets.ModelViewSet):
     queryset = Produto.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['categoria', 'ativo']
     search_fields = ['nome', 'descricao']
     ordering_fields = ['nome', 'criado_em']
     ordering = ['nome']
+    # Cache por 5 minutos para produtos
+    cache_timeout = 300
+    cache_type = 'produtos'
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -246,8 +256,11 @@ class ProdutoViewSet(viewsets.ModelViewSet):
             # Sobremesas e outros produtos vão para "outros"
             return 'outros'
 
-class ProdutoPrecoViewSet(viewsets.ModelViewSet):
+class ProdutoPrecoViewSet(CachedViewSetMixin, viewsets.ModelViewSet):
     queryset = ProdutoPreco.objects.all()
     serializer_class = ProdutoPrecoSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['produto', 'tamanho']
+    # Cache por 15 minutos para preços
+    cache_timeout = 900
+    cache_type = 'produtos'
