@@ -7,6 +7,8 @@ import unicodedata
 import re
 from decimal import Decimal
 from datetime import datetime
+import os
+import subprocess
 
 def limpar_texto_impressora(texto):
     """
@@ -234,13 +236,47 @@ def salvar_comanda_arquivo(pedido, caminho=None):
     
     return caminho
 
+def obter_porta_knup():
+    """
+    Obtém a porta USB configurada para a impressora KNUP
+    """
+    # Primeiro, verificar se existe arquivo de configuração
+    if os.path.exists('knup_porta.txt'):
+        try:
+            with open('knup_porta.txt', 'r') as f:
+                porta = f.read().strip()
+                if porta:
+                    return porta
+        except:
+            pass
+    
+    # Se não, tentar detectar automaticamente
+    for porta in ['USB001', 'USB002', 'USB003']:
+        # Testar se a porta existe tentando copiar um arquivo vazio
+        try:
+            with open('test_porta.tmp', 'w') as f:
+                f.write('')
+            
+            result = subprocess.run(f'copy test_porta.tmp {porta}', 
+                                  shell=True, capture_output=True, timeout=2)
+            
+            os.unlink('test_porta.tmp')
+            
+            if result.returncode == 0:
+                # Salvar para próxima vez
+                with open('knup_porta.txt', 'w') as f:
+                    f.write(porta)
+                return porta
+        except:
+            pass
+    
+    return None
+
 def imprimir_comanda_windows(pedido, impressora=None):
     """
-    Imprime comanda no Windows via comando print
+    Imprime comanda no Windows via comando copy direto para USB
     """
-    import subprocess
     import tempfile
-    import os
     
     # Gerar arquivo temporário
     with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='cp850', errors='replace') as f:
@@ -249,19 +285,31 @@ def imprimir_comanda_windows(pedido, impressora=None):
         arquivo_temp = f.name
     
     try:
-        if impressora:
-            # Imprimir em impressora específica
-            cmd = f'print /D:"{impressora}" "{arquivo_temp}"'
-        else:
-            # Imprimir na impressora padrão
-            cmd = f'print "{arquivo_temp}"'
+        # Obter porta USB da KNUP
+        porta_usb = obter_porta_knup()
         
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        
-        if result.returncode == 0:
-            return True, "Impressão enviada com sucesso"
+        if porta_usb:
+            # Usar COPY direto para a porta USB
+            cmd = f'copy "{arquivo_temp}" {porta_usb}'
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                return True, f"Impressão enviada com sucesso para {porta_usb}"
+            else:
+                return False, f"Erro ao enviar para {porta_usb}: {result.stderr}"
         else:
-            return False, f"Erro na impressão: {result.stderr}"
+            # Fallback: tentar comando print
+            if impressora:
+                cmd = f'print /D:"{impressora}" "{arquivo_temp}"'
+            else:
+                cmd = f'print "{arquivo_temp}"'
+            
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                return True, "Impressão enviada com sucesso"
+            else:
+                return False, f"Erro na impressão: {result.stderr}"
     
     except Exception as e:
         return False, f"Erro ao imprimir: {str(e)}"
