@@ -15,9 +15,4 @@ class Migration(migrations.Migration):
             name='comanda_impressa',
             field=models.BooleanField(default=False),
         ),
-        migrations.AddField(
-            model_name='pedido',
-            name='status',
-            field=models.CharField(choices=[('recebido', 'Recebido'), ('preparando', 'Preparando'), ('saindo', 'Saindo'), ('entregue', 'Entregue'), ('cancelado', 'Cancelado')], default='recebido', max_length=20),
-        ),
     ]
