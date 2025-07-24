@@ -34,6 +34,27 @@
     .tipo-mesa { @apply bg-purple-100 text-purple-800; }
     .tipo-delivery { @apply bg-green-100 text-green-800; }
     .tipo-balcao { @apply bg-gray-100 text-gray-800; }
+    
+    /* Animações */
+    @keyframes slide-in {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .animate-slide-in {
+        animation: slide-in 0.3s ease-out;
+    }
+    
+    /* Indicador de refresh discreto */
+    #refresh-indicator {
+        transition: opacity 0.3s ease-in-out;
+    }
 </style>
 {% endblock %}
 
@@ -46,7 +67,21 @@
                 <h1 class="text-2xl font-bold text-gray-900">Gestão de Pedidos</h1>
                 <p class="text-sm text-gray-600 mt-1">Gerencie todos os pedidos da pizzaria</p>
             </div>
-            <a href="{% url 'pedidos:pedido_rapido' %}" 
+            <div class="flex items-center gap-3">
+                <!-- Botão de controle de auto-refresh -->
+                <button id="toggle-refresh" onclick="toggleAutoRefresh()" 
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500"
+                        title="Pausar/Retomar verificação automática">
+                    <svg id="refresh-icon-pause" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <svg id="refresh-icon-play" class="w-4 h-4 mr-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span id="refresh-text">Pausar</span>
+                </button>
+                <a href="{% url 'pedidos:pedido_rapido' %}" 
                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pizza-600 hover:bg-pizza-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pizza-500">
                 <svg class="mr-2 -ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -402,6 +437,41 @@ function getCookie(name) {
     let ultimoCheckTimestamp = new Date().toISOString();
     let updateInterval;
     let notificationShown = false;
+    let isPaused = false;
+    
+    // Função global para toggle do auto-refresh
+    window.toggleAutoRefresh = function() {
+        isPaused = !isPaused;
+        const button = document.getElementById('toggle-refresh');
+        const pauseIcon = document.getElementById('refresh-icon-pause');
+        const playIcon = document.getElementById('refresh-icon-play');
+        const text = document.getElementById('refresh-text');
+        
+        if (isPaused) {
+            // Pausar
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            pauseIcon.classList.add('hidden');
+            playIcon.classList.remove('hidden');
+            text.textContent = 'Retomar';
+            button.classList.add('bg-yellow-50', 'border-yellow-300');
+            
+            // Mostrar notificação
+            mostrarNotificacaoStatus('Verificação automática pausada', 'warning');
+        } else {
+            // Retomar
+            gerenciarVerificacao();
+            pauseIcon.classList.remove('hidden');
+            playIcon.classList.add('hidden');
+            text.textContent = 'Pausar';
+            button.classList.remove('bg-yellow-50', 'border-yellow-300');
+            
+            // Mostrar notificação
+            mostrarNotificacaoStatus('Verificação automática retomada', 'success');
+        }
+    };
     
     // Função para verificar novos pedidos
     async function verificarNovosPedidos() {
@@ -412,6 +482,9 @@ function getCookie(name) {
                 console.log('User not authenticated, skipping API call');
                 return;
             }
+            
+            // Mostrar indicador de loading discreto
+            mostrarIndicadorLoading();
             
             // Pegar CSRF token
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
@@ -469,7 +542,77 @@ function getCookie(name) {
                     updateInterval = null;
                 }
             }
+        } finally {
+            // Sempre esconder o indicador de loading
+            esconderIndicadorLoading();
         }
+    }
+    
+    // Funções para indicador de loading
+    function mostrarIndicadorLoading() {
+        // Criar ou mostrar indicador discreto no canto superior direito
+        let indicator = document.getElementById('refresh-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'refresh-indicator';
+            indicator.className = 'fixed top-4 right-4 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs flex items-center gap-2 shadow-sm transition-opacity duration-300 z-40';
+            indicator.innerHTML = `
+                <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Verificando pedidos...</span>
+            `;
+            document.body.appendChild(indicator);
+        }
+        indicator.style.opacity = '1';
+    }
+    
+    function esconderIndicadorLoading() {
+        const indicator = document.getElementById('refresh-indicator');
+        if (indicator) {
+            indicator.style.opacity = '0';
+        }
+    }
+    
+    // Função para mostrar notificação de status
+    function mostrarNotificacaoStatus(mensagem, tipo = 'info') {
+        const container = document.querySelector('.mb-6');
+        if (!container) return;
+        
+        // Remover notificação anterior se existir
+        const oldNotification = document.querySelector('.status-notification');
+        if (oldNotification) {
+            oldNotification.remove();
+        }
+        
+        // Cores baseadas no tipo
+        const colors = {
+            'success': 'bg-green-50 border-green-400 text-green-800',
+            'warning': 'bg-yellow-50 border-yellow-400 text-yellow-800',
+            'info': 'bg-blue-50 border-blue-400 text-blue-800'
+        };
+        
+        // Criar nova notificação
+        const notification = document.createElement('div');
+        notification.className = `status-notification ${colors[tipo]} border-l-4 p-3 mb-4 rounded-r-lg shadow-sm flex items-center justify-between animate-slide-in text-sm`;
+        notification.innerHTML = `
+            <span>${mensagem}</span>
+            <button onclick="this.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Auto remover após 3 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 3000);
     }
     
     // Função para mostrar notificação de novos pedidos
@@ -560,6 +703,11 @@ function getCookie(name) {
     
     // Função para iniciar/parar verificação baseado na visibilidade da página
     function gerenciarVerificacao() {
+        // Não fazer nada se estiver pausado manualmente
+        if (isPaused) {
+            return;
+        }
+        
         if (document.hidden) {
             // Parar verificação quando a aba não está visível
             if (updateInterval) {
@@ -571,7 +719,7 @@ function getCookie(name) {
             if (!updateInterval) {
                 // Verificar imediatamente ao carregar a página
                 setTimeout(verificarNovosPedidos, 100); // Pequeno delay para garantir que a página carregou
-                updateInterval = setInterval(verificarNovosPedidos, 5000); // Verificar a cada 5 segundos (mais rápido)
+                updateInterval = setInterval(verificarNovosPedidos, 30000); // Verificar a cada 30 segundos
             }
         }
     }
