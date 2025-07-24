@@ -1,0 +1,51 @@
+INFORMAÇÕES DE CONEXÃO SUPABASE - SISTEMA PIZZARIA
+==================================================
+
+CREDENCIAIS DO BANCO DE DADOS:
+-----------------------------
+Host: aws-0-sa-east-1.pooler.supabase.com
+Porta: 5432
+Banco: postgres
+Usuário: postgres.aewcurtmikqelqykpqoa
+Senha: [VOCÊ DEVE FORNECER A SENHA DO SEU PROJETO SUPABASE]
+
+URL DE CONEXÃO COMPLETA:
+------------------------
+postgresql://postgres.aewcurtmikqelqykpqoa:SUA_SENHA_AQUI@aws-0-sa-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+
+ONDE ENCONTRAR A SENHA:
+-----------------------
+1. Acesse: https://app.supabase.com
+2. Selecione seu projeto
+3. Vá em Settings (Configurações)
+4. Clique em Database
+5. Em "Connection string" você verá a senha
+6. Ou em "Database password" clique em "Reveal"
+
+PROBLEMAS COMUNS:
+-----------------
+1. "Wrong password" - Senha incorreta
+   Solução: Verifique a senha no painel do Supabase
+
+2. "Connection timeout" - Problema de rede
+   Solução: Verifique firewall/internet
+
+3. "SSL required" - Falta configuração SSL
+   Solução: Adicione ?sslmode=require na URL
+
+4. "No such column: status" - Migrações não aplicadas
+   Solução: Execute: python manage.py migrate
+
+ARQUIVO .env EXEMPLO:
+---------------------
+DATABASE_HOST=aws-0-sa-east-1.pooler.supabase.com
+DATABASE_PORT=5432
+DATABASE_NAME=postgres
+DATABASE_USER=postgres.aewcurtmikqelqykpqoa
+DATABASE_PASSWORD=sua_senha_real_aqui
+
+TESTANDO A CONEXÃO:
+-------------------
+1. Configure o .env com a senha correta
+2. Execute: testar_conexao.bat
+3. Verifique os resultados do diagnóstico
