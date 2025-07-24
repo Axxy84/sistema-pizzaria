@@ -18,7 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
 from . import views
+
+# View dummy para URLs de autenticação (sistema sem login)
+def dummy_auth(request):
+    return redirect('home')
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -26,6 +31,11 @@ urlpatterns = [
     path('test-loading/', views.test_loading_view, name='test_loading'),
     path('api/dashboard-data/', views.dashboard_data_api, name='dashboard_data_api'),
     path('admin/', admin.site.urls),
+    
+    # URLs de autenticação (dummy - sistema sem autenticação)
+    path('login/', dummy_auth, name='login'),
+    path('logout/', dummy_auth, name='logout'),
+    path('register/', dummy_auth, name='register'),
     
     # URLs HTML dos apps
     path('dashboard/', include('apps.dashboard.urls')),
